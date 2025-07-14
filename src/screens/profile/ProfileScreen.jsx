@@ -12,7 +12,7 @@ const ProfileScreen = () => {
     const fetchUserData = async () => {
       try {
         const response = await authApi.getUser();
-        setUserData(response.data);
+        setUserData(response.data.user);
       } catch (error) {
         console.error('Error fetching user data:', error);
       } finally {
@@ -37,14 +37,14 @@ const ProfileScreen = () => {
       
       <View style={styles.profileInfo}>
         <Text style={styles.label}>Name:</Text>
-        <Text style={styles.value}>{userData?.name || 'N/A'}</Text>
+        <Text style={styles.value}>{userData?.username || 'N/A'}</Text>
         
         <Text style={styles.label}>Email:</Text>
         <Text style={styles.value}>{userData?.email || 'N/A'}</Text>
         
         <Text style={styles.label}>Member Since:</Text>
         <Text style={styles.value}>
-          {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}
+          {userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : 'N/A'}
         </Text>
       </View>
     </View>

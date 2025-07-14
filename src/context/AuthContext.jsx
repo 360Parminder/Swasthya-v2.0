@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       
       setAuthState({
         token: response.data.token,
-        user: response.data.data.user,
+        user: response.data.user,
         authenticated: true,
       });
       await Keychain.setGenericPassword('token', response.data.token);
