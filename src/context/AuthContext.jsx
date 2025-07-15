@@ -11,15 +11,18 @@ export const AuthProvider = ({ children }) => {
     authenticated: null,
   });
   const [isLoading, setIsLoading] = useState(true);
-
+  console.log('AuthProvider initialized with state:', authState);
+  
   useEffect(() => {
     const loadToken = async () => {
       try {
         const credentials = await Keychain.getGenericPassword();
+        console.log('Credentials loaded:', credentials);
         if (credentials) {
+          const response = await authApi.getUser(); // Fetch user data if needed
           setAuthState({
             token: credentials.password,
-            user: null,
+            user: response.data.user,
             authenticated: true,
           });
         }
@@ -34,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (mobile, password) => {
     try {
       const response = await authApi.login(mobile, password);
-      console.log('Login response:', response);
+      // console.log('Login response:', response);
       
       setAuthState({
         token: response.data.token,

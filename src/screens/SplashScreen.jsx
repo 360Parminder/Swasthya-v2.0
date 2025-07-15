@@ -5,7 +5,7 @@ import { colors } from '../config/colors';
 const SplashScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My App</Text>
+      <Text style={styles.title}>Swasthya</Text>
       <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );

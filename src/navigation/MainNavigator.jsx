@@ -4,7 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import { Ionicons } from '@expo/vector-icons'; // Import icons if using
+import Icon from 'react-native-vector-icons/Ionicons';
+import Medication from '../screens/medication/Medication';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -22,6 +23,14 @@ function HomeStackScreen() {
           headerShown: true,
           title: 'My Connections', // Custom title
         }} 
+      />
+      <HomeStack.Screen 
+        name="Medication" 
+        component={Medication} // Assuming Medication is also a connection screen
+          options={{ 
+            headerShown: true,
+            title: 'Medication', // Custom title for Medication
+        }}
       />
     </HomeStack.Navigator>
   );
@@ -50,9 +59,9 @@ const MainNavigator = () => {
         component={HomeStackScreen} 
         options={{
           title: 'Home',
-          // tabBarIcon: ({ color, size }) => (
-          //   <Ionicons name="home" color={color} size={size} />
-          // ),
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="home" color={color} size={size} />
+          ),
           headerShown: false,
         }}
       />
@@ -61,9 +70,9 @@ const MainNavigator = () => {
         component={ProfileStackScreen} 
         options={{
           title: 'Profile',
-          // tabBarIcon: ({ color, size }) => (
-          //   <Ionicons name="person" color={color} size={size} />
-          // ),
+                  tabBarIcon: ({ color, size }) => (
+                    <Icon name="person" color={color} size={size} />
+                  ),
           headerShown: false,
         }}
       />
