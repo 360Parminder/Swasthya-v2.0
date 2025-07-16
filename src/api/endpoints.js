@@ -1,6 +1,6 @@
 // src/api/endpoints.js
 
-const BASE_URL = process.env.API_URL || 'http://localhost:8003/api';
+const BASE_URL = 'http://localhost:8003';
 
 const endpoints = {
   auth: {
@@ -22,6 +22,11 @@ const endpoints = {
     getById: (id) => `${BASE_URL}/posts/${id}`,
     update: (id) => `${BASE_URL}/posts/${id}`,
     delete: (id) => `${BASE_URL}/posts/${id}`,
+  },
+  connections: {
+    find: (userId) => `${BASE_URL}/connection/${userId}`,
+    create: `${BASE_URL}/connections`,
+    delete: (id) => `${BASE_URL}/connections/${id}`,
   },
 };
 

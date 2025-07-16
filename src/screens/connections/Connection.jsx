@@ -2,11 +2,42 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
 import GeneralModal from '../../components/common/GeneralModal';
-
+import axios from 'axios';
+import endpoints from '../../api/endpoints';
+import Toast from 'react-native-toast-message';
+import apiClient from '../../api/apiClient';
+import { connectionApi } from '../../api/connectionApi';
 const Connection = () => {
   const [activeModal, setActiveModal] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [newConnectionEmail, setNewConnectionEmail] = useState('');
+  const [connection, setConnection] = useState(null);
+
+  const showToast = (type, message, subMessage = '') => {
+    Toast.show({
+      type,
+      text1: message,
+      text2: subMessage,
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 50,
+    });
+  };
+
+
+  const findConnection = async (userId) => {
+    try {
+      const response = await connectionApi.find(userId);
+      console.log('Connection found:', response.data);
+      
+      setConnection(response.data.user);
+      showToast('success', 'Connection Found', response.data.user.username);
+    } catch (error) {
+      console.error('Error finding connection:', error);
+      showToast('error', 'Connection Not Found', error.message);
+    }
+  };
+
 
   const openModal = (modalName) => setActiveModal(modalName);
   const closeModal = () => setActiveModal(null);
@@ -16,17 +47,14 @@ const Connection = () => {
     <View>
       <TextInput
         style={styles.input}
-        placeholder="Search by name or email"
+        placeholder="Search by User ID"
         value={searchInput}
         onChangeText={setSearchInput}
         autoFocus
       />
       <TouchableOpacity 
         style={styles.modalActionButton} 
-        onPress={() => {
-          console.log('Searching for:', searchInput);
-          closeModal();
-        }}
+        onPress={() => findConnection(searchInput)}
       >
         <Text style={styles.modalActionButtonText}>Search</Text>
       </TouchableOpacity>

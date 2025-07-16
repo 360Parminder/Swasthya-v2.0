@@ -5,6 +5,8 @@ import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
 import SplashScreen from '../screens/SplashScreen';
 import { useAuth } from '../context/AuthContext';
+import { toastConfig } from '../config/toastConfig';
+import Toast from 'react-native-toast-message';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,16 +18,19 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {authState?.token ? (
-          <Stack.Screen name="Main" component={MainNavigator} />
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-        
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+      
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {authState?.token ? (
+            <Stack.Screen name="Main" component={MainNavigator} />
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
   );
 };
 
