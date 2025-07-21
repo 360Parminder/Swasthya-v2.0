@@ -24,7 +24,6 @@ const Connection = () => {
     });
   };
 
-
   const findConnection = async (userId) => {
     try {
       const response = await connectionApi.find(userId);
