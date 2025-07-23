@@ -33,8 +33,6 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      
       <View style={styles.profileInfo}>
         <Text style={styles.label}>Name:</Text>
         <Text style={styles.value}>{userData?.username || 'N/A'}</Text>

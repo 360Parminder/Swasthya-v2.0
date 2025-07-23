@@ -50,7 +50,7 @@ const MainNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: 'tomato',
+        tabBarActiveTintColor: '#4979FB',
         tabBarInactiveTintColor: 'gray',
       }}
     >
@@ -73,7 +73,7 @@ const MainNavigator = () => {
                   tabBarIcon: ({ color, size }) => (
                     <Icon name="person" color={color} size={size} />
                   ),
-          headerShown: false,
+          headerShown: true,
         }}
       />
     </Tab.Navigator>

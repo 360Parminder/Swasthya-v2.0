@@ -1,6 +1,6 @@
 // src/screens/connections/Connection.js
-import { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, Image } from 'react-native';
 import GeneralModal from '../../components/common/GeneralModal';
 import axios from 'axios';
 import endpoints from '../../api/endpoints';
@@ -28,7 +28,7 @@ const Connection = () => {
     try {
       const response = await connectionApi.find(userId);
       console.log('Connection found:', response.data);
-      
+      console.log('Connection data:', response.data.user);
       setConnection(response.data.user);
       showToast('success', 'Connection Found', response.data.user.username);
     } catch (error) {
@@ -36,6 +36,20 @@ const Connection = () => {
       showToast('error', 'Connection Not Found', error.message);
     }
   };
+
+  const sendRequest = async (receiverId) => {
+    console.log('Sending connection request to:', receiverId);
+    
+    try {
+      const response = await connectionApi.sendRequest(receiverId);
+      console.log('Connection request sent:', response.data);
+      showToast('success', 'Connection Request Sent');
+    } catch (error) {
+      console.log('Error sending connection request:', error);
+      showToast('error', error.response?.data?.message || 'An error occurred');
+    }
+  }
+
 
 
   const openModal = (modalName) => setActiveModal(modalName);
@@ -51,47 +65,128 @@ const Connection = () => {
         onChangeText={setSearchInput}
         autoFocus
       />
-      <TouchableOpacity 
-        style={styles.modalActionButton} 
+      <TouchableOpacity
+        style={styles.modalActionButton}
         onPress={() => findConnection(searchInput)}
       >
         <Text style={styles.modalActionButtonText}>Search</Text>
       </TouchableOpacity>
+      <View style={{ marginTop: 20 }}>
+        {connection && (
+          <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 8, marginTop: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1 , elevation: 4 }}>
+            <View style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center' }}>
+              <Image
+                source={{ uri: connection.avatar }}
+                style={{ width: 50, height: 50, borderRadius: 15 }}
+              />
+              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{connection.username}</Text>
+            </View>
+            <TouchableOpacity onPress={() => sendRequest(connection.userId)} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', padding: 10, borderRadius: 8 }}>
+              <Text style={{ fontSize: 16, color: '#fff' }}>Send Request</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </View>
   );
 
-  const AddConnectionModalContent = () => (
+  const [requests, setRequests] = useState([]);
+
+  const fetchRequests = async () => {
+    try {
+      // Replace with your actual API call
+      const response = await connectionApi.viewPending();
+      // Filter out nulls
+      setRequests((response.data.connections || []).filter(Boolean));
+    } catch (error) {
+      showToast('error', error.response?.data?.message || 'Failed to fetch requests');
+    }
+  };
+
+  // Fetch requests when modal opens
+  useEffect(() => {
+    if (activeModal === 'request') {
+      fetchRequests();
+    }
+  }, [activeModal]);
+
+  const ViewRequestModalContent = () => (
     <View>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter email address"
-        value={newConnectionEmail}
-        onChangeText={setNewConnectionEmail}
-        autoFocus
-        keyboardType="email-address"
-      />
-      <TouchableOpacity 
-        style={[styles.modalActionButton, { backgroundColor: '#34C759' }]} 
-        onPress={() => {
-          console.log('Adding connection:', newConnectionEmail);
-          closeModal();
-        }}
-      >
-        <Text style={styles.modalActionButtonText}>Send Request</Text>
-      </TouchableOpacity>
+      {requests.length === 0 ? (
+        <Text>No connection requests found.</Text>
+      ) : (
+        requests.map((req) => (
+          <View
+            key={req._id}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 16,
+              backgroundColor: '#fff',
+              borderRadius: 8,
+              padding: 10,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 1,
+              elevation: 2,
+            }}
+          >
+            <Image
+              source={{ uri: req.avatar }}
+              style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{req.username}</Text>
+              <Text style={{ color: '#555', fontSize: 14 }}>{req.email}</Text>
+            </View>
+            <View style={{ marginLeft: 8 }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#007AFF',
+                  borderRadius: 6,
+                  paddingVertical: 6,
+                  paddingHorizontal: 10,
+                  marginBottom: 4,
+                }}
+                onPress={() => {
+                  // Accept logic here
+                  // Example: acceptRequest(req._id)
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '600' }}>Accept</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#FF3B30',
+                  borderRadius: 6,
+                  paddingVertical: 6,
+                  paddingHorizontal: 10,
+                }}
+                onPress={() => {
+                  // Reject logic here
+                  // Example: rejectRequest(req._id)
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '600' }}>Reject</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))
+      )}
     </View>
   );
 
   const ViewConnectionsModalContent = () => (
     <View>
-      <TouchableOpacity 
-        style={styles.modalActionButton} 
+      <TouchableOpacity
+        style={styles.modalActionButton}
         onPress={() => console.log('View all connections')}
       >
         <Text style={styles.modalActionButtonText}>View All Connections</Text>
       </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.modalActionButton, { marginTop: 12 }]} 
+      <TouchableOpacity
+        style={[styles.modalActionButton, { marginTop: 12 }]}
         onPress={() => console.log('View pending connections')}
       >
         <Text style={styles.modalActionButtonText}>Pending Requests</Text>
@@ -113,11 +208,11 @@ const Connection = () => {
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.secondaryButton, { backgroundColor: '#34C759' }]}
-          onPress={() => openModal('add')}
+          onPress={() => openModal('request')}
         >
-          <Text style={styles.buttonText}>Add Connection</Text>
+          <Text style={styles.buttonText}>View Connection Requests</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[styles.secondaryButton, { backgroundColor: '#FF9500' }]}
           onPress={() => openModal('view')}
@@ -137,11 +232,11 @@ const Connection = () => {
 
       {/* Add Connection Modal */}
       <GeneralModal
-        visible={activeModal === 'add'}
+        visible={activeModal === 'request'}
         onClose={closeModal}
-        title="Add New Connection"
+        title="Connection Requests"
       >
-        <AddConnectionModalContent />
+        <ViewRequestModalContent />
       </GeneralModal>
 
       {/* View Connections Modal */}

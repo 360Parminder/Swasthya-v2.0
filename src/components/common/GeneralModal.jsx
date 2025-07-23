@@ -1,6 +1,6 @@
 // src/components/common/GeneralModal.js
 import { StyleSheet, View, Modal, TouchableOpacity, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const GeneralModal = ({ 
   visible, 
@@ -22,8 +22,7 @@ const GeneralModal = ({
           <View style={styles.modalHeader}>
             {closeButtonPosition === 'top-left' && (
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                {/* <Ionicons name="close" size={24} color="#333" /> */}
-                <Text style={{ color: '#333' }}>X</Text>
+                <Icon name="close" color="#333" size={24} />
               </TouchableOpacity>
             )}
             
@@ -31,8 +30,8 @@ const GeneralModal = ({
             
             {closeButtonPosition === 'top-right' && (
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                {/* <Ionicons name="close" size={24} color="#333" /> */}
-                <Text style={{ color: '#333' }}>X</Text>
+                {/* <Icon name="close" color="#333" size={24} /> */}
+                <Text style={{ fontSize: 18, color: '#333' }}>Close</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -52,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    // backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContainer: {
     width: '100%',
