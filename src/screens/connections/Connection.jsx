@@ -7,11 +7,14 @@ import endpoints from '../../api/endpoints';
 import Toast from 'react-native-toast-message';
 import apiClient from '../../api/apiClient';
 import { connectionApi } from '../../api/connectionApi';
+import { useAuth } from '../../context/AuthContext';
 const Connection = () => {
+   const { authState, logout } = useAuth();
   const [activeModal, setActiveModal] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [newConnectionEmail, setNewConnectionEmail] = useState('');
   const [connection, setConnection] = useState(null);
+  const [requests, setRequests] = useState([]);
 
   const showToast = (type, message, subMessage = '') => {
     Toast.show({
@@ -22,6 +25,18 @@ const Connection = () => {
       autoHide: true,
       topOffset: 50,
     });
+  };
+
+
+  const fetchRequests = async () => {
+    try {
+      // Replace with your actual API call
+      const response = await connectionApi.viewPending();
+      // Filter out nulls
+      setRequests((response.data.connections || []).filter(Boolean));
+    } catch (error) {
+      showToast('error', error.response?.data?.message || 'Failed to fetch requests');
+    }
   };
 
   const findConnection = async (userId) => {
@@ -49,6 +64,18 @@ const Connection = () => {
       showToast('error', error.response?.data?.message || 'An error occurred');
     }
   }
+
+  const updateConnection = async (senderId,status) => {
+    try {
+      const response = await connectionApi.updateRequest(senderId, status);
+      console.log('Connection updated:', response.data);
+      await fetchRequests(); // Refresh requests after update
+      showToast('success', 'Connection Updated');
+    } catch (error) {
+      console.log('Error updating connection:', error);
+      showToast('error', error.response?.data?.message || 'An error occurred');
+    }
+  };
 
 
 
@@ -90,18 +117,7 @@ const Connection = () => {
     </View>
   );
 
-  const [requests, setRequests] = useState([]);
-
-  const fetchRequests = async () => {
-    try {
-      // Replace with your actual API call
-      const response = await connectionApi.viewPending();
-      // Filter out nulls
-      setRequests((response.data.connections || []).filter(Boolean));
-    } catch (error) {
-      showToast('error', error.response?.data?.message || 'Failed to fetch requests');
-    }
-  };
+ 
 
   // Fetch requests when modal opens
   useEffect(() => {
@@ -110,72 +126,76 @@ const Connection = () => {
     }
   }, [activeModal]);
 
-  const ViewRequestModalContent = () => (
-    <View>
-      {requests.length === 0 ? (
-        <Text>No connection requests found.</Text>
-      ) : (
-        requests.map((req) => (
-          <View
-            key={req._id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 16,
-              backgroundColor: '#fff',
-              borderRadius: 8,
-              padding: 10,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.2,
-              shadowRadius: 1,
-              elevation: 2,
-            }}
-          >
-            <Image
-              source={{ uri: req.avatar }}
-              style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{req.username}</Text>
-              <Text style={{ color: '#555', fontSize: 14 }}>{req.email}</Text>
+  const ViewRequestModalContent = () => {
+
+    // Filter out requests where the user id matches the logged-in user
+    const filteredRequests = requests.filter(req => req._id !== authState.user.id);
+
+    return (
+      <View>
+        { filteredRequests.length === 0 ? (
+          <Text>No connection requests found.</Text>
+        ) : (
+          filteredRequests.map((req) => (
+            <View
+              key={req._id}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 16,
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                padding: 10,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.2,
+                shadowRadius: 1,
+                elevation: 2,
+              }}
+            >
+              <Image
+                source={{ uri: req.avatar }}
+                style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{req.username}</Text>
+                <Text style={{ color: '#555', fontSize: 14 }}>{req.email}</Text>
+              </View>
+              <View style={{ marginLeft: 8 }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#007AFF',
+                    borderRadius: 6,
+                    paddingVertical: 6,
+                    paddingHorizontal: 10,
+                    marginBottom: 4,
+                  }}
+                  onPress={() => {
+                    updateConnection(req._id, 'accepted');
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>Accept</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#FF3B30',
+                    borderRadius: 6,
+                    paddingVertical: 6,
+                    paddingHorizontal: 10,
+                  }}
+                  onPress={() => {
+                    updateConnection(req._id, 'rejected');
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>Reject</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={{ marginLeft: 8 }}>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: '#007AFF',
-                  borderRadius: 6,
-                  paddingVertical: 6,
-                  paddingHorizontal: 10,
-                  marginBottom: 4,
-                }}
-                onPress={() => {
-                  // Accept logic here
-                  // Example: acceptRequest(req._id)
-                }}
-              >
-                <Text style={{ color: '#fff', fontWeight: '600' }}>Accept</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: '#FF3B30',
-                  borderRadius: 6,
-                  paddingVertical: 6,
-                  paddingHorizontal: 10,
-                }}
-                onPress={() => {
-                  // Reject logic here
-                  // Example: rejectRequest(req._id)
-                }}
-              >
-                <Text style={{ color: '#fff', fontWeight: '600' }}>Reject</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
-      )}
-    </View>
-  );
+          ))
+        )}
+      </View>
+    );
+  };
 
   const ViewConnectionsModalContent = () => (
     <View>

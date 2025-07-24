@@ -6,6 +6,7 @@ import * as yup from 'yup';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import Toast from 'react-native-toast-message';
 
 const schema = yup.object().shape({
   mobile: yup.string().required('Mobile number is required'),
@@ -18,11 +19,24 @@ const SignInScreen = ({ navigation }) => {
     resolver: yupResolver(schema),
   });
 
+ const showToast = (type, message, subMessage = '') => {
+    Toast.show({
+      type,
+      text1: message,
+      text2: subMessage,
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 50,
+    });
+  };
+
   const onSubmit = async (data) => {
     try {
       await login(data.mobile, data.password);
+      showToast('success', 'Welcome back!');
     } catch (error) {
-      console.error('Login error:', error);
+      showToast('error', error.response?.data?.message || 'An error occurred');
+
     }
   };
 

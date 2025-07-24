@@ -5,4 +5,5 @@ export const connectionApi = {
     sendRequest: (receiverId) => apiClient.post(`/connection`, { receiverId }),
     viewAll: () => apiClient.get(`/connection`),
     viewPending: () => apiClient.get(`/connection/allRequest`),
+    updateRequest: (senderId, status) => apiClient.put(`/connection`, {senderId, status }),
 };

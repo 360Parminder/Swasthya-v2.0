@@ -33,7 +33,7 @@ const HomeScreen = () => {
         </TouchableOpacity>
         
       </View>
-      {/* <Button title="Logout" onPress={logout} /> */}
+      <Button title="Logout" onPress={logout} />
     </View>
   );
 };
