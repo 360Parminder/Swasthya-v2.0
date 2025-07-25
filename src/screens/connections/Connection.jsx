@@ -77,8 +77,6 @@ const Connection = () => {
     }
   };
 
-
-
   const openModal = (modalName) => setActiveModal(modalName);
   const closeModal = () => setActiveModal(null);
 
