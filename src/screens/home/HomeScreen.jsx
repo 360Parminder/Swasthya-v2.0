@@ -19,14 +19,22 @@ const HomeScreen = () => {
           <Text style={styles.subtitle}>{authState.user?.email}</Text>
         </View>
       </View>
-      <View style={{ marginTop: 20, display: 'flex',flexWrap: 'wrap', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',width:300 }}>
-        <TouchableOpacity onPress={() => navigation.navigate('Medication')} style={{ marginTop: 20, padding: 10, backgroundColor:"lightblue", borderRadius: 5 }}>
+      <View style={{ marginTop: 20, display: 'flex',flexWrap: 'wrap', flexDirection: 'column' }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Medication')} style={{width: '100%', display:'flex',flexDirection: 'row', marginTop: 20, padding: 10, backgroundColor:"lightblue", borderRadius: 5 }}>
           <Text style={{ color: 'black' }}>
             Medication
           </Text>
+         <Image
+           source={require('../../assets/images/medication.png')}
+           style={{ width: 100, height: 100, marginBottom: 5 }}
+         />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Connections')}  style={{ marginTop: 20, padding: 10, backgroundColor:"lightblue", borderRadius: 5 }}>
+          <Image
+            source={require('../../assets/images/connections.png')}
+            style={{ width: 30, height: 30, marginBottom: 5 }}
+          />
           <Text style={{ color: 'black' }}>
             Connections
           </Text>

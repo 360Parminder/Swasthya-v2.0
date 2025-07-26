@@ -9,12 +9,13 @@ import apiClient from '../../api/apiClient';
 import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
 const Connection = () => {
-   const { authState, logout } = useAuth();
+  const { authState } = useAuth();
   const [activeModal, setActiveModal] = useState(null);
   const [searchInput, setSearchInput] = useState('');
-  const [newConnectionEmail, setNewConnectionEmail] = useState('');
   const [connection, setConnection] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [connections, setConnections] = useState([]);
+
 
   const showToast = (type, message, subMessage = '') => {
     Toast.show({
@@ -54,7 +55,7 @@ const Connection = () => {
 
   const sendRequest = async (receiverId) => {
     console.log('Sending connection request to:', receiverId);
-    
+
     try {
       const response = await connectionApi.sendRequest(receiverId);
       console.log('Connection request sent:', response.data);
@@ -65,7 +66,7 @@ const Connection = () => {
     }
   }
 
-  const updateConnection = async (senderId,status) => {
+  const updateConnection = async (senderId, status) => {
     try {
       const response = await connectionApi.updateRequest(senderId, status);
       console.log('Connection updated:', response.data);
@@ -76,9 +77,26 @@ const Connection = () => {
       showToast('error', error.response?.data?.message || 'An error occurred');
     }
   };
-
+  const fetchConnections = async () => {
+    try {
+      const response = await connectionApi.viewAll() || [];
+      setConnections(response.data.connections || []);
+    } catch (error) {
+      showToast('error', error.response?.data?.message || 'Failed to fetch connections');
+    }
+  };
   const openModal = (modalName) => setActiveModal(modalName);
   const closeModal = () => setActiveModal(null);
+
+  // Fetch requests when modal opens
+  useEffect(() => {
+    if (activeModal === 'request') {
+      fetchRequests();
+    } else if (activeModal === 'view') {
+      fetchConnections();
+    }
+
+  }, [activeModal]);
 
   // Modal content components
   const SearchModalContent = () => (
@@ -98,7 +116,7 @@ const Connection = () => {
       </TouchableOpacity>
       <View style={{ marginTop: 20 }}>
         {connection && (
-          <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 8, marginTop: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1 , elevation: 4 }}>
+          <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 8, marginTop: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1, elevation: 4 }}>
             <View style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center' }}>
               <Image
                 source={{ uri: connection.avatar }}
@@ -106,7 +124,7 @@ const Connection = () => {
               />
               <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{connection.username}</Text>
             </View>
-            <TouchableOpacity onPress={() => sendRequest(connection.userId)} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', padding: 10, borderRadius: 8 }}>
+            <TouchableOpacity onPress={() => sendRequest(connection.userId)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', padding: 10, borderRadius: 8 }}>
               <Text style={{ fontSize: 16, color: '#fff' }}>Send Request</Text>
             </TouchableOpacity>
           </View>
@@ -115,15 +133,6 @@ const Connection = () => {
     </View>
   );
 
- 
-
-  // Fetch requests when modal opens
-  useEffect(() => {
-    if (activeModal === 'request') {
-      fetchRequests();
-    }
-  }, [activeModal]);
-
   const ViewRequestModalContent = () => {
 
     // Filter out requests where the user id matches the logged-in user
@@ -131,7 +140,7 @@ const Connection = () => {
 
     return (
       <View>
-        { filteredRequests.length === 0 ? (
+        {filteredRequests.length === 0 ? (
           <Text>No connection requests found.</Text>
         ) : (
           filteredRequests.map((req) => (
@@ -197,18 +206,38 @@ const Connection = () => {
 
   const ViewConnectionsModalContent = () => (
     <View>
-      <TouchableOpacity
-        style={styles.modalActionButton}
-        onPress={() => console.log('View all connections')}
-      >
-        <Text style={styles.modalActionButtonText}>View All Connections</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.modalActionButton, { marginTop: 12 }]}
-        onPress={() => console.log('View pending connections')}
-      >
-        <Text style={styles.modalActionButtonText}>Pending Requests</Text>
-      </TouchableOpacity>
+      {connections.length === 0 ? (
+        <Text>No connections found.</Text>
+      ) : (
+        connections.map(conn => (
+          <View
+            key={conn._id}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 16,
+              backgroundColor: '#fff',
+              borderRadius: 8,
+              padding: 10,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 1,
+              elevation: 2,
+            }}
+          >
+            <Image
+              source={{ uri: conn.avatar }}
+              style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{conn.username}</Text>
+              <Text style={{ color: '#555', fontSize: 14 }}>{conn.email}</Text>
+              <Text style={{ color: '#555', fontSize: 14 }}>{conn.mobile}</Text>
+            </View>
+          </View>
+        ))
+      )}
     </View>
   );
 
