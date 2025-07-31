@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/authApi';
+import { COLORS } from '../../components/ui/colors';
 
 const ProfileScreen = () => {
   const { authState } = useAuth();
@@ -53,6 +54,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,

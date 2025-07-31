@@ -1,6 +1,7 @@
 // src/components/common/GeneralModal.js
 import { StyleSheet, View, Modal, TouchableOpacity, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { COLORS } from '../ui/colors';
 
 const GeneralModal = ({ 
   visible, 
@@ -31,7 +32,7 @@ const GeneralModal = ({
             {closeButtonPosition === 'top-right' && (
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 {/* <Icon name="close" color="#333" size={24} /> */}
-                <Text style={{ fontSize: 18, color: '#333' }}>Close</Text>
+                <Text style={{ fontSize: 18, color: COLORS.text }}>Close</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '70%',
     // maxWidth: 400,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.cardBackground,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     overflow: 'hidden',
@@ -68,16 +69,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: COLORS.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',
+    color: COLORS.text,
   },
   closeButton: {
     padding: 4,
+    borderRadius: 20,
+    // backgroundColor: COLORS.buttonBackground,
+   
   },
   modalContent: {
     padding: 20,

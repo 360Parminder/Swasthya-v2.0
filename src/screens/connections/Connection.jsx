@@ -5,6 +5,7 @@ import GeneralModal from '../../components/common/GeneralModal';
 import Toast from 'react-native-toast-message';
 import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
+import { COLORS } from '../../components/ui/colors';
 const Connection = () => {
   const { authState } = useAuth();
   const [activeModal, setActiveModal] = useState(null);
@@ -213,7 +214,7 @@ const Connection = () => {
               flexDirection: 'row',
               alignItems: 'center',
               marginBottom: 16,
-              backgroundColor: '#fff',
+              backgroundColor: COLORS.background,
               borderRadius: 8,
               padding: 10,
               shadowColor: '#000',
@@ -228,9 +229,9 @@ const Connection = () => {
               style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
             />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{conn.username}</Text>
-              <Text style={{ color: '#555', fontSize: 14 }}>{conn.email}</Text>
-              <Text style={{ color: '#555', fontSize: 14 }}>{conn.mobile}</Text>
+              <Text style={{ fontWeight: 'bold', fontSize: 16,color:COLORS.text }}>{conn.username}</Text>
+              <Text style={{ color:COLORS.textSecondary, fontSize: 14 }}>{conn.email}</Text>
+              <Text style={{ color:COLORS.textSecondary, fontSize: 14 }}>{conn.mobile}</Text>
             </View>
           </View>
         ))
@@ -242,26 +243,37 @@ const Connection = () => {
     <View style={styles.container}>
       {/* Search Connections Button */}
       <TouchableOpacity
-        style={styles.mainButton}
+        style={styles.card}
         onPress={() => openModal('search')}
       >
-        <Text style={styles.buttonText}>Search Connections</Text>
+        <Image source={require('../../../assets/images/searching.png')} style={styles.cardImage} />
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardHeader}>Search Connections</Text>
+          <Text style={styles.cardSubheading}>Find and connect with others</Text>
+        </View>
       </TouchableOpacity>
 
       {/* Action Buttons Row */}
       <View style={styles.buttonRow}>
         <TouchableOpacity
-          style={[styles.secondaryButton, { backgroundColor: '#34C759' }]}
+          style={styles.card}
           onPress={() => openModal('request')}
         >
-          <Text style={styles.buttonText}>View Connection Requests</Text>
+          <Image source={require('../../../assets/images/request.png')} style={styles.cardImage} />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>Connection Requests</Text>
+            <Text style={styles.cardSubheading}>View and manage requests</Text>
+          </View>
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={[styles.secondaryButton, { backgroundColor: '#FF9500' }]}
+          style={[styles.card,]}
           onPress={() => openModal('view')}
         >
-          <Text style={styles.buttonText}>View Connections</Text>
+          <Image source={require('../../../assets/images/connections.png')} style={styles.cardImage} />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>Connections</Text>
+            <Text style={styles.cardSubheading}>View your connections</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -299,29 +311,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
   },
-  mainButton: {
-    padding: 16,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
+  card: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 16,
+    // elevation: 2, // Shadow for Android
+    // shadowColor: '#000', // Shadow for iOS
+    // shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.09,
+    shadowRadius: 8,
+    marginBottom: 15,
+  },
+  cardImage: {
+    width: 64,
+    height: 64,
+    marginRight: 18,
+  },
+  cardTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  cardHeader: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ebebebff',
+  },
+  cardSubheading: {
+    fontSize: 15,
+    color: '#ebebebff',
+    marginTop: 4,
+    fontWeight: '400',
   },
   buttonRow: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
-  secondaryButton: {
-    width: '48%',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
+  
   buttonText: {
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
+    textAlign: 'center',
   },
   input: {
     borderWidth: 1,

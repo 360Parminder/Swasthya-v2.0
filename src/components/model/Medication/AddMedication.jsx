@@ -15,6 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
+import { COLORS } from '../../ui/colors';
 
 const AddMedication = ({ isVisible, onClose, onMedicationAdded }) => {
     // Form state
@@ -386,13 +387,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'transparent',
     },
     modalContainer: {
         width: '100%',
         height: '80%',
         // maxWidth: 400,
-        backgroundColor: 'white',
+        backgroundColor: COLORS.cardBackground,
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
         overflow: 'hidden',

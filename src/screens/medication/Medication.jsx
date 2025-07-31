@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication'; // Import the AddMedication component
+import { COLORS } from '../../components/ui/colors';
 
 const Medication = () => {
   const [showAddMedicationModal, setShowAddMedicationModal] = useState(false);
@@ -52,11 +53,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
   },
   mainButton: {
     padding: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 20,
