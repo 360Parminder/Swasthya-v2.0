@@ -2,10 +2,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput, Image } from 'react-native';
 import GeneralModal from '../../components/common/GeneralModal';
-import axios from 'axios';
-import endpoints from '../../api/endpoints';
 import Toast from 'react-native-toast-message';
-import apiClient from '../../api/apiClient';
 import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
 const Connection = () => {

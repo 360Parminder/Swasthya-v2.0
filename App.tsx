@@ -10,9 +10,11 @@ import { toastConfig } from './src/config/toastConfig';
 const App = () => {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       <AuthProvider>
-        <AppNavigator />
+        <SafeAreaProvider>
+          <AppNavigator />
+        </SafeAreaProvider>
       </AuthProvider>
       <Toast
         config={toastConfig} 

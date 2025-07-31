@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button, Touchable, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Button, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -9,37 +9,47 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-     <View style={{ alignItems: 'center', marginBottom: 20,display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-       <Image
-         source={{ uri: authState.user?.avatar }}
-         style={styles.profilePicture}
-       />
-        <View style={{ marginLeft: 10 }}>
-          <Text style={styles.title}>Hello {authState.user?.username || 'User'}</Text>
-          <Text style={styles.subtitle}>{authState.user?.email}</Text>
+      <View style={styles.headerBar}>
+        <View style={styles.headerContent}>
+          <Image
+            source={{ uri: authState.user?.avatar }}
+            style={styles.profilePicture}
+          />
+          <View style={{ marginLeft: 10 }}>
+            <Text style={styles.title}>Hello</Text>
+            <Text style={styles.subtitle}>{authState.user?.username || 'User'}</Text>
+          </View>
         </View>
       </View>
-      <View style={{ marginTop: 20, display: 'flex',flexWrap: 'wrap', flexDirection: 'column' }}>
-        <TouchableOpacity onPress={() => navigation.navigate('Medication')} style={{width: '100%', display:'flex',flexDirection: 'row', marginTop: 20, padding: 10, backgroundColor:"lightblue", borderRadius: 5 }}>
-          <Text style={{ color: 'black' }}>
-            Medication
-          </Text>
-         <Image
-           source={require('../../assets/images/medication.png')}
-           style={{ width: 100, height: 100, marginBottom: 5 }}
-         />
+
+      <View style={styles.cards}>
+        {/* Medication Card */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Medication')}
+          style={styles.card}>
+          <Image
+            source={require('../../../assets/images/medication.png')}
+            style={styles.cardImage}
+          />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>Medication</Text>
+            <Text style={styles.cardSubheading}>View and track your medicines</Text>
+          </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Connections')}  style={{ marginTop: 20, padding: 10, backgroundColor:"lightblue", borderRadius: 5 }}>
+        {/* Connections Card */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Connections')}
+          style={styles.card}>
           <Image
-            source={require('../../assets/images/connections.png')}
-            style={{ width: 30, height: 30, marginBottom: 5 }}
+            source={require('../../../assets/images/connections.png')}
+            style={styles.cardImage}
           />
-          <Text style={{ color: 'black' }}>
-            Connections
-          </Text>
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>Connections</Text>
+            <Text style={styles.cardSubheading}>Manage your care circle</Text>
+          </View>
         </TouchableOpacity>
-        
       </View>
       <Button title="Logout" onPress={logout} />
     </View>
@@ -49,24 +59,76 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 50,
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#14161A',
+  },
+  headerBar: {
+    width: '100%',
+    marginBottom: 20, 
+    borderRadius: 10,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 18,
+    fontFamily: 'Rubik-Regular',
+    color: '#e0e0e0ff',
+    fontWeight: '600',
   },
   subtitle: {
-    fontSize: 16,
-    marginBottom: 20,
+    fontSize: 18,
+    fontFamily: 'Rubik-SemiBold',
+    color: '#e0e0e0ff',
   },
   profilePicture: {
     width: 50,
     height: 50,
     borderRadius: 10,
-    marginBottom: 20,
+  },
+  cards: {
+    width: '100%',
+    marginTop: 20,
+    gap: 20,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#292c339e',
+    borderColor: '#3D414D',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 16,
+    // elevation: 2, // Shadow for Android
+    // shadowColor: '#000', // Shadow for iOS
+    // shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.09,
+    shadowRadius: 8,
+    marginBottom: 15,
+  },
+  cardImage: {
+    width: 64,
+    height: 64,
+    marginRight: 18,
+  },
+  cardTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  cardHeader: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ebebebff',
+  },
+  cardSubheading: {
+    fontSize: 15,
+    color: '#ebebebff',
+    marginTop: 4,
+    fontWeight: '400',
   },
 });
 

@@ -186,7 +186,7 @@ const AddMedication = ({ isVisible, onClose, onMedicationAdded }) => {
                                 onPress={() => handleInputChange('form', form.toLowerCase())}
                             >
                                <Image
-                                   source={formData.form === form.toLowerCase() ? require('../../../assets/images/jar.png') : require('../../../assets/images/purple.png')}
+                                   source={formData.form === form.toLowerCase() ? require('../../../../assets/images/jar.png') : require('../../../../assets/images/purple.png')}
                                    style={styles.icon}
                                />
                                 {/* <Icon name={`medkit-outline`} size={24} color={formData.form === form.toLowerCase() ? 'white' : '#333'} /> */}
