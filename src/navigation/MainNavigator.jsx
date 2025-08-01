@@ -82,7 +82,7 @@ function ProfileStackScreen() {
         headerTitleStyle: { fontWeight: 'bold' },
         headerTitleAlign: 'center',
         headerShadowVisible: false,
-        headerTitle: route.name === 'HomeMain' ? 'Home' : route.name,
+        headerTitle: route.name === 'ProfileMain' ? 'Your Profile' : route.name,
         // headerLeft: ({ canGoBack }) =>
         //   canGoBack ? (
         //     <Icon
@@ -97,7 +97,7 @@ function ProfileStackScreen() {
 
       
     })}>
-      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen}  />
     </ProfileStack.Navigator>
   );
 }

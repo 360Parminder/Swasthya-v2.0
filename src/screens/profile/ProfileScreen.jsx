@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, Touchable, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/authApi';
 import { COLORS } from '../../components/ui/colors';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const ProfileScreen = () => {
-  const { authState } = useAuth();
+  const { authState, logout } = useAuth();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,6 +24,8 @@ const ProfileScreen = () => {
 
     fetchUserData();
   }, []);
+  console.log('ProfileScreen userData:', userData);
+
 
   if (loading) {
     return (
@@ -34,18 +37,49 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.profileInfo}>
-        <Text style={styles.label}>Name:</Text>
-        <Text style={styles.value}>{userData?.username || 'N/A'}</Text>
-        
-        <Text style={styles.label}>Email:</Text>
-        <Text style={styles.value}>{userData?.email || 'N/A'}</Text>
-        
-        <Text style={styles.label}>Member Since:</Text>
-        <Text style={styles.value}>
-          {userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : 'N/A'}
+
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <Image
+          source={{ uri: userData?.avatar || 'https://via.placeholder.com/100' }}
+          style={styles.avatar}
+        />
+        <Text style={styles.title}>{userData?.username || 'User Profile'}</Text>
+        <Text style={{ color: COLORS.textSecondary, fontSize: 16 }}>
+          {userData?.email || 'No email provided'}
         </Text>
       </View>
+
+      <View style={styles.profileInfo}>
+        <TouchableOpacity style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}  onPress={() => console.log('Edit Profile Pressed')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10,gap: 10 }}>
+            <Icon name="user" size={20} color={COLORS.primary} />
+            <Text style={{ color: COLORS.text }}>Personal Data</Text>
+          </View>
+          <Icon name="chevron-right" size={18} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => console.log('Help Pressed')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 }}>
+            <Icon name="circle-question" size={20} color={COLORS.primary} />
+            <Text style={{ color: COLORS.text }}>Help</Text>
+          </View>
+          <Icon name="chevron-right" size={18} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => console.log('Delete Account Pressed')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 }}>
+            <Icon name="trash-can" size={20} color={COLORS.primary}  />
+            <Text style={{ color: COLORS.text }}>Delete Account</Text>
+          </View>
+          <Icon name="chevron-right" size={18} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => logout()}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 }}>
+            <Icon name="sign-out" size={20} color={'red'} />
+            <Text style={{ color: 'red' }}>Log out</Text>
+          </View>
+          <Icon name="chevron-right" size={18} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
     </View>
   );
 };
@@ -57,23 +91,34 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   loadingContainer: {
+    backgroundColor: COLORS.background,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    color: COLORS.text,
+    fontFamily: 'Rubik-SemiBold',
   },
   profileInfo: {
-    backgroundColor: '#f8f8f8',
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderWidth: 1,
     borderRadius: 8,
     padding: 16,
   },
   label: {
     fontWeight: 'bold',
     marginTop: 10,
+    color: COLORS.text,
   },
   value: {
     marginBottom: 10,
