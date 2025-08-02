@@ -38,9 +38,9 @@ const SignInScreen = ({ navigation }) => {
         await login(data.mobile, data.password);
         showToast('success', 'Welcome back!');
       } catch (error) {
-          showToast('error', error.response?.data?.message || 'An error occurred');
+        showToast('error', error.response?.data?.message || 'An error occurred');
 
-    }
+      }
     } else {
       showToast('error', 'Please fill in all fields');
     }
@@ -94,24 +94,23 @@ const SignInScreen = ({ navigation }) => {
           secureTextEntry
           error={errors.password?.message}
         />
-       <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 20}}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
           >
-         <LinearGradient
-          start={{ x: 0.80, y: 0.25 }} end={{ x: 0.0, y: 0.10 }}
-          locations={[0, 1, 0]}
-          colors={['#807de4b7', '#322ed4']}
-          style={{width:200, height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center', }}
-        >
-        
-            <Text style={{ color: COLORS.text }}>
-              Sign In
-            </Text>
+            <LinearGradient
+              start={{ x: 0.80, y: 0.25 }} end={{ x: 0.0, y: 0.10 }}
+              locations={[0, 1, 0]}
+              colors={['#807de4b7', '#322ed4']}
+              style={{ width: 200, height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center', }}
+            >
+              <Text style={{ color: COLORS.text }}>
+                Sign In
+              </Text>
 
-        </LinearGradient>
+            </LinearGradient>
           </TouchableOpacity>
-       </View>
+        </View>
       </View>
     </LinearGradient>
   );
