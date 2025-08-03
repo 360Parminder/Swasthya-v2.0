@@ -3,7 +3,8 @@ export const COLORS = {
   accent: '#B03A2E',
   background: '#14161A',
   cardBackground: '#292c33ff',
+  inputBackground: '#3D414D',
   text: '#ffffff',
-  textSecondary: '#b0b3b8',
+  textSecondary: '#c5c5c6ff',
   border: '#3D414D',
 };

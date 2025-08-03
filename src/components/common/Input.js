@@ -59,15 +59,17 @@ const Input = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 15,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    // borderColor: '#ccc',
+    // borderWidth: 1,
     columnGap: 1,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 10,
+    backgroundColor: COLORS.inputBackground, // Use the new input background color
+    borderRadius: 8,
+    
   },
   label: {
     fontWeight: '500',
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   input: {
-    height: 40,
+    height: 50,
     color: COLORS.text,
     fontSize: 16,
     marginTop: -5,

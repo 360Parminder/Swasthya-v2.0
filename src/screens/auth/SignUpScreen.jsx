@@ -53,6 +53,7 @@ const SignUpScreen = ({ navigation }) => {
               style={styles.welcomeImage}
               resizeMode="contain"
             />
+            <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', color: COLORS.textSecondary }}>Swasthya</Text>
             <Text style={styles.subtitle}>Your journey towards better health begins here!</Text>
             <TouchableOpacity onPress={next} style={{ marginTop: 30 }}>
               <LinearGradient {...buttonGradient} style={styles.getStartedBtn}>
@@ -284,8 +285,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
+    color: COLORS.text,
+    fontSize: 26,
     marginBottom: 18,
     textAlign: 'center',
   },
