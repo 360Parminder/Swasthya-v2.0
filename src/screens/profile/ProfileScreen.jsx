@@ -24,9 +24,6 @@ const ProfileScreen = () => {
 
     fetchUserData();
   }, []);
-  console.log('ProfileScreen userData:', userData);
-
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>

@@ -4,20 +4,19 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication'; // Import the AddMedication component
 import { COLORS } from '../../components/ui/colors';
 import { medicationApi } from '../../api/medicationApi';
+import GeneralModal from '../../components/common/GeneralModal';
 
 const Medication = () => {
-  const [showAddMedicationModal, setShowAddMedicationModal] = useState(false);
-
-  const handleMedicationAdded = () => {
-    const response= medicationApi.addMedication(data);
-  };
+  const [showModal, setModal] = useState('');
+  const [medications, setMedications] = useState([]);
+  
 
   return (
     <View style={styles.container}>
       {/* Add Medication Button */}
       <TouchableOpacity
         style={styles.mainButton}
-        onPress={() => setShowAddMedicationModal(true)}
+        onPress={() => setModal('add')}
       >
         <Text style={styles.buttonText}>Add Medication</Text>
       </TouchableOpacity>
@@ -30,7 +29,7 @@ const Medication = () => {
         >
           <Text style={styles.buttonText}>View My Medications</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[styles.secondaryButton, { backgroundColor: '#FF9500' }]}
           onPress={() => console.log('View Connection Medications pressed')}
@@ -40,11 +39,21 @@ const Medication = () => {
       </View>
 
       {/* Add Medication Modal */}
-      
-      <AddMedication 
-        isVisible={showAddMedicationModal}
-        onClose={() => setShowAddMedicationModal(false)}
-        onMedicationAdded={handleMedicationAdded}
+
+      <GeneralModal
+        isVisible={showModal === 'view'}
+        onClose={() => setModal('')}
+        title="Show My Medications"
+      >
+        <View style={{ padding: 20 }}>
+          
+        </View>
+      </GeneralModal>
+
+
+      <AddMedication
+        isVisible={showModal === 'add'}
+        onClose={() => setModal('')}
       />
     </View>
   );

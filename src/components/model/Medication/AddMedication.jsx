@@ -19,6 +19,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { COLORS } from '../../ui/colors';
 import { useConnection } from '../../../context/ConnectionContext';
 import { medicationApi } from '../../../api/medicationApi';
+import { showToast } from '../../../utils/helpers';
 
 const WEEK_DAYS = [
     { label: 'Mon', value: 'Monday' },
@@ -30,8 +31,9 @@ const WEEK_DAYS = [
     { label: 'Sun', value: 'Sunday' },
 ];
 
-const AddMedication = ({ isVisible, onClose, onMedicationAdded }) => {
+const AddMedication = ({ isVisible, onClose }) => {
     const { connections } = useConnection();
+   
 
     // Form state
     const [currentStep, setCurrentStep] = useState(0);
@@ -159,7 +161,7 @@ const AddMedication = ({ isVisible, onClose, onMedicationAdded }) => {
 
 
         const payload = {
-            medication_name: formData.name,
+            medicine_name: formData.name,
             forms: formData.form,
             strength: formData.strength,
             unit: formData.unit,
@@ -180,14 +182,17 @@ const AddMedication = ({ isVisible, onClose, onMedicationAdded }) => {
 
         try {
             const response = await medicationApi.addMedication(payload);
-            console.log('Medication added successfully:', response.data);
-
-            resetForm();
-            onClose();
+            // console.log('Medication added successfully:', response.data);
+            if (response.status === 201) {
+                showToast('success', 'Medication added successfully');
+                resetForm();
+                onClose();
+            }
+            else {
+                showToast('error', 'Failed to add medication');
+            }
         } catch (error) {
-            console.log('Error adding medication:', error);
-
-            Alert.alert('Error', 'Failed to add medication');
+            showToast('error', error?.response?.data?.message || 'Failed to add medication');
         }
     };
 
