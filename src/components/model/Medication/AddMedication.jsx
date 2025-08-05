@@ -192,6 +192,8 @@ const AddMedication = ({ isVisible, onClose }) => {
                 showToast('error', 'Failed to add medication');
             }
         } catch (error) {
+            console.log('Error adding medication:', error);
+            
             showToast('error', error?.response?.data?.message || 'Failed to add medication');
         }
     };

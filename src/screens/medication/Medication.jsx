@@ -7,10 +7,10 @@ import { medicationApi } from '../../api/medicationApi';
 import GeneralModal from '../../components/common/GeneralModal';
 
 const Medication = () => {
-  const [showModal, setModal] = useState('');
+  const [showModal, setModal] = useState(null);
   const [medications, setMedications] = useState([]);
-  
 
+  const closeModal = () => setModal(null);
   return (
     <View style={styles.container}>
       {/* Add Medication Button */}
@@ -40,20 +40,19 @@ const Medication = () => {
 
       {/* Add Medication Modal */}
 
-      <GeneralModal
+      {/* <GeneralModal
         isVisible={showModal === 'view'}
-        onClose={() => setModal('')}
+        onClose={closeModal}
         title="Show My Medications"
       >
         <View style={{ padding: 20 }}>
           
         </View>
-      </GeneralModal>
-
+      </GeneralModal> */}
 
       <AddMedication
         isVisible={showModal === 'add'}
-        onClose={() => setModal('')}
+        onClose={closeModal}
       />
     </View>
   );
