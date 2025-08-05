@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication'; // Import the AddMedication component
 import { COLORS } from '../../components/ui/colors';
+import { medicationApi } from '../../api/medicationApi';
 
 const Medication = () => {
   const [showAddMedicationModal, setShowAddMedicationModal] = useState(false);
 
   const handleMedicationAdded = () => {
-    // You can add logic here to refresh the medication list
-    console.log('New medication added');
+    const response= medicationApi.addMedication(data);
   };
 
   return (
@@ -40,6 +40,7 @@ const Medication = () => {
       </View>
 
       {/* Add Medication Modal */}
+      
       <AddMedication 
         isVisible={showAddMedicationModal}
         onClose={() => setShowAddMedicationModal(false)}

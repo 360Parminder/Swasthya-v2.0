@@ -1,80 +1,96 @@
-// src/screens/connections/Connection.js
-import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Image } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  Animated,
+  Easing,
+  Keyboard,
+  Platform,
+  FlatList,
+  TouchableWithoutFeedback,
+  SafeAreaView,
+  Dimensions,
+} from 'react-native';
 import GeneralModal from '../../components/common/GeneralModal';
 import Toast from 'react-native-toast-message';
 import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS } from '../../components/ui/colors';
+import { BlurView } from '@react-native-community/blur';
+
+
+const SPOTLIGHT_ANIM_DURATION = 270;
+const INPUT_SLIDE_ANIM_DURATION = 220;
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
 const Connection = () => {
   const { authState } = useAuth();
+
+  // Overlay search state
+  const [spotlightVisible, setSpotlightVisible] = useState(false);
+  const spotlightAnim = useRef(new Animated.Value(0)).current;
+  const inputOverlayRef = useRef(null);
+
+  // Search input slide/expand state
+  const inputAnim = useRef(new Animated.Value(0)).current;
+  const [inputHasFocus, setInputHasFocus] = useState(false);
+
+  // Spotlight search data
+  const [spotlightQuery, setSpotlightQuery] = useState('');
+  const [spotlightLoading, setSpotlightLoading] = useState(false);
+  const [spotlightResults, setSpotlightResults] = useState([]);
+  const [spotlightError, setSpotlightError] = useState('');
+
+  // Main UI state
   const [activeModal, setActiveModal] = useState(null);
-  const [searchInput, setSearchInput] = useState('');
-  const [connection, setConnection] = useState(null);
   const [requests, setRequests] = useState([]);
   const [connections, setConnections] = useState([]);
 
-
+  // Toast helper
   const showToast = (type, message, subMessage = '') => {
     Toast.show({
       type,
       text1: message,
       text2: subMessage,
-      visibilityTime: 3000,
+      visibilityTime: 3200,
       autoHide: true,
-      topOffset: 50,
+      topOffset: 55,
     });
   };
 
-
+  // Fetch requests/connections logic (unchanged)
   const fetchRequests = async () => {
     try {
-      // Replace with your actual API call
       const response = await connectionApi.viewPending();
-      // Filter out nulls
       setRequests((response.data.connections || []).filter(Boolean));
     } catch (error) {
       showToast('error', error.response?.data?.message || 'Failed to fetch requests');
     }
   };
 
-  const findConnection = async (userId) => {
-    try {
-      const response = await connectionApi.find(userId);
-      console.log('Connection found:', response.data);
-      console.log('Connection data:', response.data.user);
-      setConnection(response.data.user);
-      showToast('success', 'Connection Found', response.data.user.username);
-    } catch (error) {
-      console.error('Error finding connection:', error);
-      showToast('error', 'Connection Not Found', error.message);
-    }
-  };
-
   const sendRequest = async (receiverId) => {
-    console.log('Sending connection request to:', receiverId);
-
     try {
-      const response = await connectionApi.sendRequest(receiverId);
-      console.log('Connection request sent:', response.data);
+      await connectionApi.sendRequest(receiverId);
       showToast('success', 'Connection Request Sent');
     } catch (error) {
-      console.log('Error sending connection request:', error);
       showToast('error', error.response?.data?.message || 'An error occurred');
     }
-  }
+  };
 
   const updateConnection = async (senderId, status) => {
     try {
-      const response = await connectionApi.updateRequest(senderId, status);
-      console.log('Connection updated:', response.data);
-      await fetchRequests(); // Refresh requests after update
+      await connectionApi.updateRequest(senderId, status);
+      await fetchRequests();
       showToast('success', 'Connection Updated');
     } catch (error) {
-      console.log('Error updating connection:', error);
       showToast('error', error.response?.data?.message || 'An error occurred');
     }
   };
+
   const fetchConnections = async () => {
     try {
       const response = await connectionApi.viewAll() || [];
@@ -83,116 +99,165 @@ const Connection = () => {
       showToast('error', error.response?.data?.message || 'Failed to fetch connections');
     }
   };
-  const openModal = (modalName) => setActiveModal(modalName);
+
+  // Modal logic
+  const openModal = (modalName) => {
+    if (!activeModal) setActiveModal(modalName);
+  };
   const closeModal = () => setActiveModal(null);
 
-  // Fetch requests when modal opens
+  // Modals load data when opened
   useEffect(() => {
-    if (activeModal === 'request') {
-      fetchRequests();
-    } else if (activeModal === 'view') {
-      fetchConnections();
-    }
-
+    if (activeModal === 'request') fetchRequests();
+    else if (activeModal === 'view') fetchConnections();
   }, [activeModal]);
 
-  // Modal content components
-  const SearchModalContent = () => (
-    <View>
-      <TextInput
-        style={styles.input}
-        placeholder="Search by User ID"
-        value={searchInput}
-        onChangeText={setSearchInput}
-        autoFocus
+  // Spotlight opening/closing and animation with input bar slide
+  const openSpotlight = () => {
+    setSpotlightVisible(true);
+    Animated.timing(spotlightAnim, {
+      toValue: 1,
+      duration: SPOTLIGHT_ANIM_DURATION,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start(() => {
+      inputOverlayRef.current?.focus();
+      // Animate input contraction after short delay (for feel)
+      setTimeout(() => {
+        Animated.timing(inputAnim, {
+          toValue: 1,
+          duration: INPUT_SLIDE_ANIM_DURATION,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }).start(() => setInputHasFocus(true));
+      }, 120);
+    });
+  };
+
+  const closeSpotlight = () => {
+    // Animate input wider again then hide entire overlay
+    Animated.timing(inputAnim, {
+      toValue: 0,
+      duration: INPUT_SLIDE_ANIM_DURATION - 40,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false,
+    }).start(() => {
+      setInputHasFocus(false);
+      Animated.timing(spotlightAnim, {
+        toValue: 0,
+        duration: 190,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: false,
+      }).start(() => {
+        setSpotlightVisible(false);
+        setSpotlightQuery('');
+        setSpotlightLoading(false);
+        setSpotlightResults([]);
+        setSpotlightError('');
+        Keyboard.dismiss();
+      });
+    });
+  };
+
+  // Animations for overlay and search bar input
+  const overlayBgColor = spotlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.14)'],
+  });
+  const overlayTranslateY = spotlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [4, 0],
+  });
+  const overlayOpacity = spotlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  // Search bar input width and cancellation
+  const INPUT_MARGIN = 8;
+  const CANCEL_WIDTH = 68;
+  const maxInputWidth = SCREEN_WIDTH - (INPUT_MARGIN * 2);
+  const minInputWidth = SCREEN_WIDTH - (CANCEL_WIDTH + INPUT_MARGIN * 3);
+
+  const inputWidth = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [maxInputWidth, minInputWidth],
+  });
+  const cancelOpacity = inputAnim.interpolate({
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, 0, 1], // Cancel fades in after slide
+  });
+
+  // Search API call
+  const handleSpotlightSearch = async (query) => {
+    setSpotlightQuery(query);
+    if (!query.trim()) {
+      setSpotlightResults([]);
+      setSpotlightError('');
+      return;
+    }
+    setSpotlightLoading(true);
+    setSpotlightError('');
+    try {
+      const response = await connectionApi.find(query.trim());
+      setSpotlightResults(response.data.user ? [response.data.user] : []);
+      if (!response.data.user) setSpotlightError('No user found.');
+    } catch (error) {
+      setSpotlightResults([]);
+      setSpotlightError(error.response?.data?.message || 'No user found.');
+    }
+    setSpotlightLoading(false);
+  };
+
+  // Render: Spotlight result row
+  const renderSpotlightResultItem = ({ item }) => (
+    <View style={styles.spotlightResultItem}>
+      <Image
+        source={{ uri: item.avatar }}
+        style={styles.spotlightAvatar}
       />
-      <TouchableOpacity
-        style={styles.modalActionButton}
-        onPress={() => findConnection(searchInput)}
-      >
-        <Text style={styles.modalActionButtonText}>Search</Text>
-      </TouchableOpacity>
-      <View style={{ marginTop: 20 }}>
-        {connection && (
-          <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 8, marginTop: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1, elevation: 4 }}>
-            <View style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center' }}>
-              <Image
-                source={{ uri: connection.avatar }}
-                style={{ width: 50, height: 50, borderRadius: 15 }}
-              />
-              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{connection.username}</Text>
-            </View>
-            <TouchableOpacity onPress={() => sendRequest(connection.userId)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', padding: 10, borderRadius: 8 }}>
-              <Text style={{ fontSize: 16, color: '#fff' }}>Send Request</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+      <View style={{ flex: 1 }}>
+        <Text style={styles.spotlightName}>{item.username}</Text>
+        <Text style={styles.spotlightEmail}>{item.email}</Text>
       </View>
+      <TouchableOpacity
+        style={styles.sendRequestBtn}
+        onPress={() => sendRequest(item.userId)}
+      >
+        <Text style={styles.sendRequestText}>Connect</Text>
+      </TouchableOpacity>
     </View>
   );
 
+  // Requests modal content
   const ViewRequestModalContent = () => {
-
-    // Filter out requests where the user id matches the logged-in user
     const filteredRequests = requests.filter(req => req._id !== authState.user.id);
-
     return (
       <View>
         {filteredRequests.length === 0 ? (
-          <Text>No connection requests found.</Text>
+          <Text style={styles.noDataText}>No connection requests found.</Text>
         ) : (
-          filteredRequests.map((req) => (
-            <View
-              key={req._id}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 16,
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                padding: 10,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 1,
-                elevation: 2,
-              }}
-            >
-              <Image
-                source={{ uri: req.avatar }}
-                style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
-              />
+          filteredRequests.map(req => (
+            <View key={req._id} style={styles.requestItem}>
+              <Image source={{ uri: req.avatar }} style={styles.requestAvatar} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{req.username}</Text>
-                <Text style={{ color: '#555', fontSize: 14 }}>{req.email}</Text>
+                <Text style={styles.requestUsername}>{req.username}</Text>
+                <Text style={styles.requestEmail}>{req.email}</Text>
               </View>
-              <View style={{ marginLeft: 8 }}>
+              <View style={styles.requestBtns}>
                 <TouchableOpacity
-                  style={{
-                    backgroundColor: '#007AFF',
-                    borderRadius: 6,
-                    paddingVertical: 6,
-                    paddingHorizontal: 10,
-                    marginBottom: 4,
-                  }}
-                  onPress={() => {
-                    updateConnection(req._id, 'accepted');
-                  }}
+                  style={styles.acceptBtn}
+                  onPress={() => updateConnection(req._id, 'accepted')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>Accept</Text>
+                  <Text style={styles.acceptText}>Accept</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={{
-                    backgroundColor: '#FF3B30',
-                    borderRadius: 6,
-                    paddingVertical: 6,
-                    paddingHorizontal: 10,
-                  }}
-                  onPress={() => {
-                    updateConnection(req._id, 'rejected');
-                  }}
+                  style={styles.rejectBtn}
+                  onPress={() => updateConnection(req._id, 'rejected')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>Reject</Text>
+                  <Text style={styles.acceptText}>Reject</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -202,36 +267,19 @@ const Connection = () => {
     );
   };
 
+  // Connections modal content
   const ViewConnectionsModalContent = () => (
     <View>
       {connections.length === 0 ? (
-        <Text>No connections found.</Text>
+        <Text style={styles.noDataText}>No connections found.</Text>
       ) : (
         connections.map(conn => (
-          <View
-            key={conn._id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 16,
-              backgroundColor: COLORS.background,
-              borderRadius: 8,
-              padding: 10,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.2,
-              shadowRadius: 1,
-              elevation: 2,
-            }}
-          >
-            <Image
-              source={{ uri: conn.avatar }}
-              style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12 }}
-            />
+          <View key={conn._id} style={styles.connectionItem}>
+            <Image source={{ uri: conn.avatar }} style={styles.requestAvatar} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 16,color:COLORS.text }}>{conn.username}</Text>
-              <Text style={{ color:COLORS.textSecondary, fontSize: 14 }}>{conn.email}</Text>
-              <Text style={{ color:COLORS.textSecondary, fontSize: 14 }}>{conn.mobile}</Text>
+              <Text style={styles.connectionUsername}>{conn.username}</Text>
+              <Text style={styles.connectionEmail}>{conn.email}</Text>
+              <Text style={styles.connectionEmail}>{conn.mobile}</Text>
             </View>
           </View>
         ))
@@ -239,25 +287,26 @@ const Connection = () => {
     </View>
   );
 
+  // Main render
   return (
-    <View style={styles.container}>
-      {/* Search Connections Button */}
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => openModal('search')}
-      >
-        <Image source={require('../../../assets/images/searching.png')} style={styles.cardImage} />
-        <View style={styles.cardTextContainer}>
-          <Text style={styles.cardHeader}>Search Connections</Text>
-          <Text style={styles.cardSubheading}>Find and connect with others</Text>
-        </View>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={Platform.OS === 'ios' ? { height: 12 } : null} />
 
-      {/* Action Buttons Row */}
-      <View style={styles.buttonRow}>
+        {/* Search Activator Bar */}
+        <TouchableOpacity
+          style={styles.spotlightActivator}
+          activeOpacity={0.9}
+          onPress={openSpotlight}
+        >
+          <Text style={styles.spotlightActivatorText}>Search by User ID...</Text>
+        </TouchableOpacity>
+
+        {/* Main Cards */}
         <TouchableOpacity
           style={styles.card}
           onPress={() => openModal('request')}
+          activeOpacity={0.96}
         >
           <Image source={require('../../../assets/images/request.png')} style={styles.cardImage} />
           <View style={styles.cardTextContainer}>
@@ -266,8 +315,9 @@ const Connection = () => {
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.card,]}
+          style={styles.card}
           onPress={() => openModal('view')}
+          activeOpacity={0.96}
         >
           <Image source={require('../../../assets/images/connections.png')} style={styles.cardImage} />
           <View style={styles.cardTextContainer}>
@@ -275,44 +325,238 @@ const Connection = () => {
             <Text style={styles.cardSubheading}>View your connections</Text>
           </View>
         </TouchableOpacity>
+
+        {/* Requests Modal */}
+        <GeneralModal
+          visible={activeModal === 'request'}
+          onClose={closeModal}
+          title="Connection Requests"
+        >
+          <ViewRequestModalContent />
+        </GeneralModal>
+        {/* Connections Modal */}
+        <GeneralModal
+          visible={activeModal === 'view'}
+          onClose={closeModal}
+          title="Your Connections"
+        >
+          <ViewConnectionsModalContent />
+        </GeneralModal>
+
+        {/* Spotlight Search Overlay */}
+        {spotlightVisible && (
+          <Animated.View
+            pointerEvents="box-none"
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                zIndex: 999,
+                backgroundColor: overlayBgColor,
+                opacity: overlayOpacity,
+              },
+            ]}
+          >
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType={Platform.OS === 'ios' ? 'regular' : 'light'}
+              blurAmount={20}
+              // reducedTransparencyFallbackColor={}
+              overlayColor=""
+            />
+            <TouchableWithoutFeedback onPress={closeSpotlight}>
+              <View style={{ flex: 1 }} />
+            </TouchableWithoutFeedback>
+            <Animated.View
+              style={[
+                styles.spotlightOverlaySheet,
+                {
+                  transform: [{ translateY: overlayTranslateY }],
+                  opacity: overlayOpacity,
+                }
+              ]}
+            >
+              {/* Search bar and Cancel button */}
+              <View style={styles.overlaySearchBarRow}>
+                <Animated.View style={{ width: inputWidth }}>
+                  <TextInput
+                    ref={inputOverlayRef}
+                    style={styles.overlaySearchInput}
+                    placeholder="Search by User ID"
+                    value={spotlightQuery}
+                    onChangeText={q => {
+                      setSpotlightQuery(q);
+                      handleSpotlightSearch(q);
+                    }}
+                    placeholderTextColor={COLORS.textSecondary}
+                    autoCapitalize="none"
+                    returnKeyType="search"
+                    selectionColor={COLORS.primary}
+                    autoFocus
+                    onFocus={() => {
+                      if (!inputHasFocus) {
+                        Animated.timing(inputAnim, {
+                          toValue: 1,
+                          duration: INPUT_SLIDE_ANIM_DURATION,
+                          useNativeDriver: false,
+                        }).start();
+                        setInputHasFocus(true);
+                      }
+                    }}
+                  />
+                </Animated.View>
+                <Animated.View style={{ marginLeft: 5, opacity: cancelOpacity }}>
+                  <TouchableOpacity
+                    hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+                    onPress={closeSpotlight}
+                  >
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
+              {/* Results or Loading */}
+              <View style={styles.spotlightResultsArea}>
+                {spotlightLoading ? (
+                  <Text style={styles.loadingText}>Searching...</Text>
+                ) : spotlightQuery.length === 0 ? (
+                  // <Text style={styles.noDataText}>Type to search by User ID</Text>
+                  <></>
+                ) : spotlightError ? (
+                  <Text style={styles.noDataText}>{spotlightError}</Text>
+                ) : (
+                  <FlatList
+                    data={spotlightResults}
+                    keyExtractor={item => item.userId || item._id}
+                    renderItem={renderSpotlightResultItem}
+                    ListEmptyComponent={<Text style={styles.noDataText}>No user found.</Text>}
+                  />
+                )}
+              </View>
+            </Animated.View>
+          </Animated.View>
+        )}
       </View>
-
-      {/* Search Modal */}
-      <GeneralModal
-        visible={activeModal === 'search'}
-        onClose={closeModal}
-        title="Search Connections"
-      >
-        <SearchModalContent />
-      </GeneralModal>
-
-      {/* Add Connection Modal */}
-      <GeneralModal
-        visible={activeModal === 'request'}
-        onClose={closeModal}
-        title="Connection Requests"
-      >
-        <ViewRequestModalContent />
-      </GeneralModal>
-
-      {/* View Connections Modal */}
-      <GeneralModal
-        visible={activeModal === 'view'}
-        onClose={closeModal}
-        title="Your Connections"
-      >
-        <ViewConnectionsModalContent />
-      </GeneralModal>
-    </View>
+    </SafeAreaView>
   );
 };
 
+// (styles unchanged except for coloring and input overlay minor tweaks for animation/flex)
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    padding: 20,
     backgroundColor: COLORS.background,
   },
+  container: {
+    flex: 1,
+    padding: 18,
+    backgroundColor: COLORS.background,
+  },
+  spotlightActivator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.inputBackground,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 9,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2e354a',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 1.2,
+      }
+    }),
+    height: 50,
+  },
+  spotlightActivatorText: {
+    fontSize: 17,
+    color: COLORS.textSecondary,
+  },
+  spotlightOverlaySheet: {
+    height: '100%',
+    position: 'absolute',
+    left: 0, right: 0, top: 0,
+    // backgroundColor: '#6f6f6f9d',
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+    paddingTop: Platform.OS === 'ios' ? 62 : 18,
+    paddingHorizontal: 18,
+    minHeight: 185,
+    shadowColor: '#000',
+    shadowOpacity: 0.16,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  overlaySearchBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+    width: '100%',
+  },
+  overlaySearchInput: {
+    fontSize: 17,
+    color: COLORS.text,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 7,
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.inputBackground,
+    borderRadius: 8,
+    borderWidth: 0,
+    height: 50,
+    width: '100%',
+  },
+  cancelBtnText: {
+    color: COLORS.primary,
+    fontSize: 17,
+    fontWeight: '600',
+    paddingHorizontal: 2,
+  },
+  spotlightResultsArea: {
+    minHeight: 80,
+    paddingBottom: 14,
+  },
+  spotlightResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 11,
+    marginBottom: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 0.75,
+    borderColor: COLORS.border,
+  },
+  spotlightAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    marginRight: 14,
+    backgroundColor: COLORS.inputBackground,
+  },
+  spotlightName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  spotlightEmail: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+  },
+  loadingText: {
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginVertical: 14,
+    fontSize: 15,
+  },
+  // CARDS (unchanged)
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -321,62 +565,159 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 16,
-    // elevation: 2, // Shadow for Android
-    // shadowColor: '#000', // Shadow for iOS
-    // shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.09,
-    shadowRadius: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.11,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      }
+    }),
     marginBottom: 15,
   },
   cardImage: {
-    width: 64,
-    height: 64,
-    marginRight: 18,
+    width: 62,
+    height: 62,
+    marginRight: 16,
+    borderRadius: 10,
   },
   cardTextContainer: {
     flex: 1,
     justifyContent: 'center',
   },
   cardHeader: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '700',
-    color: '#ebebebff',
+    color: '#ebebebed',
   },
   cardSubheading: {
     fontSize: 15,
-    color: '#ebebebff',
+    color: '#ebebebaf',
     marginTop: 4,
     fontWeight: '400',
   },
-  buttonRow: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
-  
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  input: {
+
+  // REQUESTS MODAL
+  requestItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 13,
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
+    borderColor: COLORS.border,
+    padding: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.14,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      }
+    }),
   },
-  modalActionButton: {
-    backgroundColor: '#007AFF',
-    padding: 14,
-    borderRadius: 8,
+  requestAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    marginRight: 12,
+    backgroundColor: COLORS.cardBackground,
+  },
+  requestUsername: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  requestEmail: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    marginTop: 1,
+  },
+  requestBtns: {
+    marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acceptBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    marginBottom: 5,
+    minWidth: 68,
     alignItems: 'center',
   },
-  modalActionButtonText: {
-    color: 'white',
+  rejectBtn: {
+    backgroundColor: '#FF3B30',
+    borderRadius: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    minWidth: 68,
+    alignItems: 'center',
+  },
+  acceptText: {
+    color: '#fff',
     fontWeight: '600',
+  },
+
+  // CONNECTIONS MODAL
+  connectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 13,
+    backgroundColor: COLORS.cardBackground,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.12,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      }
+    }),
+  },
+  connectionUsername: {
+    fontWeight: 'bold',
     fontSize: 16,
+    color: COLORS.text,
+  },
+  connectionEmail: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    marginTop: 1,
+  },
+
+  // COMMON
+  sendRequestBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    padding: 9,
+    borderRadius: 8,
+    marginLeft: 6,
+  },
+  sendRequestText: {
+    fontSize: 15,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: COLORS.textSecondary,
+    fontSize: 15,
+    marginVertical: 12,
   },
 });
 

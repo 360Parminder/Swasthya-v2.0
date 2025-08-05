@@ -6,15 +6,18 @@ import { StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from './src/config/toastConfig';
+import { ConnectionProvider } from './src/context/ConnectionContext';
 
 const App = () => {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="light-content" />
       <AuthProvider>
+        <ConnectionProvider>
         <SafeAreaProvider>
           <AppNavigator />
         </SafeAreaProvider>
+        </ConnectionProvider>
       </AuthProvider>
       <Toast
         config={toastConfig} 
