@@ -10,12 +10,12 @@ import {
     TextInput,
     Alert,
     ScrollView,
-    Platform,
     Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
+
 import { COLORS } from '../../ui/colors';
 import { useConnection } from '../../../context/ConnectionContext';
 import { medicationApi } from '../../../api/medicationApi';
@@ -31,13 +31,31 @@ const WEEK_DAYS = [
     { label: 'Sun', value: 'Sunday' },
 ];
 
+const medicationForms = [
+    'Tablet', 'Capsule', 'Liquid', 'Injection', 'Inhaler',
+    'Topical', 'Drops', 'Suppository', 'Patch'
+];
+
+const formImages = {
+    tablet: require('../../../../assets/images/tablet.png'),
+    capsule: require('../../../../assets/images/capsule.png'),
+    liquid: require('../../../../assets/images/liquid.png'),
+    injection: require('../../../../assets/images/injection.png'),
+    inhaler: require('../../../../assets/images/inhaler.png'),
+    topical: require('../../../../assets/images/topical.png'),
+    drops: require('../../../../assets/images/drops.png'),
+    suppository: require('../../../../assets/images/suppository.png'),
+    patch: require('../../../../assets/images/patch.png'),
+};
+
+const units = ['mg', 'mcg', 'g', 'ml', '%'];
+
 const AddMedication = ({ isVisible, onClose }) => {
     const { connections } = useConnection();
-   
 
     // Form state
     const [currentStep, setCurrentStep] = useState(0);
-    const [formData, setFormData] = useState({
+    const initialFormState = {
         name: '',
         form: '',
         strength: '',
@@ -51,45 +69,36 @@ const AddMedication = ({ isVisible, onClose }) => {
             type: 'As Needed',
             specificDays: [],
         },
-        numTimes: 1, // for daily or specific days
+        numTimes: 1,
         times: [new Date()],
-    });
+    };
+    const [formData, setFormData] = useState(initialFormState);
 
     // Picker states
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [activeTimeIndex, setActiveTimeIndex] = useState(null);
 
-    const medicationForms = [
-        'Tablet', 'Capsule', 'Liquid', 'Injection', 'Inhaler',
-        'Topical', 'Drops', 'Suppository', 'Patch'
-    ];
-
-    const units = ['mg', 'mcg', 'g', 'ml', '%'];
-
-    // Handler functions
+    // Handlers
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleDateChange = (event, selectedDate) => {
+    const handleDateChange = (_, selectedDate) => {
         setShowDatePicker(false);
-        if (selectedDate) {
-            handleInputChange('startDate', selectedDate);
-        }
+        if (selectedDate) handleInputChange('startDate', selectedDate);
     };
 
-    // For the time fields for multiple doses
     const handleShowTimePicker = (index) => {
         setActiveTimeIndex(index);
         setShowTimePicker(true);
     };
 
-    const handleTimeChange = (event, selectedTime) => {
+    const handleTimeChange = (_, selectedTime) => {
         setShowTimePicker(false);
         if (selectedTime) {
             setFormData(prev => {
-                let times = [...prev.times];
+                const times = [...prev.times];
                 times[activeTimeIndex] = selectedTime;
                 return { ...prev, times };
             });
@@ -98,109 +107,83 @@ const AddMedication = ({ isVisible, onClose }) => {
 
     const resetForm = () => {
         setCurrentStep(0);
-        setFormData({
-            name: '',
-            form: '',
-            strength: '',
-            unit: '',
-            dosage: '1',
-            notes: '',
-            forWhom: 'myself',
-            relativeId: null,
-            startDate: new Date(),
-            frequency: {
-                type: 'As Needed',
-                specificDays: [],
-            },
-            numTimes: 1,
-            times: [new Date()],
-        });
+        setFormData(initialFormState);
     };
 
     const validateSchedule = () => {
-        if (formData.frequency.type === "As Needed") return !!formData.startDate;
-        if (formData.frequency.type === "Daily") {
-            return !!formData.startDate &&
-                formData.numTimes > 0 &&
-                formData.times.length >= formData.numTimes;
+        if (formData.frequency.type === 'As Needed') {
+            return !!formData.startDate;
         }
-        if (formData.frequency.type === "On specific days") {
-            return !!formData.startDate &&
+        if (formData.frequency.type === 'Daily') {
+            return (
+                !!formData.startDate &&
+                formData.numTimes > 0 &&
+                formData.times.length >= formData.numTimes
+            );
+        }
+        if (formData.frequency.type === 'On specific days') {
+            return (
+                !!formData.startDate &&
                 formData.numTimes > 0 &&
                 formData.times.length >= formData.numTimes &&
-                formData.frequency.specificDays.length > 0;
+                formData.frequency.specificDays.length > 0
+            );
         }
         return false;
     };
 
     const handleSubmit = async () => {
-        // Validate required fields
         if (!formData.name || !formData.form || !formData.strength || !formData.unit) {
             Alert.alert('Error', 'Please fill all required fields.');
             return;
         }
-
         if (!validateSchedule()) {
             Alert.alert('Error', 'Please complete the schedule section.');
             return;
         }
 
-        // Prepare times based on numTimes
-        // Prepare times based on numTimes, and always include "dose"
-        let timesArr = [];
-        if (formData.frequency.type !== "As Needed") {
-            for (let i = 0; i < formData.numTimes; i++) {
-                timesArr.push({
-                    dose: formData.dosage,
-                    time: formData.times[i]
-                        ? formData.times[i].toISOString()
-                        : new Date().toISOString()
-                });
-            }
-        }
-
+        const timesArr = formData.frequency.type === 'As Needed'
+            ? []
+            : Array.from({ length: formData.numTimes }, (_, i) => ({
+                dose: formData.dosage,
+                time: formData.times[i]
+                    ? formData.times[i].toISOString()
+                    : new Date().toISOString(),
+            }));
 
         const payload = {
             medicine_name: formData.name,
             forms: formData.form,
             strength: formData.strength,
             unit: formData.unit,
-            // dosage: formData.dosage,
             description: formData.notes,
             forWhom: formData.forWhom,
             relative_id: formData.relativeId,
             start_date: formData.startDate,
             frequency: {
                 type: formData.frequency.type,
-                ...(formData.frequency.type === "On specific days"
+                ...(formData.frequency.type === 'On specific days'
                     ? { specificDays: formData.frequency.specificDays }
                     : {}),
             },
-            times: formData.frequency.type === "As Needed" ? [] : timesArr,
+            times: timesArr,
         };
-
 
         try {
             const response = await medicationApi.addMedication(payload);
-            // console.log('Medication added successfully:', response.data);
             if (response.status === 201) {
                 showToast('success', 'Medication added successfully');
                 resetForm();
                 onClose();
-            }
-            else {
+            } else {
                 showToast('error', 'Failed to add medication');
             }
         } catch (error) {
-            console.log('Error adding medication:', error);
-            
             showToast('error', error?.response?.data?.message || 'Failed to add medication');
         }
     };
 
-
-
-    // Form steps
+    // Steps definition
     const steps = [
         {
             title: 'Medication Details',
@@ -211,12 +194,13 @@ const AddMedication = ({ isVisible, onClose }) => {
                         style={styles.input}
                         placeholder="e.g. Ibuprofen"
                         value={formData.name}
-                        onChangeText={(text) => handleInputChange('name', text)}
+                        onChangeText={text => handleInputChange('name', text)}
                     />
+
                     <Text style={styles.label}>Who is this for?*</Text>
                     <View style={styles.pickerContainer}>
                         <RNPickerSelect
-                            onValueChange={(value) => handleInputChange('forWhom', value)}
+                            onValueChange={value => handleInputChange('forWhom', value)}
                             items={[
                                 { label: 'Myself', value: 'myself' },
                                 { label: 'Family Member', value: 'relative' },
@@ -226,30 +210,32 @@ const AddMedication = ({ isVisible, onClose }) => {
                             useNativeAndroidPickerStyle={false}
                         />
                     </View>
+
                     {formData.forWhom === 'relative' && (
                         <>
                             <Text style={styles.label}>Select Family Member*</Text>
                             <View style={styles.pickerContainer}>
                                 <RNPickerSelect
-                                    onValueChange={(value) => handleInputChange('relativeId', value)}
-                                    items={connections.map((connection) => ({
-                                        label: connection.username,
-                                        value: connection.userId,
+                                    onValueChange={value => handleInputChange('relativeId', value)}
+                                    items={connections.map(conn => ({
+                                        label: conn.username,
+                                        value: conn.userId,
                                     }))}
                                     value={formData.relativeId}
+                                    placeholder={{ label: 'Select...', value: null }}
                                     style={pickerSelectStyles}
                                     useNativeAndroidPickerStyle={false}
-                                    placeholder={{ label: 'Select...', value: null }}
                                 />
                             </View>
                         </>
                     )}
+
                     <Text style={styles.label}>Notes (Optional)</Text>
                     <TextInput
-                        style={[styles.input, { height: 80 }]}
+                        style={[styles.input, styles.notesInput]}
                         placeholder="Any additional notes"
                         value={formData.notes}
-                        onChangeText={(text) => handleInputChange('notes', text)}
+                        onChangeText={text => handleInputChange('notes', text)}
                         multiline
                     />
                 </View>
@@ -262,68 +248,66 @@ const AddMedication = ({ isVisible, onClose }) => {
                 <View style={styles.stepContainer}>
                     <Text style={styles.label}>Form*</Text>
                     <View style={styles.optionsGrid}>
-                        {medicationForms.map((form) => (
-                            <TouchableOpacity
-                                key={form}
-                                style={[
-                                    styles.optionButton,
-                                    formData.form === form.toLowerCase() && styles.optionSelected
-                                ]}
-                                onPress={() => handleInputChange('form', form.toLowerCase())}
-                            >
-                                <Image
-                                    source={formData.form === form.toLowerCase() ? require('../../../../assets/images/jar.png') : require('../../../../assets/images/purple.png')}
-                                    style={styles.icon}
-                                />
-                                <Text style={[
-                                    styles.optionText,
-                                    formData.form === form.toLowerCase() && styles.optionTextSelected
-                                ]}>
-                                    {form}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                        {medicationForms.map(form => {
+                            const formKey = form.toLowerCase();
+                            const selected = formData.form === formKey;
+                            return (
+                                <TouchableOpacity
+                                    key={form}
+                                    style={[styles.optionButton, selected && styles.optionSelected]}
+                                    onPress={() => handleInputChange('form', formKey)}
+                                >
+                                    <Image source={formImages[formKey]} style={styles.icon} />
+                                    <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
+                                        {form}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
+
                     <Text style={styles.label}>Strength*</Text>
                     <View style={styles.strengthContainer}>
                         <TextInput
                             style={[styles.input, { flex: 1 }]}
                             placeholder="e.g. 500"
                             value={formData.strength}
-                            onChangeText={(text) => handleInputChange('strength', text)}
+                            onChangeText={text => handleInputChange('strength', text)}
                             keyboardType="numeric"
                         />
                         <View style={styles.unitsContainer}>
-                            {units.map((unit) => (
-                                <TouchableOpacity
-                                    key={unit}
-                                    style={[
-                                        styles.unitButton,
-                                        formData.unit === unit && styles.unitSelected
-                                    ]}
-                                    onPress={() => handleInputChange('unit', unit)}
-                                >
-                                    <Text style={[
-                                        styles.unitText,
-                                        formData.unit === unit && styles.unitTextSelected
-                                    ]}>
-                                        {unit}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
+                            {units.map(unit => {
+                                const selected = formData.unit === unit;
+                                return (
+                                    <TouchableOpacity
+                                        key={unit}
+                                        style={[styles.unitButton, selected && styles.unitSelected]}
+                                        onPress={() => handleInputChange('unit', unit)}
+                                    >
+                                        <Text style={[styles.unitText, selected && styles.unitTextSelected]}>
+                                            {unit}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </View>
+
                     <Text style={styles.label}>Dosage*</Text>
                     <TextInput
                         style={styles.input}
                         placeholder="e.g. 1"
                         value={formData.dosage}
-                        onChangeText={(text) => handleInputChange('dosage', text)}
+                        onChangeText={text => handleInputChange('dosage', text)}
                         keyboardType="numeric"
                     />
                 </View>
             ),
-            validate: () => formData.form && formData.strength && formData.unit && formData.dosage,
+            validate: () =>
+                formData.form &&
+                formData.strength &&
+                formData.unit &&
+                formData.dosage,
         },
         {
             title: 'Medication Schedule',
@@ -339,6 +323,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                             {formData.startDate.toLocaleDateString()}
                         </Text>
                     </TouchableOpacity>
+
                     <Text style={styles.label}>How Often?*</Text>
                     <View style={styles.pickerContainer}>
                         <RNPickerSelect
@@ -348,7 +333,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                                     frequency: {
                                         ...prev.frequency,
                                         type: value,
-                                        specificDays: value === "On specific days" ? prev.frequency.specificDays : [],
+                                        specificDays: value === 'On specific days' ? prev.frequency.specificDays : [],
                                     },
                                     numTimes: 1,
                                     times: [new Date()],
@@ -357,53 +342,50 @@ const AddMedication = ({ isVisible, onClose }) => {
                             items={[
                                 { label: 'As Needed', value: 'As Needed' },
                                 { label: 'Daily', value: 'Daily' },
-                                { label: 'On specific days', value: 'On specific days' }
+                                { label: 'On specific days', value: 'On specific days' },
                             ]}
                             value={formData.frequency.type}
                             style={pickerSelectStyles}
                             useNativeAndroidPickerStyle={false}
                         />
                     </View>
-                    {formData.frequency.type === "On specific days" && (
+
+                    {formData.frequency.type === 'On specific days' && (
                         <>
                             <Text style={styles.label}>Select Days*</Text>
-                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
-                                {WEEK_DAYS.map(day => (
-                                    <TouchableOpacity
-                                        key={day.value}
-                                        style={{
-                                            padding: 8, margin: 2,
-                                            borderRadius: 20,
-                                            backgroundColor: formData.frequency.specificDays.includes(day.value)
-                                                ? '#007AFF'
-                                                : COLORS.inputBackground,
-                                            borderWidth: 1,
-                                            borderColor: COLORS.border,
-                                        }}
-                                        onPress={() => {
-                                            setFormData(prev => {
-                                                let updated = [...prev.frequency.specificDays];
-                                                if (updated.includes(day.value)) {
-                                                    updated = updated.filter(d => d !== day.value);
-                                                } else {
-                                                    updated.push(day.value);
-                                                }
-                                                return {
-                                                    ...prev,
-                                                    frequency: { ...prev.frequency, specificDays: updated }
-                                                };
-                                            });
-                                        }}
-                                    >
-                                        <Text style={{
-                                            color: formData.frequency.specificDays.includes(day.value) ? 'white' : COLORS.text
-                                        }}>{day.label}</Text>
-                                    </TouchableOpacity>
-                                ))}
+                            <View style={styles.daysContainer}>
+                                {WEEK_DAYS.map(day => {
+                                    const selected = formData.frequency.specificDays.includes(day.value);
+                                    return (
+                                        <TouchableOpacity
+                                            key={day.value}
+                                            style={[
+                                                styles.dayButton,
+                                                selected && styles.daySelected,
+                                            ]}
+                                            onPress={() => {
+                                                setFormData(prev => {
+                                                    const updatedDays = prev.frequency.specificDays.includes(day.value)
+                                                        ? prev.frequency.specificDays.filter(d => d !== day.value)
+                                                        : [...prev.frequency.specificDays, day.value];
+                                                    return {
+                                                        ...prev,
+                                                        frequency: { ...prev.frequency, specificDays: updatedDays },
+                                                    };
+                                                });
+                                            }}
+                                        >
+                                            <Text style={[styles.dayLabel, selected && styles.dayLabelSelected]}>
+                                                {day.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
                         </>
                     )}
-                    {(formData.frequency.type === "Daily" || formData.frequency.type === "On specific days") && (
+
+                    {(formData.frequency.type === 'Daily' || formData.frequency.type === 'On specific days') && (
                         <>
                             <Text style={styles.label}>How many times per day?*</Text>
                             <TextInput
@@ -412,37 +394,37 @@ const AddMedication = ({ isVisible, onClose }) => {
                                 placeholder="e.g. 2"
                                 value={formData.numTimes.toString()}
                                 onChangeText={val => {
-                                    let n = Math.max(1, Number(val));
+                                    const n = Math.max(1, Number(val) || 1);
                                     setFormData(prev => {
-                                        let timesArr = prev.times.slice(0, n);
-                                        // If increased, append new time slots
+                                        const timesArr = prev.times.slice(0, n);
                                         while (timesArr.length < n) timesArr.push(new Date());
-                                        return {
-                                            ...prev,
-                                            numTimes: n,
-                                            times: timesArr,
-                                        };
+                                        return { ...prev, numTimes: n, times: timesArr };
                                     });
                                 }}
                             />
+
                             <Text style={styles.label}>Set times for each dose*</Text>
-                            {formData.times.slice(0, formData.numTimes).map((t, idx) => (
+                            {formData.times.slice(0, formData.numTimes).map((time, idx) => (
                                 <TouchableOpacity
                                     key={idx}
                                     style={styles.timeInput}
                                     onPress={() => handleShowTimePicker(idx)}
                                 >
                                     <Icon name="time-outline" size={20} color="#555" />
-                                    <Text style={styles.timeText}>{t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                                    <Text style={styles.timeText}>
+                                        {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </Text>
                                 </TouchableOpacity>
                             ))}
                         </>
                     )}
-                    {formData.frequency.type === "As Needed" && (
-                        <Text style={{ color: COLORS.gray, fontSize: 15, marginBottom: 16 }}>
+
+                    {formData.frequency.type === 'As Needed' && (
+                        <Text style={styles.noteText}>
                             No schedule, take as required.
                         </Text>
                     )}
+
                     {showDatePicker && (
                         <DateTimePicker
                             value={formData.startDate}
@@ -452,6 +434,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                             minimumDate={new Date()}
                         />
                     )}
+
                     {showTimePicker && (
                         <DateTimePicker
                             value={formData.times[activeTimeIndex] || new Date()}
@@ -462,11 +445,11 @@ const AddMedication = ({ isVisible, onClose }) => {
                     )}
                 </View>
             ),
-            validate: validateSchedule
-        }
+            validate: validateSchedule,
+        },
     ];
 
-    // Navigation functions
+    // Navigation
     const nextStep = () => {
         if (steps[currentStep].validate()) {
             setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
@@ -480,12 +463,7 @@ const AddMedication = ({ isVisible, onClose }) => {
     };
 
     return (
-        <Modal
-            visible={isVisible}
-            animationType="slide"
-            transparent={false}
-            onRequestClose={onClose}
-        >
+        <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContainer}>
                     {/* Header */}
@@ -494,32 +472,36 @@ const AddMedication = ({ isVisible, onClose }) => {
                             <TouchableOpacity onPress={prevStep} style={styles.backButton}>
                                 <Icon name="chevron-back" size={24} color="#007AFF" />
                             </TouchableOpacity>
-                        ) : (
+                        ) :(
+                            <View style={{ width: 24 }} />
+                        )
+                        }
+                        <Text style={styles.headerTitle}>{steps[currentStep].title}</Text>
+                         
                             <TouchableOpacity onPress={onClose} style={styles.backButton}>
                                 <Text style={styles.cancelText}>Cancel</Text>
                             </TouchableOpacity>
-                        )}
-                        <Text style={styles.headerTitle}>{steps[currentStep].title}</Text>
-                         {/* Spacer for alignment */}
-                        <View style={{ width: 24 }} />
+                        
                     </View>
 
-                    {/* Progress indicator */}
+                    {/* Progress Indicator */}
                     <View style={styles.progressContainer}>
-                        {steps.map((_, index) => (
+                        {steps.map((_, i) => (
                             <View
-                                key={index}
+                                key={i}
                                 style={[
                                     styles.progressDot,
-                                    index <= currentStep && styles.progressDotActive
+                                    i <= currentStep && styles.progressDotActive,
                                 ]}
                             />
                         ))}
                     </View>
+
                     {/* Content */}
-                    <ScrollView contentContainerStyle={styles.contentContainer}>
+                    <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
                         {steps[currentStep].content}
                     </ScrollView>
+
                     {/* Footer */}
                     <View style={styles.footer}>
                         {currentStep < steps.length - 1 ? (
@@ -552,6 +534,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end',
         alignItems: 'center',
+         backgroundColor: 'rgba(0,0,0,0.4)'
     },
     modalContainer: {
         width: '100%',
@@ -567,10 +550,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: COLORS.border,
     },
     backButton: {
-        padding: 8,
+        paddingVertical: 4,
     },
     cancelText: {
         color: '#007AFF',
@@ -579,6 +562,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: '600',
+        color: COLORS.text,
     },
     progressContainer: {
         flexDirection: 'row',
@@ -617,12 +601,17 @@ const styles = StyleSheet.create({
         color: COLORS.text,
         backgroundColor: COLORS.inputBackground,
     },
+    notesInput: {
+        height: 80,
+        textAlignVertical: 'top',
+    },
     pickerContainer: {
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 8,
         marginBottom: 16,
         overflow: 'hidden',
+        backgroundColor: COLORS.inputBackground,
     },
     optionsGrid: {
         flexDirection: 'row',
@@ -649,7 +638,7 @@ const styles = StyleSheet.create({
         color: COLORS.text,
     },
     optionTextSelected: {
-        color: 'white',
+        color: '#fff',
     },
     strengthContainer: {
         flexDirection: 'row',
@@ -659,6 +648,8 @@ const styles = StyleSheet.create({
     unitsContainer: {
         flexDirection: 'row',
         marginLeft: 8,
+        flexWrap: 'wrap',
+        alignItems: 'center',
     },
     unitButton: {
         padding: 8,
@@ -669,6 +660,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: COLORS.inputBackground,
+        height: 50,
     },
     unitSelected: {
         backgroundColor: '#007AFF',
@@ -679,7 +671,12 @@ const styles = StyleSheet.create({
         color: COLORS.text,
     },
     unitTextSelected: {
-        color: 'white',
+        color: '#fff',
+    },
+    icon: {
+        width: 30,
+        height: 30,
+        marginBottom: 4,
     },
     timeInput: {
         flexDirection: 'row',
@@ -695,6 +692,41 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginLeft: 8,
         color: COLORS.text,
+    },
+    daysContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginBottom: 12,
+    },
+    dayButton: {
+        padding: 8,
+        margin: 2,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        backgroundColor: COLORS.inputBackground,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 40,
+        alignSelf: 'center',
+    },
+    daySelected: {
+        backgroundColor: '#007AFF',
+        borderColor: '#007AFF',
+    },
+    dayLabel: {
+        color: COLORS.text,
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    dayLabelSelected: {
+        color: '#fff',
+    },
+    noteText: {
+        color: COLORS.gray,
+        fontSize: 15,
+        marginBottom: 16,
+        textAlign: 'center',
     },
     footer: {
         padding: 16,
@@ -716,13 +748,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     buttonText: {
-        color: 'white',
+        color: '#fff',
         fontSize: 16,
         fontWeight: '600',
-    },
-    icon: {
-        width: 30,
-        height: 30,
     },
 });
 
