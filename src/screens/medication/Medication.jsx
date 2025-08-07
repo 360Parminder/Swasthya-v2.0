@@ -1,6 +1,6 @@
 // src/screens/connections/Connection.js
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication';
 import { COLORS } from '../../components/ui/colors';
 import { medicationApi } from '../../api/medicationApi';
@@ -33,30 +33,52 @@ const Medication = () => {
   // Render a single medication record
   const renderRecord = ({ item: record }) => (
     <View style={styles.recordItem}>
-      <Text style={styles.medicineName}>{record.medicine_name}</Text>
-      <Text style={styles.medicineDetails}>
-        {record.strength} {record.unit} - {record.forms}
-      </Text>
-      <Text style={styles.frequency}>
-        Frequency: {record.frequency.type}
-        {record.frequency.interval > 1 ? ` every ${record.frequency.interval} days` : ''}
-      </Text>
-      <View style={styles.timesList}>
-        {record.times.map((timeItem, idx) => {
-          const formattedTime = new Date(timeItem.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          return (
-            <Text key={idx} style={styles.timeItem}>
-              {formattedTime} - {timeItem.dose} dose
-            </Text>
-          );
-        })}
+      <View style={styles.recordHeader}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image
+            source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
+            style={styles.medicineImage}
+            resizeMode="cover"
+          />
+          <View>
+            <Text style={styles.medicineName}>{record.medicine_name}</Text>
+            <Text style={styles.medicineDetails}>after food</Text>
+          </View>
+        </View>
+        <View style={styles.dosageBadge}>
+          <Text style={styles.dosageText}>
+            {record.strength}{record.unit}
+          </Text>
+        </View>
       </View>
+      {
+        record.times.map((time, index) => (
+          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+            <View>
+              <Text style={{ color: COLORS.textSecondary }}>Dosage</Text>
+              <Text style={{ color: COLORS.text, fontWeight: 'bold' }} > {time.dose}</Text>
+            </View>
+            <View>
+              <Text>Reception time</Text>
+              <Text> {new Date(time.reception_time).toLocaleString("en-GB", { timeZone: "UTC" })}</Text>
+            </View>
+            <View>
+              <Text>Fills</Text>
+              <Text>10 left</Text>
+            </View>
+          </View>
+        ))
+      }
+
     </View>
   );
 
   // Render medication card with list of records
   const renderMedication = ({ item: medication }) => (
     <View style={styles.medicationCard}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardPill} />
+      </View>
       <FlatList
         data={medication.record}
         renderItem={renderRecord}
@@ -64,7 +86,7 @@ const Medication = () => {
         scrollEnabled={false}
       />
     </View>
-  );
+  );;
 
   return (
     <View style={styles.container}>
@@ -107,15 +129,18 @@ const Medication = () => {
         <View style={styles.modalContainer}>
           {medications.length > 0 ? (
             <FlatList
-              style={{ width: '100%', height: '100%' }}
-              contentContainerStyle={{ paddingBottom: 20 }}
-
+              style={styles.medicationsList}
+              contentContainerStyle={styles.listContent}
               data={medications}
               renderItem={renderMedication}
               keyExtractor={item => item._id}
+              showsVerticalScrollIndicator={false}
             />
           ) : (
-            <Text style={styles.noMedicationsText}>No medications found.</Text>
+            <View style={styles.emptyState}>
+              <Text style={styles.noMedicationsText}>No medications found</Text>
+              <Text style={styles.emptySubtext}>Add your first medication to get started</Text>
+            </View>
           )}
         </View>
       </GeneralModal>
@@ -164,65 +189,130 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
-  
+
   modalContainer: {
-    maxHeight: '80%',
-    paddingHorizontal: 10,
+    height: '100%',
   },
-  medicationCard: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    // Elevation for Android
-    elevation: 5,
+  medicationsList: {
+    width: '100%',
   },
-  recordItem: {
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 12,
+  listContent: {
+    paddingBottom: 24,
   },
-  medicineName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2E4057',
-    marginBottom: 4,
-  },
-  medicineDetails: {
-    fontSize: 14,
-    color: '#5D6D7E',
-    marginBottom: 4,
-  },
-  frequency: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#34495E',
-    marginBottom: 6,
-  },
-  timesList: {
-    marginTop: 6,
-    paddingLeft: 12,
-  },
-  timeItem: {
-    fontSize: 13,
-    color: '#7B8D93',
-    marginBottom: 2,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
   noMedicationsText: {
-    textAlign: 'center',
-    color: '#7B8D93',
     fontSize: 18,
-    paddingVertical: 40,
     fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  medicationCard: {
+    backgroundColor: COLORS.inputBackground,
+    borderRadius: 16,
+    marginBottom: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    // Modern shadow
+    shadowColor: '#1C1C1D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardHeader: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  medicineImage: {
+    backgroundColor: '#fff',
+    padding: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  cardPill: {
+    position: 'absolute',
+    left: -20,
+    top: 0,
+    height: '100%',
+    width: 4,
+    backgroundColor: '#6366F1', // Indigo color
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  recordItem: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  recordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  medicineName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    textTransform: 'capitalize',
+  },
+  dosageBadge: {
+    backgroundColor: '#ECFDF5', // Light green background
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  dosageText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#059669', // Dark green text
+  },
+  medicineDetails: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginBottom: 12,
+  },
+  timesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  timePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC', // Very light slate
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+  },
+  timeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#475569', // Slate-600
+  },
+  doseDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#94A3B8', // Slate-400
+    marginHorizontal: 6,
+  },
+  doseText: {
+    fontSize: 12,
+    color: '#64748B', // Slate-500
   },
 });
 

@@ -5,6 +5,6 @@ export const COLORS = {
   cardBackground: '#292c33ff',
   inputBackground: '#3D414D',
   text: '#ffffff',
-  textSecondary: '#c5c5c6ff',
+  textSecondary: '#e6e6e6ff',
   border: '#3D414D',
 };

@@ -146,7 +146,7 @@ const AddMedication = ({ isVisible, onClose }) => {
             ? []
             : Array.from({ length: formData.numTimes }, (_, i) => ({
                 dose: formData.dosage,
-                time: formData.times[i]
+                reception_time: formData.times[i]
                     ? formData.times[i].toISOString()
                     : new Date().toISOString(),
             }));
