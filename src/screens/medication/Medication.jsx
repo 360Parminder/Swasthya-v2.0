@@ -53,7 +53,7 @@ const Medication = () => {
       </View>
       {
         record.times.map((time, index) => (
-          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12,textAlign:'center' }}>
             <View>
               <Text style={{ color: COLORS.textSecondary }}>Dosage</Text>
               <Text style={{ color: COLORS.text, fontWeight: 'bold' }} > {time.dose}</Text>
@@ -215,7 +215,8 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   medicationCard: {
-    backgroundColor: COLORS.inputBackground,
+    // backgroundColor: COLORS.inputBackground,
+    backgroundColor: '#159A8A',
     borderRadius: 16,
     marginBottom: 16,
     paddingVertical: 16,
@@ -254,8 +255,8 @@ const styles = StyleSheet.create({
   recordItem: {
     marginBottom: 16,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#F5F5F5',
   },
   recordHeader: {
     flexDirection: 'row',
