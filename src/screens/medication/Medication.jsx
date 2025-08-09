@@ -42,29 +42,37 @@ const Medication = () => {
           />
           <View>
             <Text style={styles.medicineName}>{record.medicine_name}</Text>
-            <Text style={styles.medicineDetails}>after food</Text>
+            <Text style={styles.medicineDetails}>{record.description === '' ? 'No description' : record.description}</Text>
           </View>
         </View>
         <View style={styles.dosageBadge}>
           <Text style={styles.dosageText}>
-            {record.strength}{record.unit}
+            {/* {record.strength}{record.unit} */}
+            :____:
           </Text>
         </View>
       </View>
       {
         record.times.map((time, index) => (
-          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', textAlign: 'center', backgroundColor: '#469d89',height: 70, padding: 10, }}>
+          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', textAlign: 'center', backgroundColor: COLORS.cardBackground,height: 70, padding: 10, }}>
             <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary,fontSize: 16 }}>Dose</Text>
-              <Text style={{ color: COLORS.text, fontWeight: 'bold',fontSize: 14 }} > {record.strength} {record.unit}</Text>
+              <Text style={{ color: COLORS.textSecondary, fontWeight: '300' }}>Dose</Text>
+              <Text style={{ color: COLORS.text, fontWeight: 'semibold', fontSize: 14 }} > {record.strength} {record.unit}</Text>
             </View>
             <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary }}>Reception time</Text>
-              <Text style={{ color: COLORS.text }} > {new Date(time.reception_time).toLocaleString("en-GB", { timeZone: "UTC" })}</Text>
+              <Text style={{ color: COLORS.textSecondary, fontWeight: '300' }}>Reception time</Text>
+              <Text style={{ color: COLORS.text, textTransform: 'uppercase', textAlign: 'center', fontWeight: 'semibold' }} > {
+                new Date(time.reception_time).toLocaleTimeString("en-GB", {
+                  timeZone: "UTC",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true
+                })
+              }</Text>
             </View>
             <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary }}>Fills</Text>
-              <Text style={{ color: COLORS.text }}>10 left</Text>
+              <Text style={{ color: COLORS.textSecondary, fontWeight: '300',fontWeight:'semibold' }}>Fills</Text>
+              <Text style={{ color: COLORS.text }}>{record.fills}</Text>
             </View>
           </View>
         ))
@@ -211,9 +219,6 @@ const styles = StyleSheet.create({
   medicationsList: {
     width: '100%',
   },
-  listContent: {
-    // paddingBottom: 24,
-  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -256,12 +261,11 @@ const styles = StyleSheet.create({
   },
   recordItem: {
     marginBottom: 16,
-    backgroundColor: '#248277',
+    backgroundColor: COLORS.inputBackground,
     borderRadius: 12,
     overflow: 'hidden',
-    // paddingBottom: 16,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   recordHeader: {
     flexDirection: 'row',
