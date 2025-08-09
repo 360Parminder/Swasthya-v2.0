@@ -53,10 +53,10 @@ const Medication = () => {
       </View>
       {
         record.times.map((time, index) => (
-          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12,textAlign:'center' }}>
-            <View>
+          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', textAlign: 'center', backgroundColor: '#31a697' }}>
+            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
               <Text style={{ color: COLORS.textSecondary }}>Dosage</Text>
-              <Text style={{ color: COLORS.text, fontWeight: 'bold' }} > {time.dose}</Text>
+              <Text style={{ color: COLORS.text, fontWeight: 'bold',fontSize: 16 }} > {time.dose}</Text>
             </View>
             <View>
               <Text>Reception time</Text>
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   listContent: {
-    paddingBottom: 24,
+    // paddingBottom: 24,
   },
   emptyState: {
     alignItems: 'center',
@@ -216,11 +216,11 @@ const styles = StyleSheet.create({
   },
   medicationCard: {
     // backgroundColor: COLORS.inputBackground,
-    backgroundColor: '#159A8A',
+    backgroundColor: '#159b8b',
     borderRadius: 16,
     marginBottom: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    // paddingVertical: 16,
+    // paddingHorizontal: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
     // Modern shadow
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   recordItem: {
     marginBottom: 16,
-    paddingBottom: 16,
+    // paddingBottom: 16,
     // borderBottomWidth: 1,
     // borderBottomColor: '#F5F5F5',
   },
@@ -263,6 +263,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    paddingBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
   medicineName: {
     fontSize: 16,

@@ -199,7 +199,7 @@ const SignUpScreen = ({ navigation }) => {
       )}
       <TouchableOpacity onPress={onNext} style={{ flex: 1, marginHorizontal: 4 }}>
         <LinearGradient {...gradient} style={styles.stepBtn}>
-          <Text style={styles.btnText}>{isFinal ? 'Finish & Sign Up' : 'Next'}</Text>
+          <Text style={styles.btnText}>{isFinal ? 'Sign Up' : 'Next'}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -239,7 +239,7 @@ const SignUpScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 35,
+    // paddingTop: 35,
     backgroundColor: COLORS.background,
     justifyContent: 'space-between',
   },
@@ -260,7 +260,8 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: COLORS.cardBackground,
     width: '100%',
-    borderRadius: 30,
+    borderTopEndRadius: 30,
+    borderTopLeftRadius: 30,
     height: '65%',
     marginBottom: 0,
     // Optionally, add a shadow/elevation for modal feeling:

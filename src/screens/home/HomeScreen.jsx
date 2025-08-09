@@ -2,10 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, Button, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { Dimensions } from 'react-native';
+import { COLORS } from '../../components/ui/colors';
+const { width } = Dimensions.get('window');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const { authState, logout } = useAuth();
+  const { authState } = useAuth();
 
   return (
     <View style={styles.container}>
@@ -51,7 +54,6 @@ const HomeScreen = () => {
           </View>
         </TouchableOpacity>
       </View>
-      <Button title="Logout" onPress={logout} />
     </View>
   );
 };
@@ -59,14 +61,15 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    // paddingTop: ,
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#14161A',
+    backgroundColor: COLORS.background,
   },
   headerBar: {
+    // backgroundColor: '#1F2127',
     width: '100%',
-    marginBottom: 20, 
+    marginBottom: 10, 
     borderRadius: 10,
   },
   headerContent: {
@@ -77,13 +80,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: 'Rubik-Regular',
-    color: '#e0e0e0ff',
+    color: COLORS.text,
     fontWeight: '600',
   },
   subtitle: {
     fontSize: 18,
     fontFamily: 'Rubik-SemiBold',
-    color: '#e0e0e0ff',
+    color: COLORS.textSecondary,
   },
   profilePicture: {
     width: 50,
@@ -98,14 +101,14 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#292c339e',
-    borderColor: '#3D414D',
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: 10,
     padding: 16,
-    // elevation: 2, // Shadow for Android
-    // shadowColor: '#000', // Shadow for iOS
-    // shadowOffset: { width: 0, height: 2 },
+    elevation: 2, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.09,
     shadowRadius: 8,
     marginBottom: 15,

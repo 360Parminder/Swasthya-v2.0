@@ -121,7 +121,7 @@ export default SignInScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 35,
+    // paddingTop: 35,
     backgroundColor: COLORS.background,
     justifyContent: 'space-between', // This will push content to top and bottom
   },
@@ -137,7 +137,8 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: COLORS.cardBackground,
     width: '100%',
-    borderRadius: 40,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     height: '65%',
     marginBottom: 0, // Add some bottom margin
   },

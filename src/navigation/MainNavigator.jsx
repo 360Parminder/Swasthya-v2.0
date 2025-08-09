@@ -6,7 +6,7 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Medication from '../screens/medication/Medication';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { COLORS } from '../components/ui/colors';
 import { useNavigation } from '@react-navigation/native';
 
@@ -114,22 +114,23 @@ const MainNavigator = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          height: 65,
+          height: 60,
           borderRadius: 25,
           marginHorizontal: 20,
           marginBottom: 25,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
+          // shadowColor: '#000',
+          // shadowOffset: { width: 0, height: 6 },
+          // shadowOpacity: 0.1,
+          // shadowRadius: 8,
           elevation: 12,
-          backgroundColor: '#292c339e',
-          borderColor: '#3D414D',
+          backgroundColor: COLORS.cardBackground,
+          borderColor: COLORS.border,
           borderWidth: 1,
           borderTopWidth: 1,
           flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center'
+          paddingTop: 10,
+          // alignItems: 'center',
+          // justifyContent: 'center'
 
         },
         tabBarIcon: ({ focused, color, size }) => {
@@ -138,6 +139,9 @@ const MainNavigator = () => {
             iconName = 'house';
           } else if (route.name === 'ProfileTab') {
             iconName = 'user';
+          }
+          else if (route.name === 'ConnectionsTab') {
+            iconName = 'plus';
           }
           return (
             <View style={{
@@ -166,6 +170,12 @@ const MainNavigator = () => {
         name="HomeTab"
         component={HomeStackScreen}
       />
+      
+      <Tab.Screen
+        name="ConnectionsTab"
+        component={ProfileScreen}
+      />
+
       <Tab.Screen
         name="ProfileTab"
         component={ProfileStackScreen}
