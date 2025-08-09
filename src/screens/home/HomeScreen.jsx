@@ -15,12 +15,12 @@ const HomeScreen = () => {
       <View style={styles.headerBar}>
         <View style={styles.headerContent}>
           <Image
-            source={{ uri: authState.user?.avatar }}
+            source={{ uri: authState?.user?.avatar }}
             style={styles.profilePicture}
           />
           <View style={{ marginLeft: 10 }}>
             <Text style={styles.title}>Hello</Text>
-            <Text style={styles.subtitle}>{authState.user?.username || 'User'}</Text>
+            <Text style={styles.subtitle}>{authState?.user?.username || 'User'}</Text>
           </View>
         </View>
       </View>

@@ -53,18 +53,18 @@ const Medication = () => {
       </View>
       {
         record.times.map((time, index) => (
-          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', textAlign: 'center', backgroundColor: '#31a697' }}>
+          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', textAlign: 'center', backgroundColor: '#469d89',height: 70, padding: 10, }}>
             <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary }}>Dosage</Text>
-              <Text style={{ color: COLORS.text, fontWeight: 'bold',fontSize: 16 }} > {time.dose}</Text>
+              <Text style={{ color: COLORS.textSecondary,fontSize: 16 }}>Dose</Text>
+              <Text style={{ color: COLORS.text, fontWeight: 'bold',fontSize: 14 }} > {record.strength} {record.unit}</Text>
             </View>
-            <View>
-              <Text>Reception time</Text>
-              <Text> {new Date(time.reception_time).toLocaleString("en-GB", { timeZone: "UTC" })}</Text>
+            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+              <Text style={{ color: COLORS.textSecondary }}>Reception time</Text>
+              <Text style={{ color: COLORS.text }} > {new Date(time.reception_time).toLocaleString("en-GB", { timeZone: "UTC" })}</Text>
             </View>
-            <View>
-              <Text>Fills</Text>
-              <Text>10 left</Text>
+            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+              <Text style={{ color: COLORS.textSecondary }}>Fills</Text>
+              <Text style={{ color: COLORS.text }}>10 left</Text>
             </View>
           </View>
         ))
@@ -91,31 +91,44 @@ const Medication = () => {
   return (
     <View style={styles.container}>
       {/* Add Medication Button */}
-      <TouchableOpacity
-        style={styles.mainButton}
-        onPress={() => setModalType('add')}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.buttonText}>Add Medication</Text>
-      </TouchableOpacity>
 
       {/* Action Buttons Row */}
       <View style={styles.buttonRow}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => setModalType('add')}
+        activeOpacity={0.7}
+      >
+        <Image
+          source={require('../../../assets/images/appointment.png')}
+          style={styles.cardImage}
+        />
+        <Text style={styles.buttonText}>Add Medication</Text>
+
+      </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.secondaryButton, styles.buttonGreen]}
+          style={styles.card}
           onPress={() => setModalType('view')}
           activeOpacity={0.7}
         >
+          <Image
+            source={require('../../../assets/images/appointment.png')}
+            style={styles.cardImage}
+          />
           <Text style={styles.buttonText}>View My Medications</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.secondaryButton, styles.buttonOrange]}
+          style={styles.card}
           onPress={() => {
             // TODO: Implement view connection medications functionality
           }}
           activeOpacity={0.7}
         >
+          <Image
+            source={require('../../../assets/images/appointment.png')}
+            style={styles.cardImage}
+          />
           <Text style={styles.buttonText}>View Connection Medications</Text>
         </TouchableOpacity>
       </View>
@@ -160,31 +173,33 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: COLORS.background,
   },
-  mainButton: {
-    padding: 16,
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   buttonRow: {
+    width: '100%',
+    marginTop: 20,
+    gap: 20,
+  },
+  card: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  secondaryButton: {
-    width: '48%',
-    padding: 16,
-    borderRadius: 8,
     alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 16,
+    elevation: 2, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.09,
+    shadowRadius: 8,
+    marginBottom: 15,
   },
-  buttonGreen: {
-    backgroundColor: '#34C759',
-  },
-  buttonOrange: {
-    backgroundColor: '#FF9500',
+    cardImage: {
+    width: 64,
+    height: 64,
+    marginRight: 18,
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.text,
     fontWeight: '600',
     fontSize: 16,
     textAlign: 'center',
@@ -215,20 +230,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   medicationCard: {
-    // backgroundColor: COLORS.inputBackground,
-    backgroundColor: '#159b8b',
-    borderRadius: 16,
     marginBottom: 16,
-    // paddingVertical: 16,
-    // paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    // Modern shadow
-    shadowColor: '#1C1C1D',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   cardHeader: {
     position: 'relative',
@@ -236,7 +238,7 @@ const styles = StyleSheet.create({
   },
   medicineImage: {
     backgroundColor: '#fff',
-    padding: 10,
+    // padding: 10,
     width: 50,
     height: 50,
     borderRadius: 8,
@@ -254,6 +256,9 @@ const styles = StyleSheet.create({
   },
   recordItem: {
     marginBottom: 16,
+    backgroundColor: '#248277',
+    borderRadius: 12,
+    overflow: 'hidden',
     // paddingBottom: 16,
     // borderBottomWidth: 1,
     // borderBottomColor: '#F5F5F5',
