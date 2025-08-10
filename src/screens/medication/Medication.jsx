@@ -1,143 +1,56 @@
-// src/screens/connections/Connection.js
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Image } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication';
 import { COLORS } from '../../components/ui/colors';
 import { medicationApi } from '../../api/medicationApi';
 import GeneralModal from '../../components/common/GeneralModal';
+import ViewMedications from '../../components/model/Medication/ViewMedications';
 
 const Medication = () => {
-  const [modalType, setModalType] = useState(null); // null | 'add' | 'view'
+  const [modalType, setModalType] = useState(null);
   const [medications, setMedications] = useState([]);
 
-  // Fetch medications from API
   const fetchMedications = async () => {
     try {
       const response = await medicationApi.getAllMedications();
-      console.log('Fetched medications:', response.data);
-      const meds = response?.data?.medications ?? [];
-      setMedications(meds);
+      setMedications(response?.data?.medications ?? []);
     } catch (error) {
       console.error('Error fetching medications:', error);
     }
   };
 
-  // On component mount, fetch medications
   useEffect(() => {
     fetchMedications();
   }, []);
 
-  // Close modal handler
   const closeModal = () => setModalType(null);
-
-  // Render a single medication record
-  const renderRecord = ({ item: record }) => (
-    <View style={styles.recordItem}>
-      <View style={styles.recordHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Image
-            source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
-            style={styles.medicineImage}
-            resizeMode="cover"
-          />
-          <View>
-            <Text style={styles.medicineName}>{record.medicine_name}</Text>
-            <Text style={styles.medicineDetails}>{record.description === '' ? 'No description' : record.description}</Text>
-          </View>
-        </View>
-        <View style={styles.dosageBadge}>
-          <Text style={styles.dosageText}>
-            {/* {record.strength}{record.unit} */}
-            :____:
-          </Text>
-        </View>
-      </View>
-      {
-        record.times.map((time, index) => (
-          <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', textAlign: 'center', backgroundColor: COLORS.cardBackground,height: 70, padding: 10, }}>
-            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary, fontWeight: '300' }}>Dose</Text>
-              <Text style={{ color: COLORS.text, fontWeight: 'semibold', fontSize: 14 }} > {record.strength} {record.unit}</Text>
-            </View>
-            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary, fontWeight: '300' }}>Reception time</Text>
-              <Text style={{ color: COLORS.text, textTransform: 'uppercase', textAlign: 'center', fontWeight: 'semibold' }} > {
-                new Date(time.reception_time).toLocaleTimeString("en-GB", {
-                  timeZone: "UTC",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true
-                })
-              }</Text>
-            </View>
-            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <Text style={{ color: COLORS.textSecondary, fontWeight: '300',fontWeight:'semibold' }}>Fills</Text>
-              <Text style={{ color: COLORS.text }}>{record.fills}</Text>
-            </View>
-          </View>
-        ))
-      }
-
-    </View>
-  );
-
-  // Render medication card with list of records
-  const renderMedication = ({ item: medication }) => (
-    <View style={styles.medicationCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardPill} />
-      </View>
-      <FlatList
-        data={medication.record}
-        renderItem={renderRecord}
-        keyExtractor={(_, index) => index.toString()}
-        scrollEnabled={false}
-      />
-    </View>
-  );;
 
   return (
     <View style={styles.container}>
-      {/* Add Medication Button */}
-
-      {/* Action Buttons Row */}
+      
       <View style={styles.buttonRow}>
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => setModalType('add')}
-        activeOpacity={0.7}
-      >
-        <Image
-          source={require('../../../assets/images/appointment.png')}
-          style={styles.cardImage}
-        />
-        <Text style={styles.buttonText}>Add Medication</Text>
-
-      </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => setModalType('view')}
-          activeOpacity={0.7}
-        >
-          <Image
-            source={require('../../../assets/images/appointment.png')}
-            style={styles.cardImage}
-          />
-          <Text style={styles.buttonText}>View My Medications</Text>
+        <TouchableOpacity style={styles.card} onPress={() => setModalType('add')}>
+          <Image source={require('../../../assets/images/appointment.png')} style={styles.cardImage} />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>Add Medication</Text>
+            <Text style={styles.cardSubheading}>Add a new medication to your list</Text>
+          </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => {
-            // TODO: Implement view connection medications functionality
-          }}
-          activeOpacity={0.7}
-        >
-          <Image
-            source={require('../../../assets/images/appointment.png')}
-            style={styles.cardImage}
-          />
-          <Text style={styles.buttonText}>View Connection Medications</Text>
+        <TouchableOpacity style={styles.card} onPress={() => setModalType('view')}>
+          <Image source={require('../../../assets/images/medical-report.png')} style={styles.cardImage} />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>View My Medications</Text>
+            <Text style={styles.cardSubheading}>Manage your personal medications</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card}>
+          <Image source={require('../../../assets/images/nursing-home.png')} style={styles.cardImage} />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardHeader}>View Connection Medications</Text>
+            <Text style={styles.cardSubheading}>Manage medications for your connections</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -148,29 +61,12 @@ const Medication = () => {
         title="My Medications"
       >
         <View style={styles.modalContainer}>
-          {medications.length > 0 ? (
-            <FlatList
-              style={styles.medicationsList}
-              contentContainerStyle={styles.listContent}
-              data={medications}
-              renderItem={renderMedication}
-              keyExtractor={item => item._id}
-              showsVerticalScrollIndicator={false}
-            />
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.noMedicationsText}>No medications found</Text>
-              <Text style={styles.emptySubtext}>Add your first medication to get started</Text>
-            </View>
-          )}
+          <ViewMedications medications={medications} />
         </View>
       </GeneralModal>
 
       {/* Add Medication Modal */}
-      <AddMedication
-        isVisible={modalType === 'add'}
-        onClose={closeModal}
-      />
+      <AddMedication isVisible={modalType === 'add'} onClose={closeModal} />
     </View>
   );
 };
@@ -194,138 +90,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 16,
-    elevation: 2, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.09,
     shadowRadius: 8,
     marginBottom: 15,
   },
-    cardImage: {
+  cardImage: {
     width: 64,
     height: 64,
     marginRight: 18,
   },
-  buttonText: {
-    color: COLORS.text,
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-
-  modalContainer: {
-    height: '100%',
-  },
-  medicationsList: {
-    width: '100%',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-  noMedicationsText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  medicationCard: {
-    marginBottom: 16,
+  cardTextContainer: {
+    flex: 1,
   },
   cardHeader: {
-    position: 'relative',
-    marginBottom: 12,
-  },
-  medicineImage: {
-    backgroundColor: '#fff',
-    // padding: 10,
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  cardPill: {
-    position: 'absolute',
-    left: -20,
-    top: 0,
-    height: '100%',
-    width: 4,
-    backgroundColor: '#6366F1', // Indigo color
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  recordItem: {
-    marginBottom: 16,
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  recordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-    paddingBottom: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  medicineName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: COLORS.text,
-    textTransform: 'capitalize',
   },
-  dosageBadge: {
-    backgroundColor: '#ECFDF5', // Light green background
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  dosageText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#059669', // Dark green text
-  },
-  medicineDetails: {
-    fontSize: 13,
+  cardSubheading: {
+    fontSize: 15,
     color: COLORS.textSecondary,
-    marginBottom: 12,
+    marginTop: 4,
+    fontWeight: '400',
   },
-  timesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  timePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC', // Very light slate
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-  },
-  timeText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#475569', // Slate-600
-  },
-  doseDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#94A3B8', // Slate-400
-    marginHorizontal: 6,
-  },
-  doseText: {
-    fontSize: 12,
-    color: '#64748B', // Slate-500
+  modalContainer: {
+    height: '100%',
   },
 });
 

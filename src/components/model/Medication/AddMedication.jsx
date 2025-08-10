@@ -203,7 +203,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                             onValueChange={value => handleInputChange('forWhom', value)}
                             items={[
                                 { label: 'Myself', value: 'myself' },
-                                { label: 'Family Member', value: 'relative' },
+                                { label: 'Connection', value: 'connection' },
                             ]}
                             value={formData.forWhom}
                             style={pickerSelectStyles}
@@ -211,7 +211,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                         />
                     </View>
 
-                    {formData.forWhom === 'relative' && (
+                    {formData.forWhom === 'connection' && (
                         <>
                             <Text style={styles.label}>Select Family Member*</Text>
                             <View style={styles.pickerContainer}>
