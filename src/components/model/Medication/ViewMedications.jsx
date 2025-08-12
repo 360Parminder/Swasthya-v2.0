@@ -1,53 +1,90 @@
 import React from 'react';
 import { StyleSheet, View, Text, FlatList, Image } from 'react-native';
 import { COLORS } from '../../../components/ui/colors';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const ViewMedications = ({ medications }) => {
   
   const renderRecord = ({ item: record }) => (
-    <View style={styles.recordItem}>
-      <View style={styles.recordHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Image
+    // <View style={styles.recordItem}>
+    //   <View style={styles.recordHeader}>
+    //     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    //       <Image
+    //         source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
+    //         style={styles.medicineImage}
+    //         resizeMode="cover"
+    //       />
+    //       <View>
+    //         <Text style={styles.medicineName}>{record.medicine_name}</Text>
+    //         <Text style={styles.medicineDetails}>
+    //           {record.description || 'No description'}
+    //         </Text>
+    //       </View>
+    //     </View>
+    //     <View style={styles.dosageBadge}>
+    //       <Text style={styles.dosageText}>{record.strength} {record.unit}</Text>
+    //     </View>
+    //   </View>
+
+    //   {record.times.map((time, index) => (
+    //     <View key={index} style={styles.infoRow}>
+    //       <View style={styles.column}>
+    //         <Text style={styles.label}>Dose</Text>
+    //         <Text style={styles.value}>{record.strength} {record.unit}</Text>
+    //       </View>
+    //       <View style={styles.column}>
+    //         <Text style={styles.label}>Reception time</Text>
+    //         <Text style={styles.value}>
+    //           {new Date(time.reception_time).toLocaleTimeString("en-GB", {
+    //             timeZone: "UTC",
+    //             hour: "2-digit",
+    //             minute: "2-digit",
+    //             hour12: true
+    //           })}
+    //         </Text>
+    //       </View>
+    //       <View style={styles.column}>
+    //         <Text style={styles.label}>Fills</Text>
+    //         <Text style={styles.value}>{record.fills}</Text>
+    //       </View>
+    //     </View>
+    //   ))}
+    // </View>
+    <View style={{display: 'flex',marginTop: 20, flexDirection: 'row', alignItems: 'center',backgroundColor: COLORS.inputBackground,borderRadius: 12,borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 12,
+    justifyContent: 'space-between'
+    }}>
+        {/* <View></View> */}
+       <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center',position: 'relative'}}>
+        {
+            record?.times.map((time, index) => (
+                <View key={index} style={{marginRight: 12,position: 'absolute',top: -30,left: -10,zIndex: 100,backgroundColor: '#f3f4fe',padding: 4,borderRadius: 8}}>
+                    <Text style={{color: '#5f6bcb',textTransform: 'uppercase',fontWeight: '600'}}>{new Date(time.reception_time).toLocaleTimeString("en-GB", {
+                        timeZone: "UTC",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true
+                    })}</Text>
+                </View>
+            ))
+        }
+         <Image
             source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
             style={styles.medicineImage}
             resizeMode="cover"
           />
-          <View>
+        <View>
             <Text style={styles.medicineName}>{record.medicine_name}</Text>
-            <Text style={styles.medicineDetails}>
-              {record.description || 'No description'}
-            </Text>
-          </View>
+            <View style={{display: 'flex', flexDirection: 'row', gap: 8}}>
+                <Text style={{color: COLORS.text}}>{record.strength} {record.unit}</Text>
+                <Text style={{color: COLORS.text}}>{record.description || 'No description'}</Text>
+            </View>
         </View>
-        <View style={styles.dosageBadge}>
-          <Text style={styles.dosageText}>{record.strength} {record.unit}</Text>
+       </View>
+        <View style={{display: 'flex', flexDirection: 'row', gap: 8,backgroundColor: '#adababff',padding: 4,borderRadius: 100}}>
+            <Icon name="check" size={20} color={COLORS.text} />
         </View>
-      </View>
-
-      {record.times.map((time, index) => (
-        <View key={index} style={styles.infoRow}>
-          <View style={styles.column}>
-            <Text style={styles.label}>Dose</Text>
-            <Text style={styles.value}>{record.strength} {record.unit}</Text>
-          </View>
-          <View style={styles.column}>
-            <Text style={styles.label}>Reception time</Text>
-            <Text style={styles.value}>
-              {new Date(time.reception_time).toLocaleTimeString("en-GB", {
-                timeZone: "UTC",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true
-              })}
-            </Text>
-          </View>
-          <View style={styles.column}>
-            <Text style={styles.label}>Fills</Text>
-            <Text style={styles.value}>{record.fills}</Text>
-          </View>
-        </View>
-      ))}
     </View>
   );
 
@@ -161,6 +198,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 14,
     fontWeight: '600',
+    // textTransform: 'capitalize',
   },
 });
 

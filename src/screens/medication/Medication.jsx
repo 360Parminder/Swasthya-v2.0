@@ -5,6 +5,7 @@ import { COLORS } from '../../components/ui/colors';
 import { medicationApi } from '../../api/medicationApi';
 import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const Medication = () => {
   const [modalType, setModalType] = useState(null);
@@ -29,13 +30,7 @@ const Medication = () => {
     <View style={styles.container}>
       
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.card} onPress={() => setModalType('add')}>
-          <Image source={require('../../../assets/images/appointment.png')} style={styles.cardImage} />
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>Add Medication</Text>
-            <Text style={styles.cardSubheading}>Add a new medication to your list</Text>
-          </View>
-        </TouchableOpacity>
+       
 
         <TouchableOpacity style={styles.card} onPress={() => setModalType('view')}>
           <Image source={require('../../../assets/images/medical-report.png')} style={styles.cardImage} />
@@ -51,6 +46,22 @@ const Medication = () => {
             <Text style={styles.cardHeader}>View Connection Medications</Text>
             <Text style={styles.cardSubheading}>Manage medications for your connections</Text>
           </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={{
+          backgroundColor:COLORS.primary,
+          borderRadius:8,
+          flexDirection:'row',
+          alignItems:'center',
+          padding:12,
+          justifyContent:'center',
+          gap:8
+          }} onPress={() => setModalType('add')}>
+          {/* <Image source={require('../../../assets/images/appointment.png')} style={styles.cardImage} /> */}
+          {/* <View style={styles.cardTextContainer}> */}
+            <Text style={{color:COLORS.text,fontSize:16,fontWeight:'600'}}>Add Medication</Text>
+          <Icon name="plus" size={18} color={COLORS.text} />
+            {/* <Text style={styles.cardSubheading}>Add a new medication to your list</Text> */}
+          {/* </View> */}
         </TouchableOpacity>
       </View>
 
@@ -106,7 +117,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
     color: COLORS.text,
   },
   cardSubheading: {

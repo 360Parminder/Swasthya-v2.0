@@ -23,7 +23,7 @@ const App = () => {
         config={toastConfig} 
         // ref={(ref) => Toast.setRef(ref)} 
         position="top" // Optional: position can be 'top' (default) or 'bottom'
-        topOffset={50} // Optional: adjust if your status bar overlaps
+        topOffset={100} // Optional: adjust if your status bar overlaps
         visibilityTime={5000} // Optional: default is 4000ms
       />
     </SafeAreaProvider>

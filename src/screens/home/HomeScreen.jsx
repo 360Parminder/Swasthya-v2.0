@@ -1,10 +1,45 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { Dimensions } from 'react-native';
 import { COLORS } from '../../components/ui/colors';
-const { width } = Dimensions.get('window');
+import Icon from 'react-native-vector-icons/FontAwesome6';
+import { getDayAndDate } from '../../utils/date';
+import Swiper from 'react-native-deck-swiper';
+
+const medications = [
+  {
+    name: 'Paracetamol',
+    time: '8:30 AM',
+    dose: '500mg',
+    fillsLeft: 2,
+    image: require('../../../assets/images/capsule.png'),
+  },
+  {
+    name: 'Amoxicillin',
+    time: '12:00 PM',
+    dose: '250mg',
+    fillsLeft: 5,
+    image: require('../../../assets/images/capsule.png'),
+  },
+  {
+    name: 'Metformin',
+    time: '8:00 PM',
+    dose: '850mg',
+    fillsLeft: 3,
+    image: require('../../../assets/images/capsule.png'),
+  },
+];
+
+const MedicationCard = ({ med }) => (
+  <View style={styles.medCard}>
+    <Image source={med.image} style={styles.medImage} />
+    <Text style={styles.medName}>{med.name}</Text>
+    <Text style={styles.medDetail}>Time: {med.time}</Text>
+    <Text style={styles.medDetail}>Dose: {med.dose}</Text>
+    <Text style={styles.medDetail}>Fills Left: {med.fillsLeft}</Text>
+  </View>
+);
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -12,19 +47,34 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Profile Header */}
       <View style={styles.headerBar}>
         <View style={styles.headerContent}>
-          <Image
-            source={{ uri: authState?.user?.avatar }}
-            style={styles.profilePicture}
-          />
-          <View style={{ marginLeft: 10 }}>
-            <Text style={styles.title}>Hello</Text>
-            <Text style={styles.subtitle}>{authState?.user?.username || 'User'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Image
+              source={{ uri: authState?.user?.avatar }}
+              style={styles.profilePicture}
+            />
+            <View style={{ marginLeft: 10 }}>
+              <Text style={styles.title}>Hello</Text>
+              <Text style={styles.subtitle}>
+                {authState?.user?.username || 'User'}
+              </Text>
+            </View>
           </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+            <Icon name="bell" size={24} color={COLORS.text} />
+          </TouchableOpacity>
         </View>
       </View>
 
+      {/* Date Display */}
+      <View style={styles.dateContainer}>
+        <Text style={styles.dateDay}>{getDayAndDate().day}, </Text>
+        <Text style={styles.dateDate}>{getDayAndDate().date}</Text>
+      </View>
+
+      {/* Other Quick Links */}
       <View style={styles.cards}>
         {/* Medication Card */}
         <TouchableOpacity
@@ -61,21 +111,20 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingTop: ,
     alignItems: 'center',
     padding: 20,
     backgroundColor: COLORS.background,
   },
   headerBar: {
-    // backgroundColor: '#1F2127',
     width: '100%',
-    marginBottom: 10, 
+    marginBottom: 10,
+    marginTop: 5,
     borderRadius: 10,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 18,
@@ -84,6 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   subtitle: {
+    marginTop: -10,
     fontSize: 18,
     fontFamily: 'Rubik-SemiBold',
     color: COLORS.textSecondary,
@@ -92,6 +142,47 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 10,
+  },
+  dateContainer: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  dateDay: {
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+    fontSize: 18,
+  },
+  dateDate: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  medCard: {
+    backgroundColor:'blue',
+    // backgroundColor: COLORS.cardBackground,
+    borderRadius: 10,
+    // padding: 16,
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  medImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  medName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  medDetail: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   cards: {
     width: '100%',
@@ -106,8 +197,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 16,
-    elevation: 2, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
+    elevation: 2,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.09,
     shadowRadius: 8,

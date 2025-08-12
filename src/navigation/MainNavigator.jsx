@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import Medication from '../screens/medication/Medication';
 import { Text, View } from 'react-native';
 import { COLORS } from '../components/ui/colors';
