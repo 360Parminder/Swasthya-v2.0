@@ -67,7 +67,6 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-
       {/* Date Display */}
       <View style={styles.dateContainer}>
         <Text style={styles.dateDay}>{getDayAndDate().day}, </Text>
