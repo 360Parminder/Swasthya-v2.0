@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../components/ui/colors';
-import Icon from 'react-native-vector-icons/FontAwesome6';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { getDayAndDate } from '../../utils/date';
 import Swiper from 'react-native-deck-swiper';
 
@@ -50,28 +50,31 @@ const HomeScreen = () => {
       {/* Profile Header */}
       <View style={styles.headerBar}>
         <View style={styles.headerContent}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.openDrawer()}>
+            <Icon name="menu-outline" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'column', alignItems: 'center' }}>
             <Image
               source={{ uri: authState?.user?.avatar }}
               style={styles.profilePicture}
             />
-            <View style={{ marginLeft: 10 }}>
-              <Text style={styles.title}>Hello</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('ProfileTab')} style={{  marginTop: 5,flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.subtitle}>
                 {authState?.user?.username || 'User'}
               </Text>
-            </View>
+              <Icon name="chevron-forward-outline" size={16} color={COLORS.textSecondary} style={{ alignSelf: 'center' }} />
+            </TouchableOpacity>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="bell" size={24} color={COLORS.text} />
+            <Icon name="ellipsis-horizontal-circle" size={24} color={COLORS.text} />
           </TouchableOpacity>
         </View>
       </View>
       {/* Date Display */}
-      <View style={styles.dateContainer}>
+      {/* <View style={styles.dateContainer}>
         <Text style={styles.dateDay}>{getDayAndDate().day}, </Text>
         <Text style={styles.dateDate}>{getDayAndDate().date}</Text>
-      </View>
+      </View> */}
 
       {/* Other Quick Links */}
       <View style={styles.cards}>
@@ -79,12 +82,15 @@ const HomeScreen = () => {
         <TouchableOpacity
           onPress={() => navigation.navigate('Medication')}
           style={styles.card}>
-          <Image
+         <View style={styles.cardImageContainer}>
+           {/* <Image
             source={require('../../../assets/images/medication.png')}
             style={styles.cardImage}
-          />
+          /> */}
+            <Icon name="medkit" size={24} color={COLORS.text} />
+         </View>
           <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>Medication</Text>
+            {/* <Text style={styles.cardHeader}>Medication</Text> */}
             <Text style={styles.cardSubheading}>View and track your medicines</Text>
           </View>
         </TouchableOpacity>
@@ -93,12 +99,15 @@ const HomeScreen = () => {
         <TouchableOpacity
           onPress={() => navigation.navigate('Connections')}
           style={styles.card}>
-          <Image
-            source={require('../../../assets/images/connections.png')}
-            style={styles.cardImage}
-          />
+         <View style={styles.cardImageContainer}>
+           {/* <Image
+             source={require('../../../assets/images/connections.png')}
+             style={styles.cardImage}
+           /> */}
+           <Icon name="people" size={24} color={COLORS.text} />
+         </View>
           <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>Connections</Text>
+            {/* <Text style={styles.cardHeader}>Connections</Text> */}
             <Text style={styles.cardSubheading}>Manage your care circle</Text>
           </View>
         </TouchableOpacity>
@@ -111,14 +120,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    padding: 20,
     backgroundColor: COLORS.background,
   },
   headerBar: {
     width: '100%',
-    marginBottom: 10,
-    marginTop: 5,
-    borderRadius: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingBottom: 10,
+    padding: 20,
+    // marginBottom: 10,
   },
   headerContent: {
     flexDirection: 'row',
@@ -132,21 +142,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   subtitle: {
-    marginTop: -10,
-    fontSize: 18,
-    fontFamily: 'Rubik-SemiBold',
+    // marginTop: -10,
+    fontSize: 12,
+    fontFamily: 'Rubik-Regular',
     color: COLORS.textSecondary,
   },
   profilePicture: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+    width: 54,
+    height: 54,
+    borderRadius: 100,
   },
   dateContainer: {
     marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
+        padding: 20,
   },
   dateDay: {
     color: COLORS.textSecondary,
@@ -185,12 +196,18 @@ const styles = StyleSheet.create({
   },
   cards: {
     width: '100%',
+        padding: 20,
     marginTop: 20,
-    gap: 20,
+    // gap: 20,
+    // flex: 1,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    width: '48%',
+    // alignItems: 'center',
     backgroundColor: COLORS.cardBackground,
     borderColor: COLORS.border,
     borderWidth: 1,
@@ -203,13 +220,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     marginBottom: 15,
   },
+  cardImageContainer: {
+    width: 38,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor:'#525252',
+    padding: 6,
+    borderRadius:100
+  },
   cardImage: {
-    width: 64,
-    height: 64,
-    marginRight: 18,
+    width: '100%',
+    height: '100%',
   },
   cardTextContainer: {
-    flex: 1,
+    // flex: 1,
+    marginTop: 15,
     justifyContent: 'center',
   },
   cardHeader: {

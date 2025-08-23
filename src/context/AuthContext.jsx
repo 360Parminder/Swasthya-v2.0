@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authApi.logout();
+      // await authApi.logout();
       await Keychain.resetGenericPassword();
       setAuthState({
         token: null,

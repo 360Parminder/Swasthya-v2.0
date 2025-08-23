@@ -108,32 +108,9 @@ function ProfileStackScreen() {
 const MainNavigator = () => {
   return (
     <Tab.Navigator
-
+      
       screenOptions={({ route }) => ({
-        tabBarShowLabel: false,
-        headerShown: false,
-        tabBarStyle: {
-          position: 'absolute',
-          height: 60,
-          borderRadius: 25,
-          marginHorizontal: 20,
-          marginBottom: 25,
-          // shadowColor: '#000',
-          // shadowOffset: { width: 0, height: 6 },
-          // shadowOpacity: 0.1,
-          // shadowRadius: 8,
-          elevation: 12,
-          backgroundColor: COLORS.cardBackground,
-          borderColor: COLORS.border,
-          borderWidth: 1,
-          borderTopWidth: 1,
-          flexDirection: 'row',
-          paddingTop: 10,
-          // alignItems: 'center',
-          // justifyContent: 'center'
-
-        },
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color = COLORS.accent, size = 24 }) => {
           let iconName;
           if (route.name === 'HomeTab') {
             iconName = 'house';
@@ -158,6 +135,57 @@ const MainNavigator = () => {
 
             }}>
               <Icon name={iconName} color={focused ? color : 'gray'} size={size} />
+            </View>
+          );
+        },
+        tabBarShowLabel: false,
+        headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          height: 60,
+          borderRadius: 25,
+          marginHorizontal: 20,
+          marginBottom: 25,
+          // shadowColor: '#000',
+          // shadowOffset: { width: 0, height: 6 },
+          // shadowOpacity: 0.1,
+          // shadowRadius: 8,
+          elevation: 12,
+          backgroundColor: COLORS.cardBackground,
+          borderColor: COLORS.border,
+          borderWidth: 1,
+          borderTopWidth: 1,
+          flexDirection: 'row',
+          paddingTop: 10,
+          // alignItems: 'center',
+          // justifyContent: 'center'
+
+        },
+        tabBarIcon: ({ focused, color = COLORS.accent, size = 24 }) => {
+          let iconName;
+          if (route.name === 'HomeTab') {
+            iconName = 'house';
+          } else if (route.name === 'ProfileTab') {
+            iconName = 'user';
+          }
+          else if (route.name === 'ConnectionsTab') {
+            iconName = 'plus';
+          }
+          return (
+            <View style={{
+              // backgroundColor:'blue',
+              borderRadius: 999,
+              // paddingHorizontal:10,
+              paddingVertical: 8,
+              // flexDirection:'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              // gap:6,
+              width: 40,
+              height: 40
+
+            }}>
+              <Icon name={iconName} color={focused ? COLORS.accent : 'gray'} size={size} />
             </View>
           );
         },

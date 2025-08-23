@@ -30,6 +30,7 @@ const Input = ({
             <TextInput
               style={[styles.input, error ? styles.errorInput : null]}
               placeholder={placeholder}
+              placeholderTextColor={COLORS.textSecondary}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}

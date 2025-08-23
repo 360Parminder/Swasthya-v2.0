@@ -1,24 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
+
 import { useAuth } from '../../context/AuthContext';
-import Input from '../../components/common/Input';
-import Button from '../../components/common/Button';
 import Toast from 'react-native-toast-message';
 import { COLORS } from '../../components/ui/colors';
-import LinearGradient from 'react-native-linear-gradient';
-
-const schema = yup.object().shape({
-  mobile: yup.string().required('Mobile number is required'),
-  password: yup.string().required('Password is required'),
-});
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const SignInScreen = ({ navigation }) => {
   const { login, isLoading } = useAuth();
-  const { control, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(schema),
+  const [data, setData] = useState({
+    mobile: '',
+    password: '',
   });
 
   const showToast = (type, message, subMessage = '') => {
@@ -28,7 +20,7 @@ const SignInScreen = ({ navigation }) => {
       text2: subMessage,
       visibilityTime: 3000,
       autoHide: true,
-      topOffset: 50,
+      topOffset: 10,
     });
   };
 
@@ -42,77 +34,56 @@ const SignInScreen = ({ navigation }) => {
 
       }
     } else {
-      showToast('error', 'Please fill in all fields');
+      showToast('info', 'Please fill in all fields');
     }
   };
 
   return (
 
-    <LinearGradient
-      start={{ x: 0.80, y: 0.25 }} end={{ x: 0.0, y: 0.10 }}
-      locations={[0, 1, 0]}
-      colors={['#807de4b7', '#322ed4']}
+    <View
       style={styles.container}
     >
-      <View style={styles.topContainer}>
-        <Text style={{ color: COLORS.text }}>Dont have an account?</Text>
+    <View style={{ marginBottom: 20,justifyContent: 'center', alignItems: 'center',marginTop:100 }}>
+      <Image
+        source={require('../../../assets/images/logo.png')}
+        style={{ width: 50, height: 50, alignSelf: 'center', marginVertical: 20 }}
+        // resizeMode="contain"
+      />
+      <Text style={{color: COLORS.text,fontSize: 34,fontWeight: 'bold'}}>Sign in your</Text>
+      <Text style={{color: COLORS.text,fontSize: 34,fontWeight: 'bold'}}>Account</Text>
+       <View style={styles.topContainer}>
+        <Text style={{ color: COLORS.text,fontSize: 16 }}>Don`t have an account?</Text>
         <TouchableOpacity
-          style={{ backgroundColor: '#9896fe93', padding: 10, borderRadius: 10 }}
           onPress={() => navigation.navigate('SignUp')}
         >
-          <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
-            Get started
+          <Text style={{ color: COLORS.accent, fontSize: 16, }}>
+            Sign up
           </Text>
         </TouchableOpacity>
       </View>
+    </View>
+    <View style={{ width: '100%', paddingHorizontal: 20 }}>
+      <View style={{}}>
+      <Icon name="call-outline" size={20} color={COLORS.primary} style={{ position: 'absolute', top: 12, left: 10,zIndex: 1 }} />
+      <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={'#000000'} keyboardType='phone-pad' style={{position: 'relative', paddingLeft: 35, backgroundColor: COLORS.inputBackground, color: COLORS.darkText, borderBottomWidth: 0.2, borderTopRightRadius: 10, borderTopLeftRadius: 10 }} />
 
-
-      <Text style={styles.link}>
-        Swasthya
-      </Text>
-
-
-      <View style={styles.formContainer}>
-        <View>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Enter your details below</Text>
-        </View>
-        <Input
-          control={control}
-          name="mobile"
-          label="Mobile Number"
-          placeholder="Enter your mobile number"
-          error={errors.mobile?.message}
-          keyboardType="phone-pad"
-        />
-
-        <Input
-          control={control}
-          name="password"
-          label="Password"
-          placeholder="Enter your password"
-          secureTextEntry
-          error={errors.password?.message}
-        />
-        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
-          <TouchableOpacity
-            onPress={handleSubmit(onSubmit)}
-          >
-            <LinearGradient
-              start={{ x: 0.80, y: 0.25 }} end={{ x: 0.0, y: 0.10 }}
-              locations={[0, 1, 0]}
-              colors={['#807de4b7', '#322ed4']}
-              style={{ width: 200, height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center', }}
-            >
-              <Text style={{ color: COLORS.text }}>
-                Sign In
-              </Text>
-
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
       </View>
-    </LinearGradient>
+      <View>
+        <Icon name="lock-closed-outline" size={20} color={COLORS.primary} style={{ position: 'absolute', top: 12, left: 10,zIndex: 1 }} />
+        <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={'#000000'} style={{position: 'relative', paddingLeft: 35, backgroundColor: COLORS.inputBackground, color: COLORS.darkText, borderBottomWidth: 1, borderBottomRightRadius: 10, borderBottomLeftRadius: 10 }} />
+      </View>
+    </View>
+    <TouchableOpacity>
+      <Text style={{marginTop: 10, color: COLORS.text, fontSize: 14, fontWeight: '600', alignSelf: 'flex-end', marginRight: 20,textDecorationLine: 'underline' }}>
+        Forgot Password?
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => onSubmit(data)} style={{ marginTop: 20,padding: 10,backgroundColor: COLORS.primary,borderRadius: 10,width: '90%',alignItems: 'center',justifyContent: 'center' }}>
+      <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
+       Login
+      </Text>
+    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -123,7 +94,8 @@ const styles = StyleSheet.create({
     flex: 1,
     // paddingTop: 35,
     backgroundColor: COLORS.background,
-    justifyContent: 'space-between', // This will push content to top and bottom
+    // justifyContent: 'center', // This will push content to top and bottom
+    alignItems:'center'
   },
   topContainer: {
     marginTop: 20,
@@ -131,7 +103,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     flexDirection: 'row',
-    gap: 10,
+    gap: 5,
   },
   formContainer: {
     padding: 20,
