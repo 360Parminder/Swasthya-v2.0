@@ -3,15 +3,18 @@ export const COLORS = {
   accent: '#8b5cf6',
   background: '#0a0a0a',
   cardBackground: '#262626',
-  inputBackground: '#e5e5e5ef',
+  // inputBackground: '#e5e5e5ef',
+  inputBackground: '#404040',
   buttonBackground: '#4c1d95',
   buttonText: '#ffffff',
-  text: '#ffffff',
+  text: '#fafafa',
   textSecondary: '#e6e6e6ff',
   border: '#404040',
   darkText: '#000000',
   iconBackground: '#525252',
+  placeholder: '#dededeff',
 };
+
 
 // export const COLORS = {
 //   primary: '#4c1d95',

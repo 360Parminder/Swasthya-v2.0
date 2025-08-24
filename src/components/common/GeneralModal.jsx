@@ -30,7 +30,7 @@ const GeneralModal = ({
                 <Icon name="chevron-back" color={COLORS.text} size={24} />
               </TouchableOpacity>
             )}
-            {/* <Text style={styles.modalTitle}>{title}</Text> */}
+            <Text style={styles.modalTitle}>{title}</Text>
             
             <TouchableOpacity style={styles.closeButton}>
               <Icon name="ellipsis-horizontal-circle-outline" color={COLORS.text} size={24} />
@@ -83,11 +83,11 @@ const styles = StyleSheet.create({
     // height: 10,
     fontSize: 24,
     fontWeight: '600',
-    flex: 1,
+    // flex: 1,
     // textAlign: 'center',
     color: COLORS.text,
-    paddingLeft: 30,
-    marginBottom: 10,
+    // paddingLeft: 30,
+    // marginBottom: 10,
   },
   closeButton: {
     padding: 4,

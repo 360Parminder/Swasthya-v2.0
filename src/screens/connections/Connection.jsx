@@ -359,7 +359,7 @@ const Connection = () => {
             <BlurView
               style={StyleSheet.absoluteFill}
               blurType={Platform.OS === 'ios' ? 'regular' : 'light'}
-              blurAmount={20}
+              blurAmount={30}
               // reducedTransparencyFallbackColor={}
               overlayColor=""
             />
@@ -387,7 +387,7 @@ const Connection = () => {
                       setSpotlightQuery(q);
                       handleSpotlightSearch(q);
                     }}
-                    placeholderTextColor={COLORS.textSecondary}
+                    placeholderTextColor={COLORS.darkText}
                     autoCapitalize="none"
                     returnKeyType="search"
                     selectionColor={COLORS.primary}
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   },
   spotlightActivatorText: {
     fontSize: 17,
-    color: COLORS.textSecondary,
+    color: COLORS.darkText,
   },
   spotlightOverlaySheet: {
     height: '100%',

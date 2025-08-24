@@ -1,12 +1,12 @@
-// src/navigation/MainNavigator.js
+// src/navigation/MainNavigator.jsx
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import Icon from 'react-native-vector-icons/FontAwesome6';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Medication from '../screens/medication/Medication';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { COLORS } from '../components/ui/colors';
 import { useNavigation } from '@react-navigation/native';
 
@@ -16,10 +16,9 @@ const ProfileStack = createNativeStackNavigator();
 
 // Home Stack Navigator
 function HomeStackScreen() {
-  const navigation = useNavigation();
   return (
     <HomeStack.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerStyle: {
           backgroundColor: COLORS.background,
           height: 56,
@@ -28,25 +27,26 @@ function HomeStackScreen() {
         headerTitleStyle: { fontWeight: 'bold' },
         headerTitleAlign: 'center',
         headerShadowVisible: false,
-        headerTitle: route.name === 'HomeMain' ? 'Home' : route.name,
-        // headerLeft: ({ canGoBack }) =>
-        //   canGoBack ? (
-        //     <Icon
-        //       name="angle-left"
-        //       size={30}
-        //       color={COLORS.text}
-        //       style={{ marginLeft: 10 }}
-        //       onPress={() => navigation.goBack()}
-        //     />
-        //   ) : null,
-
-
-      })}
+      }}
     >
       <HomeStack.Screen
         name="HomeMain"
         component={HomeScreen}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          animations: {
+            showModal: {
+              enter: {
+                enabled: true,
+                alpha: { from: 0, to: 1, duration: 300 }
+              },
+              exit: {
+                enabled: true,
+                alpha: { from: 1, to: 0, duration: 300 }
+              }
+            }
+          }
+        }}
       />
       <HomeStack.Screen
         name="Connections"
@@ -54,6 +54,18 @@ function HomeStackScreen() {
         options={{
           headerShown: true,
           title: 'My Connections',
+          animations: {
+            showModal: {
+              enter: {
+                enabled: true,
+                alpha: { from: 0, to: 1, duration: 300 }
+              },
+              exit: {
+                enabled: true,
+                alpha: { from: 1, to: 0, duration: 300 }
+              }
+            }
+          }
         }}
       />
       <HomeStack.Screen
@@ -62,18 +74,29 @@ function HomeStackScreen() {
         options={{
           headerShown: true,
           title: 'Medication',
+          animations: {
+            showModal: {
+              enter: {
+                enabled: true,
+                alpha: { from: 0, to: 1, duration: 300 }
+              },
+              exit: {
+                enabled: true,
+                alpha: { from: 1, to: 0, duration: 300 }
+              }
+            }
+          }
         }}
       />
     </HomeStack.Navigator>
   );
 }
 
-
 // Profile Stack Navigator
 function ProfileStackScreen() {
   return (
-    <ProfileStack.Navigator 
-       screenOptions={({ route }) => ({
+    <ProfileStack.Navigator
+      screenOptions={{
         headerStyle: {
           backgroundColor: COLORS.background,
           height: 56,
@@ -82,133 +105,63 @@ function ProfileStackScreen() {
         headerTitleStyle: { fontWeight: 'bold' },
         headerTitleAlign: 'center',
         headerShadowVisible: false,
-        headerTitle: route.name === 'ProfileMain' ? 'Your Profile' : route.name,
-        // headerLeft: ({ canGoBack }) =>
-        //   canGoBack ? (
-        //     <Icon
-        //       name="angle-left"
-        //       size={30}
-        //       color={COLORS.text}
-        //       style={{ marginLeft: 10 }}
-        //       onPress={() => navigation.goBack()}
-        //     />
-        //   ) : null,
-
-
-      
-    })}>
-      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen}  />
+        headerTitle: 'Your Profile',
+      }}>
+      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
     </ProfileStack.Navigator>
   );
 }
 
 // Main Tab Navigator
-// ... imports here ...
-
 const MainNavigator = () => {
   return (
     <Tab.Navigator
-      
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color = COLORS.accent, size = 24 }) => {
-          let iconName;
-          if (route.name === 'HomeTab') {
-            iconName = 'house';
-          } else if (route.name === 'ProfileTab') {
-            iconName = 'user';
-          }
-          else if (route.name === 'ConnectionsTab') {
-            iconName = 'plus';
-          }
-          return (
-            <View style={{
-              // backgroundColor:'blue',
-              borderRadius: 999,
-              // paddingHorizontal:10,
-              paddingVertical: 8,
-              // flexDirection:'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              // gap:6,
-              width: 40,
-              height: 40
-
-            }}>
-              <Icon name={iconName} color={focused ? color : 'gray'} size={size} />
-            </View>
-          );
-        },
-        tabBarShowLabel: false,
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarStyle: {
           position: 'absolute',
           height: 60,
-          borderRadius: 25,
-          marginHorizontal: 20,
-          marginBottom: 25,
-          // shadowColor: '#000',
-          // shadowOffset: { width: 0, height: 6 },
-          // shadowOpacity: 0.1,
-          // shadowRadius: 8,
+          borderTopLeftRadius: 18,
+          borderTopRightRadius: 18,
           elevation: 12,
           backgroundColor: COLORS.cardBackground,
-          borderColor: COLORS.border,
-          borderWidth: 1,
-          borderTopWidth: 1,
-          flexDirection: 'row',
           paddingTop: 10,
-          // alignItems: 'center',
-          // justifyContent: 'center'
-
         },
-        tabBarIcon: ({ focused, color = COLORS.accent, size = 24 }) => {
+        tabBarIcon: ({ focused, size = 24 }) => {
           let iconName;
           if (route.name === 'HomeTab') {
-            iconName = 'house';
+            iconName = 'home-outline';
           } else if (route.name === 'ProfileTab') {
-            iconName = 'user';
+            iconName = 'person-outline';
+          } else if (route.name === 'ConnectionsTab') {
+            iconName = 'add';
           }
-          else if (route.name === 'ConnectionsTab') {
-            iconName = 'plus';
-          }
+          
           return (
             <View style={{
-              // backgroundColor:'blue',
               borderRadius: 999,
-              // paddingHorizontal:10,
               paddingVertical: 8,
-              // flexDirection:'row',
               alignItems: 'center',
               justifyContent: 'center',
-              // gap:6,
               width: 40,
               height: 40
-
             }}>
-              <Icon name={iconName} color={focused ? COLORS.accent : 'gray'} size={size} />
+              <Icon 
+                name={iconName} 
+                color={focused ? COLORS.accent : 'gray'} 
+                size={size} 
+              />
             </View>
           );
         },
-
       })}
-
     >
-
-      <Tab.Screen
-        name="HomeTab"
-        component={HomeStackScreen}
-      />
-      
-      <Tab.Screen
-        name="ConnectionsTab"
-        component={ProfileScreen}
-      />
-
-      <Tab.Screen
-        name="ProfileTab"
-        component={ProfileStackScreen}
-      />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen} />
+      <Tab.Screen name="ConnectionsTab" component={ProfileScreen} />
+      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
     </Tab.Navigator>
   );
 };
+
 export default MainNavigator;

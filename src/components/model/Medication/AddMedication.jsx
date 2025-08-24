@@ -20,6 +20,8 @@ import { COLORS } from '../../ui/colors';
 import { useConnection } from '../../../context/ConnectionContext';
 import { medicationApi } from '../../../api/medicationApi';
 import { showToast } from '../../../utils/helpers';
+import GeneralModal from '../../common/GeneralModal';
+import Toast from 'react-native-toast-message';
 
 const WEEK_DAYS = [
     { label: 'Mon', value: 'Monday' },
@@ -52,6 +54,15 @@ const units = ['mg', 'mcg', 'g', 'ml', '%'];
 
 const AddMedication = ({ isVisible, onClose }) => {
     const { connections } = useConnection();
+
+    // Toast configuration
+    const showToast = (type, title, message) => {
+        Toast.show({
+            type,
+            text1: title,
+            text2: message,
+        });
+    };
 
     // Form state
     const [currentStep, setCurrentStep] = useState(0);
@@ -134,11 +145,11 @@ const AddMedication = ({ isVisible, onClose }) => {
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.form || !formData.strength || !formData.unit) {
-            Alert.alert('Error', 'Please fill all required fields.');
+            showToast('info', 'Please fill all required fields.');
             return;
         }
         if (!validateSchedule()) {
-            Alert.alert('Error', 'Please complete the schedule section.');
+            showToast('info', 'Please complete the schedule section.');
             return;
         }
 
@@ -195,6 +206,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                         placeholder="e.g. Ibuprofen"
                         value={formData.name}
                         onChangeText={text => handleInputChange('name', text)}
+                        placeholderTextColor={COLORS.placeholder}
                     />
 
                     <Text style={styles.label}>Who is this for?*</Text>
@@ -208,6 +220,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                             value={formData.forWhom}
                             style={pickerSelectStyles}
                             useNativeAndroidPickerStyle={false}
+
                         />
                     </View>
 
@@ -269,7 +282,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                     <Text style={styles.label}>Strength*</Text>
                     <View style={styles.strengthContainer}>
                         <TextInput
-                            style={[styles.input, { flex: 1 }]}
+                            style={[styles.input, { marginBottom: 0,height: 40,padding: 8 }]}
                             placeholder="e.g. 500"
                             value={formData.strength}
                             onChangeText={text => handleInputChange('strength', text)}
@@ -454,7 +467,11 @@ const AddMedication = ({ isVisible, onClose }) => {
         if (steps[currentStep].validate()) {
             setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
         } else {
-            Alert.alert('Error', 'Please complete all required fields');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please complete all required fields',
+            });
         }
     };
 
@@ -463,107 +480,58 @@ const AddMedication = ({ isVisible, onClose }) => {
     };
 
     return (
-        <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContainer}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        {currentStep > 0 ? (
-                            <TouchableOpacity onPress={prevStep} style={styles.backButton}>
-                                <Icon name="chevron-back" size={24} color="#007AFF" />
-                            </TouchableOpacity>
-                        ) :(
-                            <View style={{ width: 24 }} />
-                        )
-                        }
-                        <Text style={styles.headerTitle}>{steps[currentStep].title}</Text>
-                         
-                            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-                                <Text style={styles.cancelText}>Cancel</Text>
-                            </TouchableOpacity>
-                        
-                    </View>
+        <GeneralModal
+            onClose={onClose}
+            visible={isVisible}
+            title={<Text style={styles.headerTitle}>{steps[currentStep].title}</Text>}
+        >
+            <View style={{height: '100%',paddingBottom: 28}}>
 
-                    {/* Progress Indicator */}
-                    <View style={styles.progressContainer}>
-                        {steps.map((_, i) => (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.progressDot,
-                                    i <= currentStep && styles.progressDotActive,
-                                ]}
-                            />
-                        ))}
-                    </View>
+                {/* Progress Indicator */}
+                <View style={styles.progressContainer}>
+                    {steps.map((_, i) => (
+                        <View
+                            key={i}
+                            style={[
+                                styles.progressDot,
+                                i <= currentStep && styles.progressDotActive,
+                            ]}
+                        />
+                    ))}
+                </View>
 
-                    {/* Content */}
-                    <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
-                        {steps[currentStep].content}
-                    </ScrollView>
+                {/* Content */}
+                <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+                    {steps[currentStep].content}
+                </ScrollView>
 
-                    {/* Footer */}
-                    <View style={styles.footer}>
-                        {currentStep < steps.length - 1 ? (
-                            <TouchableOpacity
-                                style={styles.nextButton}
-                                onPress={nextStep}
-                                disabled={!steps[currentStep].validate()}
-                            >
-                                <Text style={styles.buttonText}>Next</Text>
-                                <Icon name="chevron-forward" size={20} color="white" />
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity
-                                style={styles.submitButton}
-                                onPress={handleSubmit}
-                                disabled={!steps[currentStep].validate()}
-                            >
-                                <Text style={styles.buttonText}>Add Medication</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                {/* Footer */}
+                <View style={styles.footer}>
+                    {currentStep < steps.length - 1 ? (
+                        <TouchableOpacity
+                            style={styles.nextButton}
+                            onPress={nextStep}
+                            disabled={!steps[currentStep].validate()}
+                        >
+                            <Text style={styles.buttonText}>Next</Text>
+                            <Icon name="chevron-forward" size={20} color="white" />
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            style={styles.submitButton}
+                            onPress={handleSubmit}
+                            disabled={!steps[currentStep].validate()}
+                        >
+                            <Text style={styles.buttonText}>Add Medication</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
-        </Modal>
+        </GeneralModal>
     );
 };
 
 const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-         backgroundColor: 'rgba(0,0,0,0.4)'
-    },
-    modalContainer: {
-        width: '100%',
-        height: '80%',
-        backgroundColor: COLORS.cardBackground,
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-        overflow: 'hidden',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
-    backButton: {
-        paddingVertical: 4,
-    },
-    cancelText: {
-        color: '#007AFF',
-        fontSize: 16,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: COLORS.text,
-    },
     progressContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -573,11 +541,12 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#ddd',
+        backgroundColor: COLORS.iconBackground,
         marginHorizontal: 4,
     },
     progressDotActive: {
-        backgroundColor: '#007AFF',
+        backgroundColor: COLORS.primary,
+        borderRadius: 100,
     },
     contentContainer: {
         flexGrow: 1,
@@ -600,6 +569,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: COLORS.text,
         backgroundColor: COLORS.inputBackground,
+
     },
     notesInput: {
         height: 80,
@@ -630,8 +600,8 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.inputBackground,
     },
     optionSelected: {
-        backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.accent,
     },
     optionText: {
         fontSize: 16,
@@ -643,13 +613,15 @@ const styles = StyleSheet.create({
     strengthContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
+        justifyContent: 'center',
+        marginBottom: 12,
     },
     unitsContainer: {
         flexDirection: 'row',
         marginLeft: 8,
         flexWrap: 'wrap',
         alignItems: 'center',
+        // justifyContent: 'space-between',
     },
     unitButton: {
         padding: 8,
@@ -660,18 +632,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: COLORS.inputBackground,
-        height: 50,
+        // height: 50,
     },
     unitSelected: {
-        backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
     },
     unitText: {
         fontSize: 14,
         color: COLORS.text,
     },
     unitTextSelected: {
-        color: '#fff',
+        color: COLORS.textx,
     },
     icon: {
         width: 30,
@@ -723,18 +695,18 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     noteText: {
-        color: COLORS.gray,
+        color: COLORS.text,
         fontSize: 15,
         marginBottom: 16,
         textAlign: 'center',
     },
     footer: {
-        padding: 16,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        paddingBottom: 16,
+        // borderTopWidth: 1,
+        // borderTopColor: COLORS.border,
     },
     nextButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: COLORS.primary,
         padding: 16,
         borderRadius: 8,
         flexDirection: 'row',
