@@ -92,10 +92,10 @@ export default SignInScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingTop: 35,
     backgroundColor: COLORS.background,
-    // justifyContent: 'center', // This will push content to top and bottom
-    alignItems:'center'
+    alignItems:'center',
+    // experimental_backgroundImage: 'url(../../../assets/images/background.png)'
+
   },
   topContainer: {
     marginTop: 20,
