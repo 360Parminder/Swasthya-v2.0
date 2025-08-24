@@ -22,7 +22,7 @@ const Medication = () => {
 
   useEffect(() => {
     fetchMedications();
-  }, []);
+  }, [modalType]);
 
   const closeModal = () => setModalType(null);
 
@@ -60,11 +60,8 @@ const Medication = () => {
         onClose={closeModal}
         title="Medications"
       >
-        <View style={styles.modalContainer}>
           <ViewMedications medications={medications} />
-        </View>
       </GeneralModal>
-
       <AddMedication isVisible={modalType === 'add'} onClose={closeModal} />
     </View>
   );

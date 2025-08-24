@@ -65,12 +65,12 @@ const SignInScreen = ({ navigation }) => {
     <View style={{ width: '100%', paddingHorizontal: 20 }}>
       <View style={{}}>
       <Icon name="call-outline" size={20} color={COLORS.primary} style={{ position: 'absolute', top: 12, left: 10,zIndex: 1 }} />
-      <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={'#000000'} keyboardType='phone-pad' style={{position: 'relative', paddingLeft: 35, backgroundColor: COLORS.inputBackground, color: COLORS.darkText, borderBottomWidth: 0.2, borderTopRightRadius: 10, borderTopLeftRadius: 10 }} />
+      <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={'#000000'} keyboardType='phone-pad' style={{position: 'relative', paddingLeft: 35, backgroundColor: '#e5e5e5ef', color: COLORS.darkText, borderBottomWidth: 0.2, borderTopRightRadius: 10, borderTopLeftRadius: 10 }} />
 
       </View>
       <View>
         <Icon name="lock-closed-outline" size={20} color={COLORS.primary} style={{ position: 'absolute', top: 12, left: 10,zIndex: 1 }} />
-        <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={'#000000'} style={{position: 'relative', paddingLeft: 35, backgroundColor: COLORS.inputBackground, color: COLORS.darkText, borderBottomWidth: 1, borderBottomRightRadius: 10, borderBottomLeftRadius: 10 }} />
+        <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={'#000000'} style={{position: 'relative', paddingLeft: 35, backgroundColor: '#e5e5e5ef', color: COLORS.darkText, borderBottomWidth: 1, borderBottomRightRadius: 10, borderBottomLeftRadius: 10 }} />
       </View>
     </View>
     <TouchableOpacity>

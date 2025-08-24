@@ -1,97 +1,122 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+---
 
-# Getting Started
+# Health and Fitness App
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Welcome to the Health and Fitness App repository! This application is designed to help users monitor and improve their physical activities, dietary habits, sleep patterns, and mental health. The app includes features for tracking progress, setting goals, and receiving reminders to stay on track with personal health and fitness objectives.
 
-## Step 1: Start Metro
+## Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### Physical Activities
+- **Exercise Tracking**
+- **Step Counter**
+- **Calorie Burn Tracker**
+- **Workout Planner**
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### Dietary Habits
+- **Food Diary**
+- **Calorie Counter**
+- **Nutrition Tracker**
+- **Meal Planner**
 
-```sh
-# Using npm
-npm start
+### Sleep Patterns
+- **Sleep Tracker**
+- **Sleep Quality Analysis**
+- **Sleep Duration Monitoring**
+- **Sleep Schedule Reminder**
 
-# OR using Yarn
-yarn start
-```
+### Mental Health
+- **Mood Tracker**
+- **Stress Level Monitoring**
+- **Meditation Timer**
+- **Journaling**
 
-## Step 2: Build and run your app
+### Reminders
+- **Activity Reminders**
+- **Meal Reminders**
+- **Sleep Reminders**
+- **Mental Health Check-ins**
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+### Goal Setting
+- **Physical Activity Goals**
+- **Dietary Goals**
+- **Sleep Goals**
+- **Mental Health Goals**
 
-### Android
+### Progress Tracking
+- **Activity Progress**
+- **Dietary Progress**
+- **Sleep Progress**
+- **Mental Health Progress**
 
-```sh
-# Using npm
-npm run android
+## Project Structure
 
-# OR using Yarn
-yarn android
-```
+### Mind Map
 
-### iOS
+The mind map provides an overview of the app's features and how they are categorized:
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+![Mind Map](https://github.com/BearerOP/Health-and-Fitness-App/blob/main/path_to_mind_map_image)
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### Flow Chart
 
-```sh
-bundle install
-```
+The flow chart outlines the application's structure and how different features are interconnected:
 
-Then, and every time you update your native dependencies, run:
+![Flow Chart](https://github.com/BearerOP/Health-and-Fitness-App/blob/main/path_to_flow_chart_image)
 
-```sh
-bundle exec pod install
-```
+- **Home Dashboard:** Central hub for accessing all app features.
+- **Physical Activities:** Links to exercise tracking, step counter, calorie burn tracker, and workout planner.
+- **Dietary Habits:** Links to food diary, calorie counter, nutrition tracker, and meal planner.
+- **Sleep Patterns:** Links to sleep tracker, sleep quality analysis, sleep duration monitoring, and sleep schedule reminder.
+- **Mental Health:** Links to mood tracker, stress level monitoring, meditation timer, and journaling.
+- **Reminders:** Includes activity reminders, meal reminders, sleep reminders, and mental health check-ins.
+- **Goal Setting:** Allows setting physical activity goals, dietary goals, sleep goals, and mental health goals.
+- **Progress Tracking:** Monitors activity progress, dietary progress, sleep progress, and mental health progress.
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## Development Status
 
-```sh
-# Using npm
-npm run ios
+### Working
+- Exercise Tracking
+- Calorie Burn Tracker
+- Food Diary
+- Calorie Counter
+- Nutrition Tracker
+- Meditation Timer
+- Activity Progress
 
-# OR using Yarn
-yarn ios
-```
+### Need Watch
+- Step Counter
+- Sleep Duration Monitoring
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### Not Working
+- Sleep Quality Analysis
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Not Decided Yet
+- Sleep Schedule Reminder
+- Sleep Progress
 
-## Step 3: Modify your app
+## Installation
 
-Now that you have successfully run the app, let's make changes!
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/360Parminder/Swasthya-v2.0.git
+    ```
+2. Navigate to the project directory:
+    ```sh
+    cd Swasthya
+    ```
+3. Install dependencies:
+    ```sh
+    npm install
+    ```
+4. Start the application:
+    ```sh
+    npx react-native run-android
+    ```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## Contribution
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+Contributions are welcome! Please fork the repository and submit pull requests for any enhancements or bug fixes. Make sure to follow the code of conduct and guidelines for contributing.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
 
-## Congratulations! :tada:
+---
 
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+This README provides a clear overview of the app, its features, development status, and instructions for installation and contribution. Ensure to replace the placeholder links for the mind map and flow chart images with the actual paths once you upload them to the repository.
