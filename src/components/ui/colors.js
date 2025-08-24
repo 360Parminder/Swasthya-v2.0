@@ -10,6 +10,7 @@ export const COLORS = {
   textSecondary: '#e6e6e6ff',
   border: '#404040',
   darkText: '#000000',
+  iconBackground: '#525252',
 };
 
 // export const COLORS = {

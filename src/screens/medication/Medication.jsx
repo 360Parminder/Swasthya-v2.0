@@ -5,7 +5,7 @@ import { COLORS } from '../../components/ui/colors';
 import { medicationApi } from '../../api/medicationApi';
 import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 const Medication = () => {
   const [modalType, setModalType] = useState(null);
@@ -28,55 +28,43 @@ const Medication = () => {
 
   return (
     <View style={styles.container}>
-      
       <View style={styles.buttonRow}>
-       
-
         <TouchableOpacity style={styles.card} onPress={() => setModalType('view')}>
-          <Image source={require('../../../assets/images/medical-report.png')} style={styles.cardImage} />
+          <View style={styles.cardIconContainer}>
+            <Icon name="pills" size={24} color={COLORS.text} />
+          </View>
           <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>View My Medications</Text>
             <Text style={styles.cardSubheading}>Manage your personal medications</Text>
           </View>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.card}>
-          <Image source={require('../../../assets/images/nursing-home.png')} style={styles.cardImage} />
+          <View style={styles.cardIconContainer}>
+            <Icon name="users" size={24} color={COLORS.text} />
+          </View>
           <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>View Connection Medications</Text>
             <Text style={styles.cardSubheading}>Manage medications for your connections</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={{
-          backgroundColor:COLORS.primary,
-          borderRadius:8,
-          flexDirection:'row',
-          alignItems:'center',
-          padding:12,
-          justifyContent:'center',
-          gap:8
-          }} onPress={() => setModalType('add')}>
-          {/* <Image source={require('../../../assets/images/appointment.png')} style={styles.cardImage} /> */}
-          {/* <View style={styles.cardTextContainer}> */}
-            <Text style={{color:COLORS.text,fontSize:16,fontWeight:'600'}}>Add Medication</Text>
-          <Icon name="plus" size={18} color={COLORS.text} />
-            {/* <Text style={styles.cardSubheading}>Add a new medication to your list</Text> */}
-          {/* </View> */}
-        </TouchableOpacity>
       </View>
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => setModalType('add')}
+      >
+        <Text style={styles.addButtonText}>Add Medication</Text>
+        <Icon name="plus" size={18} color={COLORS.text} />
+      </TouchableOpacity>
 
       {/* View Medications Modal */}
       <GeneralModal
         visible={modalType === 'view'}
         onClose={closeModal}
-        title="My Medications"
+        title="Medications"
       >
         <View style={styles.modalContainer}>
           <ViewMedications medications={medications} />
         </View>
       </GeneralModal>
 
-      {/* Add Medication Modal */}
       <AddMedication isVisible={modalType === 'add'} onClose={closeModal} />
     </View>
   );
@@ -91,11 +79,13 @@ const styles = StyleSheet.create({
   buttonRow: {
     width: '100%',
     marginTop: 20,
-    gap: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: '48%',
+    flexDirection: 'column',
     backgroundColor: COLORS.cardBackground,
     borderColor: COLORS.border,
     borderWidth: 1,
@@ -105,15 +95,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.09,
     shadowRadius: 8,
-    marginBottom: 15,
+    elevation: 3,
   },
-  cardImage: {
-    width: 64,
-    height: 64,
-    marginRight: 18,
+  cardIconContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.iconBackground,
+    borderRadius: 100,
+    marginBottom: 12,
   },
   cardTextContainer: {
-    flex: 1,
+    // flex: 1,
+    width: '100%',
   },
   cardHeader: {
     fontSize: 20,
@@ -121,10 +116,30 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   cardSubheading: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
+    fontSize: 14,
+    color: COLORS.text,
     marginTop: 4,
     fontWeight: '400',
+    lineHeight: 20,
+  },
+  addButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addButtonText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalContainer: {
     height: '100%',

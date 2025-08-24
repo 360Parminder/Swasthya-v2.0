@@ -1,204 +1,160 @@
 import React from 'react';
 import { StyleSheet, View, Text, FlatList, Image } from 'react-native';
 import { COLORS } from '../../../components/ui/colors';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const ViewMedications = ({ medications }) => {
-  
   const renderRecord = ({ item: record }) => (
-    // <View style={styles.recordItem}>
-    //   <View style={styles.recordHeader}>
-    //     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    //       <Image
-    //         source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
-    //         style={styles.medicineImage}
-    //         resizeMode="cover"
-    //       />
-    //       <View>
-    //         <Text style={styles.medicineName}>{record.medicine_name}</Text>
-    //         <Text style={styles.medicineDetails}>
-    //           {record.description || 'No description'}
-    //         </Text>
-    //       </View>
-    //     </View>
-    //     <View style={styles.dosageBadge}>
-    //       <Text style={styles.dosageText}>{record.strength} {record.unit}</Text>
-    //     </View>
-    //   </View>
-
-    //   {record.times.map((time, index) => (
-    //     <View key={index} style={styles.infoRow}>
-    //       <View style={styles.column}>
-    //         <Text style={styles.label}>Dose</Text>
-    //         <Text style={styles.value}>{record.strength} {record.unit}</Text>
-    //       </View>
-    //       <View style={styles.column}>
-    //         <Text style={styles.label}>Reception time</Text>
-    //         <Text style={styles.value}>
-    //           {new Date(time.reception_time).toLocaleTimeString("en-GB", {
-    //             timeZone: "UTC",
-    //             hour: "2-digit",
-    //             minute: "2-digit",
-    //             hour12: true
-    //           })}
-    //         </Text>
-    //       </View>
-    //       <View style={styles.column}>
-    //         <Text style={styles.label}>Fills</Text>
-    //         <Text style={styles.value}>{record.fills}</Text>
-    //       </View>
-    //     </View>
-    //   ))}
-    // </View>
-    <View style={{display: 'flex',marginTop: 20, flexDirection: 'row', alignItems: 'center',backgroundColor: COLORS.inputBackground,borderRadius: 12,borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 12,
-    justifyContent: 'space-between'
-    }}>
-        {/* <View></View> */}
-       <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center',position: 'relative'}}>
-        {
-            record?.times.map((time, index) => (
-                <View key={index} style={{marginRight: 12,position: 'absolute',top: -30,left: -10,zIndex: 100,backgroundColor: '#f3f4fe',padding: 4,borderRadius: 8}}>
-                    <Text style={{color: '#5f6bcb',textTransform: 'uppercase',fontWeight: '600'}}>{new Date(time.reception_time).toLocaleTimeString("en-GB", {
-                        timeZone: "UTC",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true
-                    })}</Text>
-                </View>
-            ))
-        }
-         <Image
-            source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
-            style={styles.medicineImage}
-            resizeMode="cover"
-          />
-        <View>
-            <Text style={styles.medicineName}>{record.medicine_name}</Text>
-            <View style={{display: 'flex', flexDirection: 'row', gap: 8}}>
-                <Text style={{color: COLORS.text}}>{record.strength} {record.unit}</Text>
-                <Text style={{color: COLORS.text}}>{record.description || 'No description'}</Text>
-            </View>
+  <View style={styles.recordContainer}>
+     <View style={styles.recordLeftSection}>
+    {
+      record?.times.map((time, index) => (
+        <View key={index} style={styles.timeContainer}>
+          <Text style={styles.timeText}>{new Date(time.reception_time).toLocaleTimeString("en-GB", {
+            timeZone: "UTC",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+          })}</Text>
         </View>
-       </View>
-        <View style={{display: 'flex', flexDirection: 'row', gap: 8,backgroundColor: '#adababff',padding: 4,borderRadius: 100}}>
-            <Icon name="check" size={20} color={COLORS.text} />
-        </View>
+      ))
+    }
+     <Image
+      source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
+      style={styles.medicineImage}
+      resizeMode="cover"
+      />
+    <View>
+      <Text style={styles.medicineName}>{record.medicine_name}</Text>
+      <View style={styles.medicineDetailsRow}>
+        <Text style={styles.descriptionText}>{record.strength} {record.unit}</Text>
+        <Text style={styles.descriptionText}>{record.description || 'No description'}</Text>
+      </View>
     </View>
+     </View>
+    <View style={styles.checkIconContainer}>
+      <Icon name="checkmark" size={24} color={COLORS.text} style={{ alignSelf: 'center', fontWeight: '600' }} />
+    </View>
+  </View>
   );
 
   const renderMedication = ({ item: medication }) => (
-    <View style={styles.medicationCard}>
-      <FlatList
-        data={medication.record}
-        renderItem={renderRecord}
-        keyExtractor={(_, index) => index.toString()}
-        scrollEnabled={false}
-      />
-    </View>
+  <View style={styles.medicationCard}>
+    <FlatList
+    data={medication.record}
+    renderItem={renderRecord}
+    keyExtractor={(_, index) => index.toString()}
+    scrollEnabled={false}
+    />
+  </View>
   );
 
   if (!medications.length) {
-    return (
-      <View style={styles.emptyState}>
-        <Text style={styles.noMedicationsText}>No medications found</Text>
-        <Text style={styles.emptySubtext}>Add your first medication to get started</Text>
-      </View>
-    );
+  return (
+    <View style={styles.emptyState}>
+    <Text style={styles.noMedicationsText}>No medications found</Text>
+    <Text style={styles.emptySubtext}>Add your first medication to get started</Text>
+    </View>
+  );
   }
 
   return (
-    <FlatList
-      style={styles.medicationsList}
-      contentContainerStyle={styles.listContent}
-      data={medications}
-      renderItem={renderMedication}
-      keyExtractor={item => item._id}
-      showsVerticalScrollIndicator={false}
-    />
+  <FlatList
+    style={styles.medicationsList}
+    contentContainerStyle={styles.listContent}
+    data={medications}
+    renderItem={renderMedication}
+    keyExtractor={item => item._id}
+    showsVerticalScrollIndicator={false}
+  />
   );
 };
 
 const styles = StyleSheet.create({
   medicationsList: {
-    width: '100%',
+  width: '100%',
   },
   emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
+  alignItems: 'center',
+  paddingVertical: 40,
   },
   noMedicationsText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
+  fontSize: 18,
+  fontWeight: '600',
+  color: COLORS.text,
+  marginBottom: 8,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+  fontSize: 14,
+  color: COLORS.textSecondary,
   },
   medicineImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginRight: 12,
-    backgroundColor: '#fff'
-  },
-  recordItem: {
-    marginBottom: 16,
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  recordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
+  width: 50,
+  height: 50,
+  borderRadius: 8,
+  marginRight: 12,
+  backgroundColor: COLORS.iconBackground
   },
   medicineName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    textTransform: 'capitalize',
+  fontSize: 16,
+  fontWeight: '600',
+  color: COLORS.text,
+  textTransform: 'capitalize',
   },
-  dosageBadge: {
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  recordContainer: {
+  display: 'flex',
+  marginTop: 10, 
+  marginBottom: 10,
+  flexDirection: 'row', 
+  alignItems: 'center',
+  backgroundColor: COLORS.cardBackground,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  padding: 12,
+  justifyContent: 'space-between'
+
   },
-  dosageText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#059669',
+  recordLeftSection: {
+  display: 'flex', 
+  flexDirection: 'row', 
+  alignItems: 'center',
+  position: 'relative'
   },
-  medicineDetails: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+  timeContainer: {
+  marginRight: 12,
+  position: 'absolute',
+  top: -30,
+  left: -10,
+  zIndex: 100,
+  backgroundColor: COLORS.cardBackground,
+  paddingVertical: 4,
+  paddingHorizontal: 8,
+  borderRadius: 8
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.cardBackground,
-    height: 70,
-    padding: 10,
+  timeText: {
+  color: COLORS.accent,
+  textTransform: 'uppercase',
+  fontWeight: '600'
   },
-  column: {
-    alignItems: 'center',
+  medicineDetailsRow: {
+  display: 'flex', 
+  flexDirection: 'row', 
+  gap: 8
   },
-  label: {
-    color: COLORS.textSecondary,
-    fontWeight: '300',
+  descriptionText: {
+  color: COLORS.text
   },
-  value: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '600',
-    // textTransform: 'capitalize',
+  checkIconContainer: {
+  display: 'flex', 
+  flexDirection: 'row', 
+  gap: 8,
+  backgroundColor: COLORS.iconBackground,
+  padding: 4,
+  borderRadius: 100
+  },
+  medicationCard: {
+  // Added from existing styles
   },
 });
 

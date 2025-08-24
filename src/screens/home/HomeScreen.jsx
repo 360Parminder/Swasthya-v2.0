@@ -225,9 +225,9 @@ const styles = StyleSheet.create({
     height: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor:'#525252',
+    backgroundColor: COLORS.iconBackground,
     padding: 6,
-    borderRadius:100
+    borderRadius: 100
   },
   cardImage: {
     width: '100%',
