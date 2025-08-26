@@ -186,7 +186,6 @@ const SignUpScreen = ({ navigation }) => {
         return null;
     }
   };
-
   // GradientStepButtons same as before...
   const GradientStepButtons = ({ onNext, onBack, isFinal, gradient }) => (
     <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 22 }}>
