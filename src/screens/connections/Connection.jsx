@@ -177,7 +177,7 @@ const Connection = () => {
   const INPUT_MARGIN = 8;
   const BACK_BUTTON_WIDTH = 55; // Approximate width of back button
   const minInputWidth = SCREEN_WIDTH - (INPUT_MARGIN + BACK_BUTTON_WIDTH);
-  const maxInputWidth = SCREEN_WIDTH - (BACK_BUTTON_WIDTH + INPUT_MARGIN );
+  const maxInputWidth = SCREEN_WIDTH - (BACK_BUTTON_WIDTH + INPUT_MARGIN);
 
   const inputWidth = inputAnim.interpolate({
     inputRange: [0, 1],
@@ -189,7 +189,7 @@ const Connection = () => {
     inputRange: [0, 1],
     outputRange: [-BACK_BUTTON_WIDTH + 22, 0],
   });
-  
+
   // Back button should be visible immediately when overlay opens
   const backButtonOpacity = spotlightAnim.interpolate({
     inputRange: [0, 1],
@@ -307,33 +307,42 @@ const Connection = () => {
           activeOpacity={0.9}
           onPress={openSpotlight}
         >
-          <Text style={[styles.spotlightActivatorText,{position:'relative',paddingLeft:18}]}>Search with UID</Text>
+          <Text style={[styles.spotlightActivatorText, { position: 'relative', paddingLeft: 18 }]}>Search with UID</Text>
           <Icon style={{ position: 'absolute', left: 10, }} name="search" size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
 
         {/* Main Cards */}
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => openModal('request')}
-          activeOpacity={0.96}
-        >
-          <Image source={require('../../../assets/images/request.png')} style={styles.cardImage} />
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>Connection Requests</Text>
-            <Text style={styles.cardSubheading}>View and manage requests</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => openModal('view')}
-          activeOpacity={0.96}
-        >
-          <Image source={require('../../../assets/images/connections.png')} style={styles.cardImage} />
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeader}>Connections</Text>
-            <Text style={styles.cardSubheading}>View your connections</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.cards}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => openModal('request')}
+            activeOpacity={0.96}
+          >
+            {/* <Image source={require('../../../assets/images/request.png')} style={styles.cardImage} /> */}
+            <View style={styles.cardIconContainer}>
+              <Icon name="person-add" size={24} color={COLORS.text} />
+            </View>
+            <View style={styles.cardTextContainer}>
+
+              {/* <Text style={styles.cardHeader}>Connection Requests</Text> */}
+              <Text style={styles.cardSubheading}>View and manage requests</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => openModal('view')}
+            activeOpacity={0.96}
+          >
+            {/* <Image source={require('../../../assets/images/connections.png')} style={styles.cardImage} /> */}
+            <View style={styles.cardIconContainer}>
+              <Icon name="people" size={24} color={COLORS.text} />
+            </View>
+            <View style={styles.cardTextContainer}>
+              {/* <Text style={styles.cardHeader}>Connections</Text> */}
+              <Text style={styles.cardSubheading}>View your connections</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* Requests Modal */}
         <GeneralModal
@@ -368,7 +377,7 @@ const Connection = () => {
             <BlurView
               style={StyleSheet.absoluteFill}
               blurType={Platform.OS === 'ios' ? 'regular' : 'light'}
-              blurAmount={30}
+              blurAmount={25}
               overlayColor=""
             />
             <TouchableWithoutFeedback onPress={closeSpotlight}>
@@ -393,8 +402,8 @@ const Connection = () => {
                     <Icon name="arrow-back-outline" size={28} color={COLORS.text} />
                   </TouchableOpacity>
                 </Animated.View>
-                
-                <Animated.View style={{ 
+
+                <Animated.View style={{
                   width: inputWidth,
                   transform: [{ translateX: inputTranslateX }]
                 }}>
@@ -455,7 +464,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 18,
+    // padding: 18,
     backgroundColor: COLORS.background,
   },
   spotlightActivator: {
@@ -464,6 +473,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.inputBackground,
     borderRadius: 28,
     paddingHorizontal: 16,
+    marginHorizontal: 18,
     paddingVertical: Platform.OS === 'ios' ? 12 : 9,
     marginBottom: 16,
     ...Platform.select({
@@ -564,26 +574,41 @@ const styles = StyleSheet.create({
     marginVertical: 14,
     fontSize: 15,
   },
-  // CARDS (unchanged)
-  card: {
-    flexDirection: 'row',
+  cardIconContainer: {
+    width: 38,
+    height: 38,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.iconBackground,
+    padding: 6,
+    borderRadius: 100
+  },
+  // CARDS (unchanged)
+  cards: {
+    width: '100%',
+    padding: 20,
+    // marginTop: 20,
+    // gap: 20,
+    // flex: 1,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  card: {
+    flexDirection: 'column',
+    width: '48%',
+    minHeight: 120,
+    // alignItems: 'center',
     backgroundColor: COLORS.cardBackground,
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: 10,
     padding: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.11,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 3,
-      }
-    }),
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.09,
+    shadowRadius: 8,
     marginBottom: 15,
   },
   cardImage: {

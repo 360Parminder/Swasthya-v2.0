@@ -34,18 +34,7 @@ function HomeStackScreen() {
         component={HomeScreen}
         options={{
           headerShown: false,
-          animations: {
-            showModal: {
-              enter: {
-                enabled: true,
-                alpha: { from: 0, to: 1, duration: 300 }
-              },
-              exit: {
-                enabled: true,
-                alpha: { from: 1, to: 0, duration: 300 }
-              }
-            }
-          }
+
         }}
       />
       <HomeStack.Screen
@@ -54,18 +43,7 @@ function HomeStackScreen() {
         options={{
           headerShown: true,
           title: 'My Connections',
-          animations: {
-            showModal: {
-              enter: {
-                enabled: true,
-                alpha: { from: 0, to: 1, duration: 300 }
-              },
-              exit: {
-                enabled: true,
-                alpha: { from: 1, to: 0, duration: 300 }
-              }
-            }
-          }
+
         }}
       />
       <HomeStack.Screen
@@ -74,18 +52,7 @@ function HomeStackScreen() {
         options={{
           headerShown: true,
           title: 'Medication',
-          animations: {
-            showModal: {
-              enter: {
-                enabled: true,
-                alpha: { from: 0, to: 1, duration: 300 }
-              },
-              exit: {
-                enabled: true,
-                alpha: { from: 1, to: 0, duration: 300 }
-              }
-            }
-          }
+
         }}
       />
     </HomeStack.Navigator>
@@ -137,7 +104,7 @@ const MainNavigator = () => {
           } else if (route.name === 'ConnectionsTab') {
             iconName = 'add';
           }
-          
+
           return (
             <View style={{
               borderRadius: 999,
@@ -147,10 +114,10 @@ const MainNavigator = () => {
               width: 40,
               height: 40
             }}>
-              <Icon 
-                name={iconName} 
-                color={focused ? COLORS.accent : 'gray'} 
-                size={size} 
+              <Icon
+                name={iconName}
+                color={focused ? COLORS.accent : 'gray'}
+                size={size}
               />
             </View>
           );
