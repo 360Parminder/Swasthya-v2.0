@@ -21,9 +21,9 @@ import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS } from '../../components/ui/colors';
 import { BlurView } from '@react-native-community/blur';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-
-const SPOTLIGHT_ANIM_DURATION = 270;
+const SPOTLIGHT_ANIM_DURATION = 220;
 const INPUT_SLIDE_ANIM_DURATION = 220;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -121,16 +121,16 @@ const Connection = () => {
       easing: Easing.out(Easing.ease),
       useNativeDriver: false,
     }).start(() => {
-      inputOverlayRef.current?.focus();
-      // Animate input contraction after short delay (for feel)
-      setTimeout(() => {
-        Animated.timing(inputAnim, {
-          toValue: 1,
-          duration: INPUT_SLIDE_ANIM_DURATION,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }).start(() => setInputHasFocus(true));
-      }, 120);
+      // Start input animation immediately after overlay is shown
+      Animated.timing(inputAnim, {
+        toValue: 1,
+        duration: INPUT_SLIDE_ANIM_DURATION,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: false,
+      }).start(() => {
+        inputOverlayRef.current?.focus();
+        setInputHasFocus(true);
+      });
     });
   };
 
@@ -166,26 +166,34 @@ const Connection = () => {
   });
   const overlayTranslateY = spotlightAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [4, 0],
+    outputRange: [-2, 0],
   });
   const overlayOpacity = spotlightAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 1],
+    outputRange: [-0, 1],
   });
 
-  // Search bar input width and cancellation
+  // Search bar input width and back button animation
   const INPUT_MARGIN = 8;
-  const CANCEL_WIDTH = 68;
-  const maxInputWidth = SCREEN_WIDTH - (INPUT_MARGIN * 2);
-  const minInputWidth = SCREEN_WIDTH - (CANCEL_WIDTH + INPUT_MARGIN * 3);
+  const BACK_BUTTON_WIDTH = 55; // Approximate width of back button
+  const minInputWidth = SCREEN_WIDTH - (INPUT_MARGIN + BACK_BUTTON_WIDTH);
+  const maxInputWidth = SCREEN_WIDTH - (BACK_BUTTON_WIDTH + INPUT_MARGIN );
 
   const inputWidth = inputAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [maxInputWidth, minInputWidth],
   });
-  const cancelOpacity = inputAnim.interpolate({
-    inputRange: [0, 0.15, 1],
-    outputRange: [0, 0, 1], // Cancel fades in after slide
+
+  // Input translateX animation - slides in from left
+  const inputTranslateX = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-BACK_BUTTON_WIDTH + 22, 0],
+  });
+  
+  // Back button should be visible immediately when overlay opens
+  const backButtonOpacity = spotlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
   });
 
   // Search API call
@@ -299,7 +307,8 @@ const Connection = () => {
           activeOpacity={0.9}
           onPress={openSpotlight}
         >
-          <Text style={styles.spotlightActivatorText}>Search by User ID...</Text>
+          <Text style={[styles.spotlightActivatorText,{position:'relative',paddingLeft:18}]}>Search with UID</Text>
+          <Icon style={{ position: 'absolute', left: 10, }} name="search" size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
 
         {/* Main Cards */}
@@ -360,7 +369,6 @@ const Connection = () => {
               style={StyleSheet.absoluteFill}
               blurType={Platform.OS === 'ios' ? 'regular' : 'light'}
               blurAmount={30}
-              // reducedTransparencyFallbackColor={}
               overlayColor=""
             />
             <TouchableWithoutFeedback onPress={closeSpotlight}>
@@ -375,23 +383,31 @@ const Connection = () => {
                 }
               ]}
             >
-              {/* Search bar and Cancel button */}
+              {/* Search bar and Back button */}
               <View style={styles.overlaySearchBarRow}>
-                <Animated.View style={{ width: inputWidth }}>
+                <Animated.View style={{ opacity: backButtonOpacity, marginRight: 8 }}>
+                  <TouchableOpacity
+                    hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+                    onPress={closeSpotlight}
+                  >
+                    <Icon name="arrow-back-outline" size={28} color={COLORS.text} />
+                  </TouchableOpacity>
+                </Animated.View>
+                
+                <Animated.View style={{ 
+                  width: inputWidth,
+                  transform: [{ translateX: inputTranslateX }]
+                }}>
                   <TextInput
                     ref={inputOverlayRef}
                     style={styles.overlaySearchInput}
                     placeholder="Search by User ID"
                     value={spotlightQuery}
-                    onChangeText={q => {
-                      setSpotlightQuery(q);
-                      handleSpotlightSearch(q);
-                    }}
-                    placeholderTextColor={COLORS.darkText}
+                    onChangeText={handleSpotlightSearch}
+                    placeholderTextColor={COLORS.inputText}
                     autoCapitalize="none"
                     returnKeyType="search"
                     selectionColor={COLORS.primary}
-                    autoFocus
                     onFocus={() => {
                       if (!inputHasFocus) {
                         Animated.timing(inputAnim, {
@@ -403,14 +419,7 @@ const Connection = () => {
                       }
                     }}
                   />
-                </Animated.View>
-                <Animated.View style={{ marginLeft: 5, opacity: cancelOpacity }}>
-                  <TouchableOpacity
-                    hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
-                    onPress={closeSpotlight}
-                  >
-                    <Text style={styles.cancelBtnText}>Cancel</Text>
-                  </TouchableOpacity>
+                  <Icon name="search" size={20} color={COLORS.placeholder} style={{ position: 'absolute', left: 10, top: 14 }} />
                 </Animated.View>
               </View>
               {/* Results or Loading */}
@@ -418,7 +427,6 @@ const Connection = () => {
                 {spotlightLoading ? (
                   <Text style={styles.loadingText}>Searching...</Text>
                 ) : spotlightQuery.length === 0 ? (
-                  // <Text style={styles.noDataText}>Type to search by User ID</Text>
                   <></>
                 ) : spotlightError ? (
                   <Text style={styles.noDataText}>{spotlightError}</Text>
@@ -454,7 +462,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.inputBackground,
-    borderRadius: 8,
+    borderRadius: 28,
     paddingHorizontal: 16,
     paddingVertical: Platform.OS === 'ios' ? 12 : 9,
     marginBottom: 16,
@@ -473,13 +481,12 @@ const styles = StyleSheet.create({
   },
   spotlightActivatorText: {
     fontSize: 17,
-    color: COLORS.darkText,
+    color: COLORS.inputText,
   },
   spotlightOverlaySheet: {
     height: '100%',
     position: 'absolute',
     left: 0, right: 0, top: 0,
-    // backgroundColor: '#6f6f6f9d',
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
     paddingTop: Platform.OS === 'ios' ? 62 : 18,
@@ -495,16 +502,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
-    gap: 8,
     width: '100%',
   },
   overlaySearchInput: {
+    position: 'relative',
+    paddingLeft: 38,
     fontSize: 17,
     color: COLORS.text,
     paddingVertical: Platform.OS === 'ios' ? 10 : 7,
     paddingHorizontal: 14,
     backgroundColor: COLORS.inputBackground,
-    borderRadius: 8,
+    borderRadius: 28,
     borderWidth: 0,
     height: 50,
     width: '100%',
