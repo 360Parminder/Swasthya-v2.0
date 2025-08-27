@@ -158,7 +158,7 @@ const MainNavigator = () => {
       })}
     >
       <Tab.Screen name="HomeTab" component={HomeStackScreen} />
-      <Tab.Screen name="ConnectionsTab" component={ProfileScreen} />
+      {/* <Tab.Screen name="ConnectionsTab" component={ProfileScreen} /> */}
       <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
     </Tab.Navigator>
   );
