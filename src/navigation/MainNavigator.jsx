@@ -8,7 +8,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Medication from '../screens/medication/Medication';
 import { View } from 'react-native';
 import { COLORS } from '../components/ui/colors';
-import { useNavigation } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();

@@ -6,7 +6,7 @@ import Toast from 'react-native-toast-message';
 const { apiUrl } = getEnvVars();
 
 const apiClient = axios.create({
-  baseURL: 'https://api-swasthya.onrender.com',
+  baseURL: apiUrl || 'http://localhost:8003',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
