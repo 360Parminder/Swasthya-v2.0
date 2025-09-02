@@ -238,7 +238,6 @@ const SignUpScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingTop: 35,
     backgroundColor: COLORS.background,
     justifyContent: 'space-between',
   },
