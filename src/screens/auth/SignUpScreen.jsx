@@ -6,7 +6,6 @@ import Input from '../../components/common/Input';
 import { COLORS } from '../../components/ui/colors';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-
 const SignUpScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
