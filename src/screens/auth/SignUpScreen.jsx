@@ -15,7 +15,6 @@ const SignUpScreen = ({ navigation }) => {
     getValues,
     formState: { errors }
   } = useForm({ mode: 'onChange' });
-
   // Animate in on step change
   useEffect(() => {
     slideAnim.setValue(SCREEN_HEIGHT); // start from bottom
