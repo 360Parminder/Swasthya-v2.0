@@ -4,6 +4,8 @@ import { COLORS } from '../../../components/ui/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const ViewMedications = ({ medications }) => {
+  console.log(medications);
+  
   const renderRecord = ({ item: record }) => (
   <View style={styles.recordContainer}>
      <View style={styles.recordLeftSection}>

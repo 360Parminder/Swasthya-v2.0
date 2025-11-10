@@ -486,7 +486,6 @@ const AddMedication = ({ isVisible, onClose }) => {
             title={<Text style={styles.headerTitle}>{steps[currentStep].title}</Text>}
         >
             <View style={{height: '100%',paddingBottom: 28}}>
-
                 {/* Progress Indicator */}
                 <View style={styles.progressContainer}>
                     {steps.map((_, i) => (

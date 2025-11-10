@@ -6,10 +6,20 @@ import { medicationApi } from '../../api/medicationApi';
 import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-
+import Toast from 'react-native-toast-message';
 const Medication = () => {
   const [modalType, setModalType] = useState(null);
   const [medications, setMedications] = useState([]);
+  const showToast = (type, message, subMessage = '') => {
+    Toast.show({
+      type,
+      text1: message,
+      text2: subMessage,
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 10,
+    });
+  };
 
   const fetchMedications = async () => {
     try {
@@ -37,7 +47,7 @@ const Medication = () => {
             <Text style={styles.cardSubheading}>Manage your personal medications</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={()=> showToast("info","Comming soon","Feature under progress")} >
           <View style={styles.cardIconContainer}>
             <Icon name="users" size={24} color={COLORS.text} />
           </View>
@@ -70,7 +80,7 @@ const Medication = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
     backgroundColor: COLORS.background,
   },
   buttonRow: {

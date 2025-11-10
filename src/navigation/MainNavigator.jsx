@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Feather';
 import Medication from '../screens/medication/Medication';
 import { View } from 'react-native';
 import { COLORS } from '../components/ui/colors';
@@ -33,8 +33,9 @@ function HomeStackScreen() {
         component={HomeScreen}
         options={{
           headerShown: false,
-
+          navigationBarHidden: true,
         }}
+        
       />
       <HomeStack.Screen
         name="Connections"
@@ -42,7 +43,7 @@ function HomeStackScreen() {
         options={{
           headerShown: true,
           title: 'My Connections',
-
+          headerBackVisible: false,
         }}
       />
       <HomeStack.Screen
@@ -51,6 +52,7 @@ function HomeStackScreen() {
         options={{
           headerShown: true,
           title: 'Medication',
+          headerBackVisible: false,
 
         }}
       />
@@ -93,15 +95,16 @@ const MainNavigator = () => {
           elevation: 12,
           backgroundColor: COLORS.cardBackground,
           paddingTop: 10,
+          borderTopColor: COLORS.border,
         },
         tabBarIcon: ({ focused, size = 24 }) => {
           let iconName;
           if (route.name === 'HomeTab') {
-            iconName = 'home-outline';
+            iconName = 'home';
           } else if (route.name === 'ProfileTab') {
-            iconName = 'person-outline';
+            iconName = 'user';
           } else if (route.name === 'ConnectionsTab') {
-            iconName = 'add';
+            iconName = 'users';
           }
 
           return (
@@ -123,7 +126,7 @@ const MainNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStackScreen} />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen}  />
       {/* <Tab.Screen name="ConnectionsTab" component={ProfileScreen} /> */}
       <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
     </Tab.Navigator>
