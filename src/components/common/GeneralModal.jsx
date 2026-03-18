@@ -1,16 +1,19 @@
 // src/components/common/GeneralModal.js
+import React from 'react';
 import { StyleSheet, View, Modal, TouchableOpacity, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { COLORS } from '../ui/colors';
+import { useThemeColors } from '../ui/colors';
 import { BlurView } from '@react-native-community/blur';
 
-const GeneralModal = ({ 
-  visible, 
-  onClose, 
-  title, 
+const GeneralModal = ({
+  visible,
+  onClose,
+  title,
   children,
   closeButtonPosition = 'top-left' // can be 'top-right' or 'top-left'
 }) => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   return (
     <Modal
       visible={visible}
@@ -31,7 +34,7 @@ const GeneralModal = ({
               </TouchableOpacity>
             )}
             <Text style={styles.modalTitle}>{title}</Text>
-            
+
             <TouchableOpacity style={styles.closeButton}>
               <Icon name="ellipsis-horizontal-circle-outline" color={COLORS.text} size={24} />
             </TouchableOpacity>
@@ -49,13 +52,14 @@ const GeneralModal = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
     // backgroundColor: 'rgba(0, 0, 0, 0.3)', // Reduced opacity for blur
     paddingHorizontal: 2,
+    marginBottom: 10,
   },
   blurView: {
     position: 'absolute',
@@ -68,21 +72,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '90%',
     backgroundColor: COLORS.cardBackground,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   modalTitle: {
     // height: 10,
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     // flex: 1,
     // textAlign: 'center',
     color: COLORS.text,

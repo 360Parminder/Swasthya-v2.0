@@ -4,10 +4,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Medication from '../screens/medication/Medication';
 import { View } from 'react-native';
-import { COLORS } from '../components/ui/colors';
+import { useThemeColors } from '../components/ui/colors';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -15,14 +15,15 @@ const ProfileStack = createNativeStackNavigator();
 
 // Home Stack Navigator
 function HomeStackScreen() {
+  const colors = useThemeColors();
   return (
     <HomeStack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: COLORS.background,
+          backgroundColor: colors.background,
           height: 56,
         },
-        headerTintColor: COLORS.text,
+        headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: 'bold' },
         headerTitleAlign: 'center',
         headerShadowVisible: false,
@@ -35,7 +36,6 @@ function HomeStackScreen() {
           headerShown: false,
           navigationBarHidden: true,
         }}
-        
       />
       <HomeStack.Screen
         name="Connections"
@@ -53,7 +53,6 @@ function HomeStackScreen() {
           headerShown: true,
           title: 'Medication',
           headerBackVisible: false,
-
         }}
       />
     </HomeStack.Navigator>
@@ -62,14 +61,15 @@ function HomeStackScreen() {
 
 // Profile Stack Navigator
 function ProfileStackScreen() {
+  const colors = useThemeColors();
   return (
     <ProfileStack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: COLORS.background,
+          backgroundColor: colors.background,
           height: 56,
         },
-        headerTintColor: COLORS.text,
+        headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: 'bold' },
         headerTitleAlign: 'center',
         headerShadowVisible: false,
@@ -82,53 +82,65 @@ function ProfileStackScreen() {
 
 // Main Tab Navigator
 const MainNavigator = () => {
+  const colors = useThemeColors();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarItemStyle: {
+          margin: 18,
+        },
         tabBarStyle: {
           position: 'absolute',
-          height: 60,
-          borderTopLeftRadius: 18,
-          borderTopRightRadius: 18,
-          elevation: 12,
-          backgroundColor: COLORS.cardBackground,
-          paddingTop: 10,
-          borderTopColor: COLORS.border,
+          height: 70,
+          bottom: 10,
+          left: 10,
+          right: 10,
+          borderRadius: 35,
+          elevation: 15,
+          backgroundColor: colors.cardBackground,
+          borderTopWidth: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 20,
         },
-        tabBarIcon: ({ focused, size = 24 }) => {
+        tabBarIcon: ({ focused }) => {
           let iconName;
           if (route.name === 'HomeTab') {
-            iconName = 'home';
+            iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'ProfileTab') {
-            iconName = 'user';
+            iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'ConnectionsTab') {
-            iconName = 'users';
+            iconName = focused ? 'add-circle' : 'add-circle-outline';
           }
 
           return (
-            <View style={{
-              borderRadius: 999,
-              paddingVertical: 8,
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 40,
-              height: 40
-            }}>
+            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+              {focused && (
+                <View style={{
+                  position: 'absolute',
+                  width: 44,
+                  height: 44,
+                  backgroundColor: colors.primary,
+                  opacity: 0.15,
+                  borderRadius: 22
+                }} />
+              )}
               <Icon
                 name={iconName}
-                color={focused ? COLORS.accent : 'gray'}
-                size={size}
+                color={focused ? colors.primary : colors.placeholder}
+                size={24}
               />
             </View>
           );
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStackScreen}  />
-      {/* <Tab.Screen name="ConnectionsTab" component={ProfileScreen} /> */}
-      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen} />
+      {/* <Tab.Screen name="ConnectionsTab" component={Connection} /> */}
+      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} headerShown={false} />
     </Tab.Navigator>
   );
 };

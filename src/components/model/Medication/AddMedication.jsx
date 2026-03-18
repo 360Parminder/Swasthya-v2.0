@@ -11,6 +11,7 @@ import {
     Alert,
     ScrollView,
     Image,
+    ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -66,6 +67,7 @@ const AddMedication = ({ isVisible, onClose }) => {
 
     // Form state
     const [currentStep, setCurrentStep] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
     const initialFormState = {
         name: '',
         form: '',
@@ -180,6 +182,7 @@ const AddMedication = ({ isVisible, onClose }) => {
             times: timesArr,
         };
 
+        setIsLoading(true);
         try {
             const response = await medicationApi.addMedication(payload);
             if (response.status === 201) {
@@ -191,6 +194,8 @@ const AddMedication = ({ isVisible, onClose }) => {
             }
         } catch (error) {
             showToast('error', error?.response?.data?.message || 'Failed to add medication');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -249,6 +254,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                         placeholder="Any additional notes"
                         value={formData.notes}
                         onChangeText={text => handleInputChange('notes', text)}
+                        placeholderTextColor={COLORS.placeholder}
                         multiline
                     />
                 </View>
@@ -282,11 +288,12 @@ const AddMedication = ({ isVisible, onClose }) => {
                     <Text style={styles.label}>Strength*</Text>
                     <View style={styles.strengthContainer}>
                         <TextInput
-                            style={[styles.input, { marginBottom: 0,height: 40,padding: 8 }]}
+                            style={[styles.input, { marginBottom: 0, flex: 1 }]}
                             placeholder="e.g. 500"
                             value={formData.strength}
                             onChangeText={text => handleInputChange('strength', text)}
                             keyboardType="numeric"
+                            placeholderTextColor={COLORS.placeholder}
                         />
                         <View style={styles.unitsContainer}>
                             {units.map(unit => {
@@ -313,6 +320,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                         value={formData.dosage}
                         onChangeText={text => handleInputChange('dosage', text)}
                         keyboardType="numeric"
+                        placeholderTextColor={COLORS.placeholder}
                     />
                 </View>
             ),
@@ -414,6 +422,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                                         return { ...prev, numTimes: n, times: timesArr };
                                     });
                                 }}
+                                placeholderTextColor={COLORS.placeholder}
                             />
 
                             <Text style={styles.label}>Set times for each dose*</Text>
@@ -485,7 +494,7 @@ const AddMedication = ({ isVisible, onClose }) => {
             visible={isVisible}
             title={<Text style={styles.headerTitle}>{steps[currentStep].title}</Text>}
         >
-            <View style={{height: '100%',paddingBottom: 28}}>
+            <View style={{ height: '100%', paddingBottom: 16 }}>
                 {/* Progress Indicator */}
                 <View style={styles.progressContainer}>
                     {steps.map((_, i) => (
@@ -513,15 +522,19 @@ const AddMedication = ({ isVisible, onClose }) => {
                             disabled={!steps[currentStep].validate()}
                         >
                             <Text style={styles.buttonText}>Next</Text>
-                            <Icon name="chevron-forward" size={20} color="white" />
+                            <Icon name="chevron-forward" size={16} color="white" />
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
                             style={styles.submitButton}
                             onPress={handleSubmit}
-                            disabled={!steps[currentStep].validate()}
+                            disabled={!steps[currentStep].validate() || isLoading}
                         >
-                            <Text style={styles.buttonText}>Add Medication</Text>
+                            {isLoading ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <Text style={styles.buttonText}>Add Medication</Text>
+                            )}
                         </TouchableOpacity>
                     )}
                 </View>
@@ -534,51 +547,57 @@ const styles = StyleSheet.create({
     progressContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        paddingVertical: 16,
+        paddingVertical: 10,
     },
     progressDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        width: 6,
+        height: 6,
+        borderRadius: 3,
         backgroundColor: COLORS.iconBackground,
-        marginHorizontal: 4,
+        marginHorizontal: 3,
     },
     progressDotActive: {
         backgroundColor: COLORS.primary,
-        borderRadius: 100,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     contentContainer: {
         flexGrow: 1,
-        padding: 16,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
     },
     stepContainer: {
         flex: 1,
     },
     label: {
-        fontSize: 16,
+        fontSize: 13,
         marginBottom: 8,
         color: COLORS.text,
+        fontWeight: '500',
+        letterSpacing: 0.3,
     },
     input: {
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 8,
-        padding: 12,
-        marginBottom: 16,
-        fontSize: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 11,
+        marginBottom: 14,
+        fontSize: 14,
         color: COLORS.text,
         backgroundColor: COLORS.inputBackground,
-
     },
     notesInput: {
-        height: 80,
+        height: 70,
         textAlignVertical: 'top',
+        paddingTop: 11,
     },
     pickerContainer: {
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 8,
-        marginBottom: 16,
+        marginBottom: 14,
         overflow: 'hidden',
         backgroundColor: COLORS.inputBackground,
     },
@@ -586,12 +605,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        marginBottom: 16,
+        marginBottom: 14,
+        gap: 8,
     },
     optionButton: {
-        width: '48%',
-        padding: 12,
-        marginBottom: 8,
+        width: '31%',
+        padding: 10,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: COLORS.border,
@@ -600,10 +619,10 @@ const styles = StyleSheet.create({
     },
     optionSelected: {
         backgroundColor: COLORS.primary,
-        borderColor: COLORS.accent,
+        borderColor: COLORS.primary,
     },
     optionText: {
-        fontSize: 16,
+        fontSize: 12,
         color: COLORS.text,
     },
     optionTextSelected: {
@@ -614,40 +633,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 12,
+        gap: 10,
     },
     unitsContainer: {
         flexDirection: 'row',
-        marginLeft: 8,
         flexWrap: 'wrap',
         alignItems: 'center',
-        // justifyContent: 'space-between',
+        gap: 4,
     },
     unitButton: {
-        padding: 8,
-        marginLeft: 4,
-        borderRadius: 4,
+        padding: 7,
+        borderRadius: 6,
         borderWidth: 1,
         borderColor: COLORS.border,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: COLORS.inputBackground,
-        // height: 50,
     },
     unitSelected: {
         backgroundColor: COLORS.primary,
         borderColor: COLORS.primary,
     },
     unitText: {
-        fontSize: 14,
+        fontSize: 12,
         color: COLORS.text,
     },
     unitTextSelected: {
-        color: COLORS.textx,
+        color: '#fff',
     },
     icon: {
-        width: 30,
-        height: 30,
-        marginBottom: 4,
+        width: 24,
+        height: 24,
+        marginBottom: 3,
     },
     timeInput: {
         flexDirection: 'row',
@@ -656,93 +673,95 @@ const styles = StyleSheet.create({
         borderColor: COLORS.border,
         backgroundColor: COLORS.inputBackground,
         borderRadius: 8,
-        padding: 12,
-        marginBottom: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 11,
+        marginBottom: 14,
     },
     timeText: {
-        fontSize: 16,
-        marginLeft: 8,
+        fontSize: 14,
+        marginLeft: 10,
         color: COLORS.text,
     },
     daysContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         marginBottom: 12,
+        gap: 8,
     },
     dayButton: {
-        padding: 8,
-        margin: 2,
-        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 7,
+        borderRadius: 8,
         borderWidth: 1,
         borderColor: COLORS.border,
         backgroundColor: COLORS.inputBackground,
         alignItems: 'center',
         justifyContent: 'center',
-        minWidth: 40,
-        alignSelf: 'center',
+        minWidth: 38,
     },
     daySelected: {
-        backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
     },
     dayLabel: {
         color: COLORS.text,
-        fontSize: 14,
+        fontSize: 12,
         textAlign: 'center',
     },
     dayLabelSelected: {
         color: '#fff',
     },
     noteText: {
-        color: COLORS.text,
-        fontSize: 15,
-        marginBottom: 16,
+        color: COLORS.textSecondary,
+        fontSize: 13,
+        marginBottom: 12,
         textAlign: 'center',
     },
     footer: {
-        paddingBottom: 16,
-        // borderTopWidth: 1,
-        // borderTopColor: COLORS.border,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+
     },
     nextButton: {
         backgroundColor: COLORS.primary,
-        padding: 16,
+        padding: 13,
         borderRadius: 8,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        gap: 6,
     },
     submitButton: {
-        backgroundColor: '#34C759',
-        padding: 16,
+        backgroundColor: COLORS.primary,
+        padding: 13,
         borderRadius: 8,
         alignItems: 'center',
     },
     buttonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
     },
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
-        paddingVertical: 12,
-        paddingHorizontal: 10,
+        fontSize: 14,
+        paddingVertical: 11,
+        paddingHorizontal: 12,
         color: COLORS.text,
-        paddingRight: 30,
+        paddingRight: 24,
         backgroundColor: COLORS.inputBackground,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: COLORS.border,
     },
     inputAndroid: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
+        fontSize: 14,
+        paddingHorizontal: 12,
+        paddingVertical: 11,
         color: COLORS.text,
-        paddingRight: 30,
+        paddingRight: 24,
         backgroundColor: COLORS.inputBackground,
         borderRadius: 8,
         borderWidth: 1,

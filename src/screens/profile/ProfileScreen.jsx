@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView, Touchable
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { authApi } from '../../api/authApi';
-import { COLORS } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const ProfileScreen = () => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const { authState, logout } = useAuth();
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
@@ -39,13 +41,13 @@ const ProfileScreen = () => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="chevron-left" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Profile</Text>
         <View style={{ width: 24 }} />
-      </View>
+      </View> */}
 
       {/* Profile Section */}
       <View style={styles.profileSection}>
@@ -137,7 +139,7 @@ const ProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

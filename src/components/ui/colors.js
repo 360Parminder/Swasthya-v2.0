@@ -1,29 +1,60 @@
-export const COLORS = {
-  primary: '#4c1d95',
-  accent: '#8b5cf6',
-  background: '#0a0a0a',
-  cardBackground: '#262626',
-  // inputBackground: '#e5e5e5ef',
-  inputBackground: '#232323ff',
-  inputText: '#767676ff',
-  buttonBackground: '#4c1d95',
-  buttonText: '#ffffff',
-  text: '#fafafa',
-  textSecondary: '#e6e6e6ff',
-  border: '#404040',
+import { useColorScheme } from 'react-native';
+
+const lightPurple = '#ab70e7ff';
+const darkPurple = '#912cf0ff';
+
+export const lightColors = {
+  primary: darkPurple, // Darker for text/brand contrast
+  accent: lightPurple,
+  background: '#F5F5F5',
+  cardBackground: '#E8E8E8',
+  inputBackground: '#D4D4D4',
+  inputText: '#1E1E1E',
+  buttonBackground: darkPurple,
+  buttonText: '#FFFFFF',
+  text: '#1E1E1E',
+  textSecondary: '#3A3A3A',
+  border: '#888888',
   darkText: '#000000',
-  iconBackground: '#525252',
-  placeholder: '#dededeff',
+  iconBackground: '#D4D4D4',
+  placeholder: '#6B6B6B',
+  white: '#FFFFFF',
+  transparent: 'transparent',
+  // Multi-color accents for specific sections/states
+  success: '#10B981',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  info: '#3B82F6',
 };
 
+export const darkColors = {
+  primary: lightPurple, // Lighter for contrast on dark
+  accent: '#A855F7',
+  background: '#121212',
+  cardBackground: '#1E1E1E', 
+  inputBackground: '#2A2A2A',
+  inputText: '#D4D4D4',
+  buttonBackground: lightPurple,
+  buttonText: '#121212', 
+  text: '#D4D4D4',
+  textSecondary: '#B0B0B0',
+  border: '#3A3A3A',
+  darkText: '#000000',
+  iconBackground: '#2A2A2A',
+  placeholder: '#6B6B6B',
+  white: '#FFFFFF',
+  transparent: 'transparent',
+  // Multi-color accents
+  success: '#34D399',
+  warning: '#FBBF24',
+  danger: '#F87171',
+  info: '#60A5FA',
+};
 
-// export const COLORS = {
-//   primary: '#4c1d95',
-//   accent: '#8b5cf6',
-//   background: '#ffffff',
-//   cardBackground: '#e5e5e5',
-//   inputBackground: '#fafafa',
-//   text: '#0a0a0a',
-//   textSecondary: '#171717',
-//   border: '#525252',
-// };
+// Fallback export if needed temporarily before full migration
+export const COLORS = darkColors; // It was previously a dark theme
+
+export const useThemeColors = () => {
+  const scheme = useColorScheme();
+  return scheme === 'dark' ? darkColors : lightColors;
+};

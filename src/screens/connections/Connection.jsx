@@ -19,7 +19,7 @@ import GeneralModal from '../../components/common/GeneralModal';
 import Toast from 'react-native-toast-message';
 import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
-import { COLORS } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { BlurView } from '@react-native-community/blur';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -28,6 +28,8 @@ const INPUT_SLIDE_ANIM_DURATION = 220;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const Connection = () => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const { authState } = useAuth();
 
   // Overlay search state
@@ -110,6 +112,7 @@ const Connection = () => {
   useEffect(() => {
     if (activeModal === 'request') fetchRequests();
     else if (activeModal === 'view') fetchConnections();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeModal]);
 
   // Spotlight opening/closing and animation with input bar slide
@@ -457,7 +460,7 @@ const Connection = () => {
 };
 
 // (styles unchanged except for coloring and input overlay minor tweaks for animation/flex)
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, Image } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication';
-import { COLORS } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { medicationApi } from '../../api/medicationApi';
 import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 import Toast from 'react-native-toast-message';
 const Medication = () => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const [modalType, setModalType] = useState(null);
   const [medications, setMedications] = useState([]);
   const showToast = (type, message, subMessage = '') => {
@@ -47,7 +49,7 @@ const Medication = () => {
             <Text style={styles.cardSubheading}>Manage your personal medications</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={()=> showToast("info","Comming soon","Feature under progress")} >
+        <TouchableOpacity style={styles.card} onPress={() => showToast("info", "Comming soon", "Feature under progress")} >
           <View style={styles.cardIconContainer}>
             <Icon name="users" size={24} color={COLORS.text} />
           </View>
@@ -56,8 +58,8 @@ const Medication = () => {
           </View>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity 
-        style={styles.addButton} 
+      <TouchableOpacity
+        style={styles.addButton}
         onPress={() => setModalType('add')}
       >
         <Text style={styles.addButtonText}>Add Medication</Text>
@@ -70,14 +72,14 @@ const Medication = () => {
         onClose={closeModal}
         title="Medications"
       >
-          <ViewMedications medications={medications} />
+        <ViewMedications medications={medications} />
       </GeneralModal>
       <AddMedication isVisible={modalType === 'add'} onClose={closeModal} />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,

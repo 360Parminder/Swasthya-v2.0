@@ -3,160 +3,178 @@ import { StyleSheet, View, Text, FlatList, Image } from 'react-native';
 import { COLORS } from '../../../components/ui/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+const formImages = {
+  tablet: require('../../../../assets/images/tablet.png'),
+  capsule: require('../../../../assets/images/capsule.png'),
+  liquid: require('../../../../assets/images/liquid.png'),
+  injection: require('../../../../assets/images/injection.png'),
+  inhaler: require('../../../../assets/images/inhaler.png'),
+  topical: require('../../../../assets/images/topical.png'),
+  drops: require('../../../../assets/images/drops.png'),
+  suppository: require('../../../../assets/images/suppository.png'),
+  patch: require('../../../../assets/images/patch.png'),
+};
+
 const ViewMedications = ({ medications }) => {
   console.log(medications);
-  
+
   const renderRecord = ({ item: record }) => (
-  <View style={styles.recordContainer}>
-     <View style={styles.recordLeftSection}>
-    {
-      record?.times.map((time, index) => (
-        <View key={index} style={styles.timeContainer}>
-          <Text style={styles.timeText}>{new Date(time.reception_time).toLocaleTimeString("en-GB", {
-            timeZone: "UTC",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true
-          })}</Text>
+    <View style={styles.recordContainer}>
+      <View style={styles.recordLeftSection}>
+        {
+          record?.times.map((time, index) => (
+            <View key={index} style={styles.timeContainer}>
+              <Text style={styles.timeText}>{new Date(time.reception_time).toLocaleTimeString("en-GB", {
+                timeZone: "UTC",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true
+              })}</Text>
+            </View>
+          ))
+        }
+        <Image
+          source={
+            record?.medicine_image
+              ? { uri: record.medicine_image }
+              : (record?.forms && formImages[record.forms.toLowerCase()])
+                ? formImages[record.forms.toLowerCase()]
+                : require('../../../../assets/images/tablet.png')
+          }
+          style={styles.medicineImage}
+          resizeMode="cover"
+        />
+        <View>
+          <Text style={styles.medicineName}>{record.medicine_name}</Text>
+          <View style={styles.medicineDetailsRow}>
+            <Text style={styles.descriptionText}>{record.strength} {record.unit}</Text>
+            <Text style={styles.descriptionText}>{record.description || 'No description'}</Text>
+          </View>
         </View>
-      ))
-    }
-     <Image
-      source={{ uri: record?.medicine_image || 'https://i.ibb.co/8DhKSn5F/tablet.png' }}
-      style={styles.medicineImage}
-      resizeMode="cover"
-      />
-    <View>
-      <Text style={styles.medicineName}>{record.medicine_name}</Text>
-      <View style={styles.medicineDetailsRow}>
-        <Text style={styles.descriptionText}>{record.strength} {record.unit}</Text>
-        <Text style={styles.descriptionText}>{record.description || 'No description'}</Text>
+      </View>
+      <View style={styles.checkIconContainer}>
+        <Icon name="checkmark" size={24} color={COLORS.text} style={{ alignSelf: 'center', fontWeight: '600' }} />
       </View>
     </View>
-     </View>
-    <View style={styles.checkIconContainer}>
-      <Icon name="checkmark" size={24} color={COLORS.text} style={{ alignSelf: 'center', fontWeight: '600' }} />
-    </View>
-  </View>
   );
 
   const renderMedication = ({ item: medication }) => (
-  <View style={styles.medicationCard}>
-    <FlatList
-    data={medication.record}
-    renderItem={renderRecord}
-    keyExtractor={(_, index) => index.toString()}
-    scrollEnabled={false}
-    />
-  </View>
+    <View style={styles.medicationCard}>
+      <FlatList
+        data={medication.record}
+        renderItem={renderRecord}
+        keyExtractor={(_, index) => index.toString()}
+        scrollEnabled={false}
+      />
+    </View>
   );
 
   if (!medications.length) {
-  return (
-    <View style={styles.emptyState}>
-    <Text style={styles.noMedicationsText}>No medications found</Text>
-    <Text style={styles.emptySubtext}>Add your first medication to get started</Text>
-    </View>
-  );
+    return (
+      <View style={styles.emptyState}>
+        <Text style={styles.noMedicationsText}>No medications found</Text>
+        <Text style={styles.emptySubtext}>Add your first medication to get started</Text>
+      </View>
+    );
   }
 
   return (
-  <FlatList
-    style={styles.medicationsList}
-    contentContainerStyle={styles.listContent}
-    data={medications}
-    renderItem={renderMedication}
-    keyExtractor={item => item._id}
-    showsVerticalScrollIndicator={false}
-  />
+    <FlatList
+      style={styles.medicationsList}
+      contentContainerStyle={styles.listContent}
+      data={medications}
+      renderItem={renderMedication}
+      keyExtractor={item => item._id}
+      showsVerticalScrollIndicator={false}
+    />
   );
 };
 
 const styles = StyleSheet.create({
   medicationsList: {
-  width: '100%',
+    width: '100%',
   },
   emptyState: {
-  alignItems: 'center',
-  paddingVertical: 40,
+    alignItems: 'center',
+    paddingVertical: 40,
   },
   noMedicationsText: {
-  fontSize: 18,
-  fontWeight: '600',
-  color: COLORS.text,
-  marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
   },
   emptySubtext: {
-  fontSize: 14,
-  color: COLORS.textSecondary,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   medicineImage: {
-  width: 50,
-  height: 50,
-  borderRadius: 8,
-  marginRight: 12,
-  backgroundColor: COLORS.iconBackground
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: COLORS.iconBackground
   },
   medicineName: {
-  fontSize: 16,
-  fontWeight: '600',
-  color: COLORS.text,
-  textTransform: 'capitalize',
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    textTransform: 'capitalize',
   },
   recordContainer: {
-  display: 'flex',
-  marginTop: 10, 
-  marginBottom: 10,
-  flexDirection: 'row', 
-  alignItems: 'center',
-  backgroundColor: COLORS.cardBackground,
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: COLORS.border,
-  padding: 12,
-  justifyContent: 'space-between'
+    display: 'flex',
+    marginTop: 10,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 12,
+    justifyContent: 'space-between'
 
   },
   recordLeftSection: {
-  display: 'flex', 
-  flexDirection: 'row', 
-  alignItems: 'center',
-  position: 'relative'
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative'
   },
   timeContainer: {
-  marginRight: 12,
-  position: 'absolute',
-  top: -30,
-  left: -10,
-  zIndex: 100,
-  backgroundColor: COLORS.cardBackground,
-  paddingVertical: 4,
-  paddingHorizontal: 8,
-  borderRadius: 8
+    marginRight: 12,
+    position: 'absolute',
+    top: -30,
+    left: -10,
+    zIndex: 100,
+    backgroundColor: COLORS.cardBackground,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8
   },
   timeText: {
-  color: COLORS.accent,
-  textTransform: 'uppercase',
-  fontWeight: '600'
+    color: COLORS.accent,
+    textTransform: 'uppercase',
+    fontWeight: '600'
   },
   medicineDetailsRow: {
-  display: 'flex', 
-  flexDirection: 'row', 
-  gap: 8
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8
   },
   descriptionText: {
-  color: COLORS.text
+    color: COLORS.text
   },
   checkIconContainer: {
-  display: 'flex', 
-  flexDirection: 'row', 
-  gap: 8,
-  backgroundColor: COLORS.iconBackground,
-  padding: 4,
-  borderRadius: 100
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: COLORS.iconBackground,
+    padding: 4,
+    borderRadius: 100
   },
   medicationCard: {
-  // Added from existing styles
+    // Added from existing styles
   },
 });
 

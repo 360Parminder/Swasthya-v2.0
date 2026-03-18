@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
-import { COLORS } from '../components/ui/colors';
+import { useThemeColors } from '../components/ui/colors';
 
 const SplashScreen = () => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   return (
     <View style={styles.container}>
       {/* <Text style={styles.title}>Swasthya</Text> */}
@@ -12,7 +14,7 @@ const SplashScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

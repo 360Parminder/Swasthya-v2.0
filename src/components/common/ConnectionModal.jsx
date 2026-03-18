@@ -1,6 +1,7 @@
 // src/components/common/ConnectionModal.js
 import { StyleSheet, Text, TouchableOpacity, View, Modal, TextInput } from "react-native";
 import React from "react";
+import { useThemeColors } from "../ui/colors";
 
 export const ConnectionModal = ({ 
   visible, 
@@ -11,6 +12,8 @@ export const ConnectionModal = ({
   onInputChange,
   buttons 
 }) => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   return (
     <Modal
       visible={visible}
@@ -52,7 +55,7 @@ export const ConnectionModal = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
@@ -61,22 +64,25 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "80%",
-    backgroundColor: "white",
-    borderRadius: 10,
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 14,
     padding: 20,
     alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    color: COLORS.text,
     marginBottom: 15,
   },
   input: {
     width: "100%",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.inputBackground,
+    color: COLORS.text,
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 15,
   },
   modalButtonsContainer: {
@@ -87,14 +93,14 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     padding: 12,
-    backgroundColor: "#007AFF",
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     minWidth: "48%",
     marginBottom: 10,
     alignItems: "center",
   },
   modalButtonText: {
-    color: "white",
+    color: COLORS.buttonText,
     fontWeight: "600",
   },
   closeButton: {
@@ -102,7 +108,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   closeButtonText: {
-    color: "#007AFF",
+    color: COLORS.primary,
     fontWeight: "600",
   },
 });

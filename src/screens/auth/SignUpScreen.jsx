@@ -17,12 +17,14 @@ import { useForm, Controller } from 'react-hook-form';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Input from '../../components/common/Input';
-import { COLORS } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const SignUpScreen = ({ navigation }) => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const [step, setStep] = useState(1);
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -54,6 +56,7 @@ const SignUpScreen = ({ navigation }) => {
         useNativeDriver: true,
       })
     ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   const next = () => setStep((s) => s + 1);
@@ -560,7 +563,7 @@ const SignUpScreen = ({ navigation }) => {
 
 export default SignUpScreen;
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -871,12 +874,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  link: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: 'white',
-    paddingLeft: 20,
-    marginTop: 10,
   },
 });

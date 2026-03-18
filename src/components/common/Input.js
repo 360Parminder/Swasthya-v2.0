@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS } from '../ui/colors';
+import { useThemeColors } from '../ui/colors';
 import Icon from 'react-native-vector-icons/Ionicons'; // Make sure to install this package
 
 const Input = ({
@@ -13,6 +13,8 @@ const Input = ({
   keyboardType = 'default',
   error,
 }) => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const togglePasswordVisibility = () => {
@@ -57,7 +59,7 @@ const Input = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     marginBottom: 15,
     // borderColor: '#ccc',
@@ -70,26 +72,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: COLORS.inputBackground, // Use the new input background color
     borderRadius: 8,
-    
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   label: {
     fontWeight: '500',
     color: COLORS.text,
     marginTop: 5,
     marginLeft: 5,
+    marginBottom: 6,
   },
   input: {
     height: 50,
     color: COLORS.text,
     fontSize: 16,
-    marginTop: -5,
     flex: 1,
   },
   errorInput: {
-    borderColor: 'red',
+    borderColor: COLORS.danger,
   },
   errorText: {
-    color: 'red',
+    color: COLORS.danger,
     fontSize: 12,
     marginTop: 5,
   },

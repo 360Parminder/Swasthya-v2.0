@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getDayAndDate } from '../../utils/date';
 import Swiper from 'react-native-deck-swiper';
@@ -31,7 +31,7 @@ const medications = [
   },
 ];
 
-const MedicationCard = ({ med }) => (
+const MedicationCard = ({ med, styles }) => (
   <View style={styles.medCard}>
     <Image source={med.image} style={styles.medImage} />
     <Text style={styles.medName}>{med.name}</Text>
@@ -42,6 +42,8 @@ const MedicationCard = ({ med }) => (
 );
 
 const HomeScreen = () => {
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const navigation = useNavigation();
   const { authState } = useAuth();
 
@@ -50,31 +52,28 @@ const HomeScreen = () => {
       {/* Profile Header */}
       <View style={styles.headerBar}>
         <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.openDrawer()}>
-            <Icon name="menu-outline" size={24} color={COLORS.text} />
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+          <View style={styles.profileSection}>
             <Image
-              source={{ uri: authState?.user?.avatar }}
+              source={{ uri: authState?.user?.avatar || 'https://via.placeholder.com/150' }}
               style={styles.profilePicture}
             />
-            <TouchableOpacity onPress={() => navigation.navigate('ProfileTab')} style={{  marginTop: 5,flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.subtitle}>
-                {authState?.user?.username || 'User'}
+            <View style={styles.profileInfo}>
+              <Text style={styles.greeting}>Hello</Text>
+              <Text style={styles.userName}>
+                {authState?.user?.username || 'Parminder Singh'}
               </Text>
-              <Icon name="chevron-forward-outline" size={16} color={COLORS.textSecondary} style={{ alignSelf: 'center' }} />
-            </TouchableOpacity>
+            </View>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="ellipsis-horizontal-circle" size={24} color={COLORS.text} />
+            <Icon name="notifications-outline" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
       {/* Date Display */}
-      {/* <View style={styles.dateContainer}>
+      <View style={styles.dateContainer}>
         <Text style={styles.dateDay}>{getDayAndDate().day}, </Text>
         <Text style={styles.dateDate}>{getDayAndDate().date}</Text>
-      </View> */}
+      </View>
 
       {/* Other Quick Links */}
       <View style={styles.cards}>
@@ -82,16 +81,16 @@ const HomeScreen = () => {
         <TouchableOpacity
           onPress={() => navigation.navigate('Medication')}
           style={styles.card}>
-         <View style={styles.cardImageContainer}>
-           {/* <Image
+          <View style={styles.cardImageContainer}>
+            {/* <Image
             source={require('../../../assets/images/medication.png')}
             style={styles.cardImage}
           /> */}
             <Icon name="medkit" size={24} color={COLORS.text} />
-         </View>
+          </View>
           <View style={styles.cardTextContainer}>
             {/* <Text style={styles.cardHeader}>Medication</Text> */}
-            <Text style={styles.cardSubheading}>View and track your medicines</Text>
+            <Text style={styles.cardSubheading}>Medicines</Text>
           </View>
         </TouchableOpacity>
 
@@ -99,16 +98,16 @@ const HomeScreen = () => {
         <TouchableOpacity
           onPress={() => navigation.navigate('Connections')}
           style={styles.card}>
-         <View style={styles.cardImageContainer}>
-           {/* <Image
+          <View style={styles.cardImageContainer}>
+            {/* <Image
              source={require('../../../assets/images/connections.png')}
              style={styles.cardImage}
            /> */}
-           <Icon name="people" size={24} color={COLORS.text} />
-         </View>
+            <Icon name="people" size={24} color={COLORS.text} />
+          </View>
           <View style={styles.cardTextContainer}>
             {/* <Text style={styles.cardHeader}>Connections</Text> */}
-            <Text style={styles.cardSubheading}>Manage your care circle</Text>
+            <Text style={styles.cardSubheading}>Care Circle</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -116,7 +115,7 @@ const HomeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -124,16 +123,41 @@ const styles = StyleSheet.create({
   },
   headerBar: {
     width: '100%',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    paddingBottom: 10,
-    padding: 20,
-    // marginBottom: 10,
+    paddingTop: 15,
+    paddingHorizontal: 20,
+    // paddingBottom: 15,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  profilePicture: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  profileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  greeting: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    // marginTop: 1,
   },
   title: {
     fontSize: 18,
@@ -147,17 +171,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik-Regular',
     color: COLORS.textSecondary,
   },
-  profilePicture: {
-    width: 54,
-    height: 54,
-    borderRadius: 100,
-  },
   dateContainer: {
-    marginTop: 12,
+    // marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-        padding: 20,
+    padding: 20,
   },
   dateDay: {
     color: COLORS.textSecondary,
@@ -170,7 +189,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   medCard: {
-    backgroundColor:'blue',
+    backgroundColor: 'blue',
     // backgroundColor: COLORS.cardBackground,
     borderRadius: 10,
     // padding: 16,
@@ -196,8 +215,8 @@ const styles = StyleSheet.create({
   },
   cards: {
     width: '100%',
-        padding: 20,
-    marginTop: 20,
+    padding: 20,
+    // marginTop: 20,
     // gap: 20,
     // flex: 1,
     display: 'flex',
@@ -205,20 +224,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     width: '48%',
-    // alignItems: 'center',
+    gap: 4,
+    alignItems: 'center',
     backgroundColor: COLORS.cardBackground,
     borderColor: COLORS.border,
     borderWidth: 1,
     borderRadius: 10,
-    padding: 16,
+    padding: 4,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.09,
     shadowRadius: 8,
-    marginBottom: 15,
+    // marginBottom: 15,
   },
   cardImageContainer: {
     width: 38,
@@ -235,7 +255,7 @@ const styles = StyleSheet.create({
   },
   cardTextContainer: {
     // flex: 1,
-    marginTop: 15,
+    // marginTop: 15,
     justifyContent: 'center',
   },
   cardHeader: {
@@ -246,7 +266,7 @@ const styles = StyleSheet.create({
   cardSubheading: {
     fontSize: 15,
     color: '#ebebebff',
-    marginTop: 4,
+    // marginTop: 4,
     fontWeight: '400',
   },
 });
