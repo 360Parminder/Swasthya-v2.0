@@ -25,6 +25,10 @@ export const lightColors = {
   warning: '#F59E0B',
   danger: '#EF4444',
   info: '#3B82F6',
+  // Health card colors
+  healthCardBackground: '#FFFFFF',
+  healthCardText: '#1E1E1E',
+  healthCardSubtext: '#6B6B6B',
 };
 
 export const darkColors = {
@@ -49,6 +53,10 @@ export const darkColors = {
   warning: '#FBBF24',
   danger: '#F87171',
   info: '#60A5FA',
+  // Health card colors
+  healthCardBackground: '#1E1E1E',
+  healthCardText: '#D4D4D4',
+  healthCardSubtext: '#8A8A8A',
 };
 
 // Fallback export if needed temporarily before full migration

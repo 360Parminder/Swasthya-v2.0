@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Feather';
 import Medication from '../screens/medication/Medication';
 import { View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
@@ -89,29 +89,32 @@ const MainNavigator = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarItemStyle: {
-          margin: 18,
+          margin: 10,
         },
         tabBarStyle: {
           position: 'absolute',
-          height: 70,
+          height: 60,
+          marginHorizontal: 10,
           bottom: 10,
           left: 10,
           right: 10,
-          borderRadius: 35,
+          borderRadius: 18,
           elevation: 15,
           backgroundColor: colors.cardBackground,
-          borderTopWidth: 0,
+          borderWidth: 0.5,
+          borderColor: colors.border,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.1,
-          shadowRadius: 20,
+          shadowRadius: 10,
+
         },
         tabBarIcon: ({ focused }) => {
           let iconName;
           if (route.name === 'HomeTab') {
-            iconName = focused ? 'home' : 'home-outline';
+            iconName = focused ? 'home' : 'home';
           } else if (route.name === 'ProfileTab') {
-            iconName = focused ? 'person' : 'person-outline';
+            iconName = focused ? 'user' : 'user';
           } else if (route.name === 'ConnectionsTab') {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
           }
@@ -121,11 +124,10 @@ const MainNavigator = () => {
               {focused && (
                 <View style={{
                   position: 'absolute',
-                  width: 44,
-                  height: 44,
-                  backgroundColor: colors.primary,
+                  width: 20,
+                  height: 20,
                   opacity: 0.15,
-                  borderRadius: 22
+                  borderRadius: 10
                 }} />
               )}
               <Icon
