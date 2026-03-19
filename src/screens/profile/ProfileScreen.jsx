@@ -239,8 +239,8 @@ const getStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    // borderBottomWidth: 1,
+    // borderBottomColor: COLORS.border,
   },
   logoutItem: {
     borderBottomWidth: 0,

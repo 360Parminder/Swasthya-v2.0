@@ -44,7 +44,7 @@ const SignInScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
@@ -64,12 +64,12 @@ const SignInScreen = ({ navigation }) => {
               <Text style={[styles.label, { color: colors.textSecondary }]}>Mobile Number</Text>
               <View style={[styles.inputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
                 <Icon name="call-outline" size={20} color={colors.primary} style={styles.inputIcon} />
-                <TextInput 
-                  onChangeText={(text) => setData({ ...data, mobile: text })} 
-                  placeholder='Enter mobile number' 
-                  placeholderTextColor={colors.placeholder} 
-                  keyboardType='phone-pad' 
-                  style={[styles.input, { color: colors.inputText }]} 
+                <TextInput
+                  onChangeText={(text) => setData({ ...data, mobile: text })}
+                  placeholder='Enter mobile number'
+                  placeholderTextColor={colors.placeholder}
+                  keyboardType='phone-pad'
+                  style={[styles.input, { color: colors.inputText }]}
                 />
               </View>
             </View>
@@ -78,12 +78,12 @@ const SignInScreen = ({ navigation }) => {
               <Text style={[styles.label, { color: colors.textSecondary }]}>Password</Text>
               <View style={[styles.inputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
                 <Icon name="lock-closed-outline" size={20} color={colors.primary} style={styles.inputIcon} />
-                <TextInput 
-                  onChangeText={(text) => setData({ ...data, password: text })} 
-                  placeholder='Enter password' 
-                  secureTextEntry={true} 
-                  placeholderTextColor={colors.placeholder} 
-                  style={[styles.input, { color: colors.inputText }]} 
+                <TextInput
+                  onChangeText={(text) => setData({ ...data, password: text })}
+                  placeholder='Enter password'
+                  secureTextEntry={true}
+                  placeholderTextColor={colors.placeholder}
+                  style={[styles.input, { color: colors.inputText }]}
                 />
               </View>
               <TouchableOpacity>
@@ -93,9 +93,9 @@ const SignInScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity 
-              disabled={isLoading} 
-              onPress={() => onSubmit(data)} 
+            <TouchableOpacity
+              disabled={isLoading}
+              onPress={() => onSubmit(data)}
             >
               <LinearGradient
                 colors={[colors.primary, colors.accent]}
@@ -214,3 +214,4 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
 });
+
