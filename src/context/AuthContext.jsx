@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (mobile, password) => {
+    setIsLoading(true);
     try {
       const response = await authApi.login(mobile, password);
       // console.log('Login response:', response);
@@ -45,8 +46,10 @@ export const AuthProvider = ({ children }) => {
         authenticated: true,
       });
       await Keychain.setGenericPassword('token', response.data.token);
+      setIsLoading(false);
       return response;
     } catch (error) {
+      setIsLoading(false);
       return Promise.reject(error);
     }
   };

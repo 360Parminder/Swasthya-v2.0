@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
@@ -78,10 +78,26 @@ const SignInScreen = ({ navigation }) => {
           Forgot Password?
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => onSubmit(data)} style={{ marginTop: 20, padding: 10, backgroundColor: COLORS.primary, borderRadius: 10, width: '90%', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
-          Login
-        </Text>
+      <TouchableOpacity
+        onPress={() => onSubmit(data)}
+        disabled={isLoading}
+        style={{
+          marginTop: 20,
+          padding: 10,
+          backgroundColor: isLoading ? COLORS.primary + '80' : COLORS.primary,
+          borderRadius: 10,
+          width: '90%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: isLoading ? 0.8 : 1,
+        }}>
+        {isLoading ? (
+          <ActivityIndicator size="small" color={COLORS.text} />
+        ) : (
+          <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
+            Login
+          </Text>
+        )}
       </TouchableOpacity>
     </View>
   );
