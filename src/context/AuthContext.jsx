@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   });
   const [isLoading, setIsLoading] = useState(true);
   console.log('AuthProvider initialized with state:', authState);
-  
+
   useEffect(() => {
     const loadToken = async () => {
       try {
@@ -38,8 +38,8 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await authApi.login(mobile, password);
-      // console.log('Login response:', response);
-      
+      console.log('Login response:', response);
+
       setAuthState({
         token: response.data.token,
         user: response.data.user,

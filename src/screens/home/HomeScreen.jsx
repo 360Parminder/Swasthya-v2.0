@@ -12,7 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../../components/ui/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getDayAndDate } from '../../utils/date';
-import { medicationApi } from '../../api/medicationApi';
+import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
+import { dashboardApi } from '../../api/dashboard';
 
 // ─── Medication Type Icons ──────────────────────────────────────────
 const formImages = {
@@ -307,67 +308,22 @@ const HomeScreen = () => {
   const [medications, setMedications] = useState([]);
 
   useEffect(() => {
-    fetchMedications();
+    fetchDashboardData();
   }, []);
 
-  const fetchMedications = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const response = await medicationApi.getAllMedications();
-      setMedications(response?.data?.medications ?? []);
+      const response = await dashboardApi.getDashboardData();
+      // console.log(response.data.data.medication);
+
+      setMedications(response?.data?.data?.medication);
     } catch (error) {
       console.error('Error fetching medications:', error);
     }
   };
 
-  const medicationCard = useMemo(() => {
-    const now = new Date();
-    let nextMed = null;
-    let minDiff = Infinity;
-
-    medications.forEach((med) => {
-      med.record?.forEach((rec) => {
-        rec.times?.forEach((t) => {
-          const recTime = new Date(t.reception_time);
-          const todayTime = new Date(now);
-          todayTime.setHours(recTime.getUTCHours(), recTime.getUTCMinutes(), 0, 0);
-
-          const diff = todayTime.getTime() - now.getTime();
-          if (diff > 0 && diff < minDiff) {
-            minDiff = diff;
-            nextMed = {
-              name: med.medicine_name || rec.medicine_name,
-              strength: rec.strength,
-              unit: rec.unit,
-              form: (rec.forms || med.forms || 'tablet').toLowerCase(),
-              time: todayTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-            };
-          }
-        });
-      });
-    });
-
-    const slots = [false, false, false, false];
-    const hours = now.getHours();
-    if (hours >= 9) slots[0] = true;
-    if (hours >= 13) slots[1] = true;
-    if (hours >= 19) slots[2] = true;
-    if (hours >= 22) slots[3] = true;
-
-    return {
-      key: 'medication',
-      icon: nextMed ? (formImages[nextMed.form] || formImages.tablet) : '💊',
-      title: 'Medication',
-      value: nextMed ? nextMed.name : 'All done',
-      unit: nextMed ? `${nextMed.strength} ${nextMed.unit}` : '',
-      subtitle: nextMed ? `Next: ${nextMed.time}` : 'No more doses today',
-      chartType: 'todayDots',
-      chartColor: '#10B981',
-      chartData: slots,
-      navigate: 'Medication'
-    };
-  }, [medications]);
-
-  const allHealthCards = useMemo(() => [medicationCard, ...healthCards], [medicationCard]);
+  const allHealthCards = useMemo(() => healthCards, []);
+  // console.log(medications);
 
   return (
     <View style={styles.container}>
@@ -404,6 +360,11 @@ const HomeScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+
+        {/* New Medication Card */}
+        <View style={{ paddingHorizontal: 8 }}>
+          <MedicationScheduleCard medications={medications} />
+        </View>
 
         {/* Quick Links — Medication & Care Circle */}
         <View style={styles.quickLinksContainer}>

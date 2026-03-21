@@ -4,24 +4,26 @@ import { getToken } from '../utils/auth';
 import Toast from 'react-native-toast-message';
 
 const { apiUrl } = getEnvVars();
+console.log(apiUrl);
+
 
 const apiClient = axios.create({
-  baseURL: 'https://api-swasthya.onrender.com',
+  baseURL: 'http://192.168.31.181:8003',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
- const showToast = (type, message, subMessage = '') => {
-    Toast.show({
-      type,
-      text1: message,
-      text2: subMessage,
-      visibilityTime: 3000,
-      autoHide: true,
-      topOffset: 50,
-    });
-  };
+const showToast = (type, message, subMessage = '') => {
+  Toast.show({
+    type,
+    text1: message,
+    text2: subMessage,
+    visibilityTime: 3000,
+    autoHide: true,
+    topOffset: 50,
+  });
+};
 
 apiClient.interceptors.request.use(
   async config => {

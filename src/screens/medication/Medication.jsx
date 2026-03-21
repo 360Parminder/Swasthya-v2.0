@@ -7,6 +7,7 @@ import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 
 // ─── Mini Chart Components (same as HomeScreen) ─────────────────────
 
@@ -132,37 +133,9 @@ const Medication = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Medication Status Card (Nutrition-style) ── */}
-        <View style={styles.statusCardWrapper}>
-          <TouchableOpacity style={styles.healthCard} activeOpacity={0.7}>
-            {/* Header */}
-            <View style={styles.healthCardHeader}>
-              <View style={styles.healthCardTitleRow}>
-                <Text style={styles.healthCardIcon}>💊</Text>
-                <Text style={styles.healthCardTitle}>Medication</Text>
-              </View>
-              <View style={styles.todayRow}>
-                <Text style={styles.todayText}>Today</Text>
-                {/* <Text style={styles.todayChevron}> ›</Text> */}
-              </View>
-            </View>
-            {/* Body */}
-            <View style={styles.healthCardBody}>
-              <View style={styles.healthCardValueSection}>
-                <View style={styles.healthCardValueRow}>
-                  <Text style={styles.healthCardValue}>{nextTime}</Text>
-                </View>
-                <Text style={styles.healthCardSubtitle}>{timesPerDay} times / day</Text>
-              </View>
-              <View style={styles.healthCardChartSection}>
-                <DotGrid
-                  dotColor="#65A30D"
-                  filled={weekDots}
-                  subTextColor={COLORS.healthCardSubtext}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
+        {/* ── Medication Schedule Card ── */}
+        <View style={{ paddingHorizontal: 20 }}>
+          <MedicationScheduleCard medications={medications} />
         </View>
 
         {/* ── Quick Link Cards ── */}

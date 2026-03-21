@@ -8,6 +8,8 @@ import Icon from 'react-native-vector-icons/Feather';
 import Medication from '../screens/medication/Medication';
 import { View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
+import { HugeiconsIcon } from '@hugeicons/react-native'
+import { Home01Icon, Notification03Icon, UserIcon } from '@hugeicons/core-free-icons'
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -110,13 +112,13 @@ const MainNavigator = () => {
 
         },
         tabBarIcon: ({ focused }) => {
-          let iconName;
+          let targetIcon;
           if (route.name === 'HomeTab') {
-            iconName = focused ? 'home' : 'home';
+            targetIcon = Home01Icon;
           } else if (route.name === 'ProfileTab') {
-            iconName = focused ? 'user' : 'user';
+            targetIcon = UserIcon;
           } else if (route.name === 'ConnectionsTab') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
+            targetIcon = Notification03Icon;
           }
 
           return (
@@ -130,10 +132,16 @@ const MainNavigator = () => {
                   borderRadius: 10
                 }} />
               )}
-              <Icon
+              {/* <Icon
                 name={iconName}
                 color={focused ? colors.primary : colors.placeholder}
                 size={24}
+              /> */}
+              <HugeiconsIcon
+                icon={targetIcon}
+                color={focused ? colors.primary : colors.placeholder}
+                size={24}
+                strokeWidth={1.5}
               />
             </View>
           );
