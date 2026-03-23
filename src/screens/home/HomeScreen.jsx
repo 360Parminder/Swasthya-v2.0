@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,297 +15,86 @@ import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
 
-// ─── Medication Type Icons ──────────────────────────────────────────
-const formImages = {
-  tablet: require('../../../assets/images/tablet.png'),
-  capsule: require('../../../assets/images/capsule.png'),
-  liquid: require('../../../assets/images/liquid.png'),
-  injection: require('../../../assets/images/injection.png'),
-  inhaler: require('../../../assets/images/inhaler.png'),
-  topical: require('../../../assets/images/topical.png'),
-  drops: require('../../../assets/images/drops.png'),
-  suppository: require('../../../assets/images/suppository.png'),
-  patch: require('../../../assets/images/patch.png'),
-};
-
-// ─── Mini Chart Components ───────────────────────────────────────────
-
-const WeekDays = ({ color }) => (
-  <View style={miniStyles.weekRow}>
-    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-      <Text key={i} style={[miniStyles.weekLabel, { color }]}>
-        {d}
-      </Text>
-    ))}
-  </View>
-);
-
-const BarChart = ({ barColor, heights, subTextColor }) => (
-  <View>
-    <View style={miniStyles.barRow}>
-      {heights.map((h, i) => (
-        <View
-          key={i}
-          style={[
-            miniStyles.bar,
-            { height: h, backgroundColor: barColor, opacity: 0.4 + (h / 32) * 0.6 },
-          ]}
-        />
-      ))}
+const HeartRateCard = () => (
+  <View style={[cardStyles.card, cardStyles.heartCard]}>
+    <Text style={cardStyles.heartTitle}>HEART RATE</Text>
+    <View style={cardStyles.heartValueRow}>
+      <Text style={cardStyles.heartValue}>72</Text>
+      <Text style={cardStyles.heartUnit}> bpm</Text>
     </View>
-    <WeekDays color={subTextColor} />
-  </View>
-);
-
-const DotGrid = ({ dotColor, filled, subTextColor }) => (
-  <View>
-    <View style={miniStyles.dotRow}>
-      {filled.map((f, i) => (
-        <View
-          key={i}
-          style={[
-            miniStyles.dot,
-            {
-              backgroundColor: f ? dotColor : '#D1D5DB',
-              opacity: f ? 1 : 0.4,
-            },
-          ]}
-        />
-      ))}
+    <View style={cardStyles.heartFooterRow}>
+       <Icon name="pulse" size={14} color="#A7F3D0" />
+       <Text style={cardStyles.heartFooterText}>Resting stable</Text>
     </View>
-    <WeekDays color={subTextColor} />
   </View>
 );
 
-const TodayDots = ({ dotColor, filled }) => (
-  <View style={miniStyles.dotRow}>
-    {filled.map((f, i) => (
-      <View
-        key={i}
-        style={[
-          miniStyles.dot,
-          {
-            backgroundColor: f ? dotColor : '#D1D5DB',
-            opacity: f ? 1 : 0.4,
-          },
-        ]}
-      />
-    ))}
-  </View>
-);
-
-const CircleRow = ({ circleColor, checks, subTextColor }) => (
-  <View>
-    <View style={miniStyles.circleCheckRow}>
-      {checks.map((c, i) => (
-        <View key={i} style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 8, color: c ? '#4CAF50' : '#EF4444', marginBottom: 2 }}>
-            {c ? '✓' : '✗'}
-          </Text>
-          <View
-            style={[
-              miniStyles.circle,
-              {
-                borderColor: circleColor,
-                backgroundColor: c ? circleColor + '22' : 'transparent',
-              },
-            ]}
-          />
-        </View>
-      ))}
+const SleepQualityCard = () => (
+  <View style={[cardStyles.card, cardStyles.whiteCard]}>
+    <Text style={cardStyles.cardTitle}>SLEEP QUALITY</Text>
+    <Text style={cardStyles.sleepValue}>7h 30m</Text>
+    <Text style={cardStyles.sleepSubtitle}>Deep Sleep: 2h 15m</Text>
+    <View style={cardStyles.sleepBars}>
+       {[14, 20, 38, 24, 20, 18].map((h, i) => (
+         <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? '#546A7B' : '#B8C8D0' }]} />
+       ))}
     </View>
-    <WeekDays color={subTextColor} />
   </View>
 );
 
-const MiniLineChart = ({ lineColor, subTextColor }) => {
-  const points = [18, 14, 16, 10, 12, 8, 14];
-  return (
-    <View>
-      <View style={miniStyles.lineChartContainer}>
-        {points.map((p, i) => (
-          <View key={i} style={{ alignItems: 'center', justifyContent: 'flex-end', height: 28 }}>
-            <View
-              style={{
-                width: 4,
-                height: p,
-                backgroundColor: lineColor,
-                borderRadius: 2,
-                opacity: 0.15,
-              }}
-            />
-            <View
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: 3,
-                backgroundColor: lineColor,
-                marginTop: -2,
-              }}
-            />
-          </View>
-        ))}
-      </View>
-      <WeekDays color={subTextColor} />
+const HydrationCard = () => (
+  <View style={[cardStyles.card, cardStyles.whiteCard]}>
+    <View style={cardStyles.rowBetween}>
+      <Text style={cardStyles.cardTitle}>HYDRATION</Text>
+      <Icon name="water" size={18} color="#0D47A1" />
     </View>
-  );
-};
-
-const WaterBars = ({ barColor, levels, subTextColor }) => (
-  <View>
-    <View style={miniStyles.barRow}>
-      {levels.map((h, i) => (
-        <View key={i} style={{ alignItems: 'center' }}>
-          <View
-            style={[
-              miniStyles.waterBar,
-              { height: h, backgroundColor: barColor, opacity: 0.5 + (h / 28) * 0.5 },
-            ]}
-          />
-        </View>
-      ))}
+    <View style={cardStyles.hydrationValueRow}>
+      <Text style={cardStyles.hydrationValue}>1.5 </Text>
+      <Text style={cardStyles.hydrationUnit}>/ 2L</Text>
     </View>
-    <WeekDays color={subTextColor} />
+    <View style={cardStyles.hydrationProgressBg}>
+      <View style={cardStyles.hydrationProgressFill} />
+    </View>
+    <Text style={cardStyles.hydrationGoal}>75% OF GOAL</Text>
   </View>
 );
 
-// ─── Health Card Data ────────────────────────────────────────────────
+const CareNetworkCard = () => (
+  <View style={[cardStyles.card, cardStyles.careCard]}>
+    <Text style={cardStyles.careTitle}>CARE NETWORK</Text>
+    <View style={cardStyles.avatarRow}>
+       <Image source={{uri: 'https://i.pravatar.cc/100?img=5'}} style={[cardStyles.careAvatar, { zIndex: 3 }]}/>
+       <Image source={{uri: 'https://i.pravatar.cc/100?img=3'}} style={[cardStyles.careAvatar, { zIndex: 2, marginLeft: -12 }]}/>
+       <View style={[cardStyles.careMoreAvatar, { zIndex: 1, marginLeft: -12 }]}>
+         <Text style={cardStyles.careMoreText}>+3</Text>
+       </View>
+    </View>
+    <Text style={cardStyles.careName}>Dr. Sarah Miller</Text>
+    <Text style={cardStyles.careRole}>Primary Physician - Online</Text>
+  </View>
+);
 
-const healthCards = [
-  {
-    key: 'weight',
-    icon: '⚖️',
-    title: 'Weight',
-    value: '70.00',
-    unit: 'kg',
-    subtitle: 'Stable weight',
-    chartType: 'bar',
-    chartColor: '#6B7280',
-    chartData: [18, 22, 16, 24, 20, 12, 26],
-  },
-  {
-    key: 'sleep',
-    icon: '💤',
-    title: 'Sleep',
-    value: '3.57',
-    unit: 'hr',
-    subtitle: 'Insomniac',
-    chartType: 'circles',
-    chartColor: '#F97316',
-    chartData: [true, false, true, false, false, false, true],
-  },
-  {
-    key: 'bp',
-    icon: '💧',
-    title: 'Blood Pressure',
-    value: '128/80',
-    unit: 'mmHg',
-    subtitle: 'Stable Range',
-    chartType: 'bar',
-    chartColor: '#8B5CF6',
-    chartData: [14, 20, 10, 24, 18, 12, 22],
-  },
-  {
-    key: 'nutrition',
-    icon: '🥗',
-    title: 'Nutrition',
-    value: '998',
-    unit: 'kcal',
-    subtitle: 'On Track',
-    chartType: 'dots',
-    chartColor: '#65A30D',
-    chartData: [true, true, true, true, false, false, false],
-  },
-  {
-    key: 'heart',
-    icon: '❤️',
-    title: 'Heart Rate',
-    value: '72',
-    unit: 'bpm',
-    subtitle: 'Resting Rate',
-    chartType: 'line',
-    chartColor: '#EF4444',
-    chartData: null,
-  },
-  {
-    key: 'hydration',
-    icon: '🧊',
-    title: 'Hydration',
-    value: '1,285',
-    unit: 'ml',
-    subtitle: 'On Track',
-    chartType: 'water',
-    chartColor: '#3B82F6',
-    chartData: [12, 18, 22, 16, 24, 20, 26],
-  },
-];
-
-// ─── Chart Renderer ──────────────────────────────────────────────────
-
-const renderChart = (card, subTextColor) => {
-  switch (card.chartType) {
-    case 'bar':
-      return <BarChart barColor={card.chartColor} heights={card.chartData} subTextColor={subTextColor} />;
-    case 'dots':
-      return <DotGrid dotColor={card.chartColor} filled={card.chartData} subTextColor={subTextColor} />;
-    case 'todayDots':
-      return <TodayDots dotColor={card.chartColor} filled={card.chartData} />;
-    case 'circles':
-      return <CircleRow circleColor={card.chartColor} checks={card.chartData} subTextColor={subTextColor} />;
-    case 'line':
-      return <MiniLineChart lineColor={card.chartColor} subTextColor={subTextColor} />;
-    case 'water':
-      return <WaterBars barColor={card.chartColor} levels={card.chartData} subTextColor={subTextColor} />;
-    default:
-      return null;
-  }
-};
-
-// ─── Health Card Component ───────────────────────────────────────────
-
-const HealthCard = ({ card, styles, COLORS, navigate }) => {
-  const navigation = useNavigation();
-  const isImageIcon = typeof card.icon === 'number' || (typeof card.icon === 'object' && card.icon?.uri);
-  return (
-    <TouchableOpacity onPress={() => navigation.navigate(navigate)} style={styles.healthCard} activeOpacity={0.7}>
-      <View style={styles.healthCardHeader}>
-        <View style={styles.healthCardTitleRow}>
-          {isImageIcon ? (
-            <Image source={card.icon} style={styles.healthCardImageIcon} resizeMode="contain" />
-          ) : (
-            <Text style={styles.healthCardIcon}>{card.icon}</Text>
-          )}
-          <Text style={styles.healthCardTitle}>{card.title}</Text>
-        </View>
-        <View style={styles.todayRow}>
-          <Text style={styles.todayText}>Today</Text>
-          <Text style={styles.todayChevron}> ›</Text>
-        </View>
-      </View>
-      <View style={styles.healthCardBody}>
-        <View style={styles.healthCardValueSection}>
-          <View style={styles.healthCardValueRow}>
-            <Text style={styles.healthCardValue}>{card.value}</Text>
-            <Text style={styles.healthCardUnit}> {card.unit}</Text>
-          </View>
-          <Text style={styles.healthCardSubtitle}>{card.subtitle}</Text>
-        </View>
-        <View style={styles.healthCardChartSection}>
-          {renderChart(card, COLORS.healthCardSubtext)}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// ─── Main HomeScreen ─────────────────────────────────────────────────
+const BloodPressureCard = () => (
+  <View style={[cardStyles.card, cardStyles.whiteCard, { marginBottom: 30 }]}>
+    <Text style={[cardStyles.cardTitle, { textAlign: 'center', marginBottom: 6 }]}>BLOOD PRESSURE</Text>
+    <Text style={[cardStyles.bpValue, { textAlign: 'center' }]}>120/80 <Text style={cardStyles.bpUnit}>mmHg</Text></Text>
+    
+    <View style={cardStyles.rowBetweenBP}>
+       <Text style={cardStyles.bpFooterText}>Normal Range</Text>
+       <Text style={cardStyles.bpFooterBold}>Optimal</Text>
+    </View>
+    <View style={cardStyles.bpSliderBg}>
+       <View style={cardStyles.bpSliderThumb} />
+    </View>
+  </View>
+);
 
 const HomeScreen = () => {
   const COLORS = useThemeColors();
   const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const navigation = useNavigation();
   const { authState } = useAuth();
-  const [medications, setMedications] = useState([]);
+  const [medications, setMedications] = useState([{}, {}]); // Mock layout objects
 
   useEffect(() => {
     fetchDashboardData();
@@ -314,21 +103,17 @@ const HomeScreen = () => {
   const fetchDashboardData = async () => {
     try {
       const response = await dashboardApi.getDashboardData();
-      // console.log(response.data.data.medication);
-
-      setMedications(response?.data?.data?.medication);
+      const meds = response?.data?.data?.medication;
+      setMedications(meds && meds.length > 0 ? meds : [{}, {}]);
     } catch (error) {
       console.error('Error fetching medications:', error);
     }
   };
 
-  const allHealthCards = useMemo(() => healthCards, []);
-  // console.log(medications);
-
   return (
     <View style={styles.container}>
-      {/* Profile Header */}
-      <View style={{ backgroundColor: '#272727ff', borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}>
+      {/* Profile Header - Kept existing structure but changed colors */}
+      <View style={{ backgroundColor: 'transparent', paddingTop: 10 }}>
         <View style={styles.headerBar}>
           <View style={styles.headerContent}>
             <View style={styles.profileSection}>
@@ -344,7 +129,7 @@ const HomeScreen = () => {
               </View>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-              <Icon name="notifications-outline" size={26} color="#FFFFFF" />
+              <Icon name="notifications" size={24} color="#0F766E" />
             </TouchableOpacity>
           </View>
         </View>
@@ -355,151 +140,39 @@ const HomeScreen = () => {
           <Text style={styles.dateDate}>{getDayAndDate().date}</Text>
         </View>
       </View>
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <MedicationScheduleCard medications={medications} />
+        
+        <HeartRateCard />
 
-        {/* New Medication Card */}
-        <View style={{ paddingHorizontal: 8 }}>
-          <MedicationScheduleCard medications={medications} />
-        </View>
+        <SleepQualityCard />
 
-        {/* Quick Links — Medication & Care Circle */}
-        <View style={styles.quickLinksContainer}>
-          {/* Medication Card */}
-          {/* <TouchableOpacity
-            onPress={() => navigation.navigate('Medication')}
-            style={styles.quickLinkCard}
-            activeOpacity={0.7}>
-            <View style={styles.quickLinkLeft}>
-              <View style={[styles.quickLinkIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                <Icon name="medkit" size={22} color="#2E7D32" />
-              </View>
-              <View style={styles.quickLinkTextContainer}>
-                <Text style={styles.quickLinkTitle}>Medicines</Text>
-                <Text style={styles.quickLinkSubtitle}>Manage your medications</Text>
-              </View>
-            </View>
-            <View style={styles.quickLinkRight}>
-              <Text style={styles.quickLinkChevron}>›</Text>
-            </View>
-          </TouchableOpacity> */}
+        <HydrationCard />
 
-          {/* Connections Card */}
-          {/* <TouchableOpacity
-            onPress={() => navigation.navigate('Connections')}
-            style={styles.quickLinkCard}
-            activeOpacity={0.7}>
-            <View style={styles.quickLinkLeft}>
-              <View style={[styles.quickLinkIconContainer, { backgroundColor: '#FFF3E0' }]}>
-                <Icon name="people" size={22} color="#E65100" />
-              </View>
-              <View style={styles.quickLinkTextContainer}>
-                <Text style={styles.quickLinkTitle}>Care Circle</Text>
-                <Text style={styles.quickLinkSubtitle}>Your trusted connections</Text>
-              </View>
-            </View>
-            <View style={styles.quickLinkRight}>
-              <Text style={styles.quickLinkChevron}>›</Text>
-            </View>
-          </TouchableOpacity> */}
-        </View>
+        <CareNetworkCard />
 
-        {/* Health Metric Cards */}
-        <View style={styles.healthCardsGrid}>
-          {allHealthCards.map((card) => (
-            <HealthCard key={card.key} card={card} styles={styles} COLORS={COLORS} navigate={card.navigate} />
-          ))}
-        </View>
+        <BloodPressureCard />
       </ScrollView>
     </View>
   );
 };
 
-// ─── Mini Chart Styles ───────────────────────────────────────────────
-
-const miniStyles = StyleSheet.create({
-  weekRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  weekLabel: {
-    fontSize: 9,
-    fontWeight: '500',
-    width: 14,
-    textAlign: 'center',
-  },
-  barRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 28,
-  },
-  bar: {
-    width: 8,
-    borderRadius: 3,
-    marginHorizontal: 1,
-  },
-  waterBar: {
-    width: 10,
-    borderRadius: 3,
-    marginHorizontal: 1,
-  },
-  dotRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 20,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 1,
-  },
-  circleCheckRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 28,
-  },
-  circle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-  },
-  lineChartContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 28,
-  },
-});
-
-// ─── Main Styles ─────────────────────────────────────────────────────
-
 const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F7F9FA', // Very light gray from design
   },
   headerBar: {
-    backgroundColor: '#000',
+    backgroundColor: 'transparent',
     width: '100%',
-    paddingTop: 15,
+    paddingTop: 10,
     paddingHorizontal: 20,
-    paddingBottom: 10,
-    elevation: 5,
-    shadowColor: '#000000ff',
-    shadowOffset: { width: 5, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 5,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: 5,
   },
   headerContent: {
     flexDirection: 'row',
@@ -514,195 +187,272 @@ const getStyles = (COLORS) => StyleSheet.create({
   profilePicture: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: 22,
     marginRight: 12,
   },
   profileInfo: {
     flex: 1,
     justifyContent: 'center',
-    marginLeft: 8,
   },
   greeting: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+    letterSpacing: 0.5,
   },
   userName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 30,
+    color: '#111827',
   },
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 20,
-    paddingTop: 5,
-    paddingBottom: 8,
-    backgroundColor: '#272727ff',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingTop: 8,
+    paddingBottom: 15,
+    backgroundColor: 'transparent',
   },
   dateDay: {
-    color: '#fff',
-    fontWeight: '500',
-    fontSize: 18,
+    color: '#111827',
+    fontWeight: '700',
+    fontSize: 16,
   },
   dateDate: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  // Quick Link cards (Medication & Care Circle)
-  quickLinksContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingVertical: 6,
-    gap: 12,
-  },
-  quickLinkCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    backgroundColor: COLORS.healthCardBackground,
-    borderRadius: 16,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  quickLinkLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-  },
-  quickLinkIconContainer: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  quickLinkTextContainer: {
-    flex: 1,
-  },
-  quickLinkTitle: {
+    color: '#4B5563',
     fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.healthCardText,
+    fontWeight: '500',
   },
-  quickLinkSubtitle: {
-    fontSize: 13,
-    color: COLORS.healthCardSubtext,
-    marginTop: 2,
-    fontWeight: '400',
+  scrollView: {
+    flex: 1,
   },
-  quickLinkRight: {
-    paddingLeft: 8,
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+    gap: 16,
   },
-  quickLinkChevron: {
-    fontSize: 22,
-    color: COLORS.healthCardSubtext,
-    fontWeight: '600',
-  },
-  // Health metric cards grid
-  healthCardsGrid: {
-    flexDirection: 'column',
-    paddingHorizontal: 20,
-    marginTop: 10,
-    gap: 12,
-  },
-  healthCard: {
-    width: '100%',
-    backgroundColor: COLORS.healthCardBackground,
-    borderRadius: 16,
-    padding: 14,
+});
+
+const cardStyles = StyleSheet.create({
+  card: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 3,
   },
-  healthCardHeader: {
+  heartCard: {
+    backgroundColor: '#115E59', // Dark Teal
+  },
+  whiteCard: {
+    backgroundColor: '#FFFFFF',
+  },
+  careCard: {
+    backgroundColor: '#0369A1', // Dark blue
+  },
+  cardTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6B7280',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  
+  /* Heart Rate */
+  heartTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#A7F3D0',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  heartValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 20,
+  },
+  heartValue: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 52,
+  },
+  heartUnit: {
+    fontSize: 16,
+    color: '#D1FAE5',
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+  heartFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heartFooterText: {
+    color: '#A7F3D0',
+    fontSize: 13,
+    fontWeight: '500',
+    marginLeft: 6,
+  },
+
+  /* Sleep Quality */
+  sleepValue: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  sleepSubtitle: {
+    fontSize: 13,
+    color: '#4B5563',
+    marginBottom: 20,
+  },
+  sleepBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 6,
+    height: 45,
+  },
+  sleepBar: {
+    flex: 1,
+    borderRadius: 4,
+  },
+
+  /* Hydration */
+  rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  healthCardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  healthCardIcon: {
-    fontSize: 14,
-  },
-  healthCardTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.healthCardText,
-  },
-  healthCardImageIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 4,
-  },
-  todayRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  todayText: {
-    fontSize: 12,
-    color: COLORS.healthCardSubtext,
-    fontWeight: '500',
-  },
-  todayChevron: {
-    fontSize: 14,
-    color: COLORS.healthCardSubtext,
-    fontWeight: '600',
-  },
-  healthCardBody: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  healthCardValueSection: {
-    flex: 1,
-  },
-  healthCardValueRow: {
+  hydrationValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
+    marginBottom: 16,
   },
-  healthCardValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.healthCardText,
+  hydrationValue: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#1F2937',
   },
-  healthCardUnit: {
-    fontSize: 13,
+  hydrationUnit: {
+    fontSize: 16,
+    color: '#6B7280',
     fontWeight: '500',
-    color: COLORS.healthCardSubtext,
   },
-  healthCardSubtitle: {
-    fontSize: 12,
-    color: COLORS.healthCardSubtext,
-    marginTop: 2,
+  hydrationProgressBg: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 12,
+  },
+  hydrationProgressFill: {
+    height: '100%',
+    width: '75%',
+    backgroundColor: '#0F766E',
+    borderRadius: 4,
+  },
+  hydrationGoal: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0F766E',
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+
+  /* Care Network */
+  careTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#BAE6FD',
+    letterSpacing: 1.2,
+    marginBottom: 16,
+  },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  careAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#0369A1',
+  },
+  careMoreAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E0F2FE',
+    borderWidth: 2,
+    borderColor: '#0369A1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  careMoreText: {
+    color: '#0284C7',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  careName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  careRole: {
+    fontSize: 13,
+    color: '#E0F2FE',
     fontWeight: '400',
   },
-  healthCardChartSection: {
-    flex: 1,
-    alignItems: 'flex-end',
+
+  /* Blood Pressure */
+  bpValue: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 20,
   },
+  bpUnit: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  rowBetweenBP: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  bpFooterText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  bpFooterBold: {
+    fontSize: 12,
+    color: '#0F766E',
+    fontWeight: '700',
+  },
+  bpSliderBg: {
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
+    justifyContent: 'center',
+  },
+  bpSliderThumb: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#0F766E',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    position: 'absolute',
+    left: '80%',
+  }
 });
 
 export default HomeScreen;

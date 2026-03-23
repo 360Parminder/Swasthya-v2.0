@@ -73,28 +73,33 @@ const MedicationScheduleCard = ({ medications }) => {
         {medications.map((med, index) => {
           const theme = getCardTheme(index);
           const isDarkMode = COLORS.background === '#121212';
-          const cardBg = isDarkMode ? '#3e3d3dff' : '#F3F4F6';
+          const cardBg = isDarkMode ? '#3e3d3dff' : '#F7F9FA'; // lighter background
+
+          // Fallback static time for presentation if not present
+          const timeDisplay = med?.time || (index === 0 ? '08:00\nAM' : '10:00\nPM');
 
           return (
             <View key={med.id || index} style={[styles.medCard, { backgroundColor: cardBg }]}>
               <View style={styles.iconBox}>
-                <Icon name={theme.icon} size={24} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
+                <Icon name={theme.icon} size={22} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
               </View>
 
               <View style={styles.medInfo}>
-                <Text style={[styles.medName, { color: COLORS.text || '#1F2937' }]}>{med?.medicine_name}</Text>
-                <Text style={[styles.medInstruction, { color: isDarkMode ? '#9CA3AF' : '#4B5563' }]}>
-                  {med?.strength}{med?.unit} • {med?.description}
+                <Text style={[styles.medName, { color: COLORS.text || '#1F2937' }]}>
+                  {med?.medicine_name || (index === 0 ? 'Lisinopril' : 'Atorvastatin')}
+                </Text>
+                <Text style={[styles.medInstruction, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>
+                  {(med?.strength && med?.unit) ? `${med.strength}${med.unit} • ${med.description || 'Daily'}` : (index === 0 ? '10mg • Daily with breakfast' : '20mg • Before sleep')}
                 </Text>
               </View>
 
               <View style={styles.timeBox}>
-                {/* <Text style={[
+                <Text style={[
                   styles.timeText,
-                  { color: isDarkMode ? '#D1D5DB' : theme.iconColor, textAlign: isMorning ? 'center' : 'right' }
+                  { color: isDarkMode ? '#D1D5DB' : theme.iconColor, textAlign: 'right' }
                 ]}>
                   {timeDisplay}
-                </Text> */}
+                </Text>
               </View>
             </View>
           );
@@ -107,8 +112,8 @@ const MedicationScheduleCard = ({ medications }) => {
 const styles = StyleSheet.create({
   container: {
     borderRadius: 24,
-    padding: 18,
-    marginVertical: 10,
+    padding: 20,
+    marginBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -119,22 +124,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   headerSubtitle: {
     color: '#0F766E',
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
   badgeContainer: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#D1FAE5',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   badgeText: {
-    color: '#047857',
+    color: '#065F46',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,

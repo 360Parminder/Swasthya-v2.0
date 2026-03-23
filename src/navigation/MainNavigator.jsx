@@ -9,7 +9,7 @@ import Medication from '../screens/medication/Medication';
 import { View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
-import { Home01Icon, Notification03Icon, UserIcon } from '@hugeicons/core-free-icons'
+import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserIcon } from '@hugeicons/core-free-icons'
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -119,6 +119,8 @@ const MainNavigator = () => {
             targetIcon = UserIcon;
           } else if (route.name === 'ConnectionsTab') {
             targetIcon = Notification03Icon;
+          } else if (route.name === 'MedicationTab') {
+            targetIcon = FirstAidKitIcon;
           }
 
           return (
@@ -150,6 +152,8 @@ const MainNavigator = () => {
     >
       <Tab.Screen name="HomeTab" component={HomeStackScreen} />
       {/* <Tab.Screen name="ConnectionsTab" component={Connection} /> */}
+      <Tab.Screen name="MedicationTab" component={Medication} />
+
       <Tab.Screen name="ProfileTab" component={ProfileStackScreen} headerShown={false} />
     </Tab.Navigator>
   );
