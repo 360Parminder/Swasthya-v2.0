@@ -6,10 +6,11 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
 import Icon from 'react-native-vector-icons/Feather';
 import Medication from '../screens/medication/Medication';
+import AlarmScreen from '../screens/home/AlarmScreen';
 import { View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
-import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserIcon } from '@hugeicons/core-free-icons'
+import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserGroup03Icon, UserIcon } from '@hugeicons/core-free-icons'
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -43,7 +44,7 @@ function HomeStackScreen() {
         name="Connections"
         component={Connection}
         options={{
-          headerShown: true,
+          headerShown: false,
           title: 'My Connections',
           headerBackVisible: false,
         }}
@@ -52,14 +53,14 @@ function HomeStackScreen() {
         name="Medication"
         component={Medication}
         options={{
-          headerShown: true,
+          headerShown: false,
           title: 'Medication',
           headerBackVisible: false,
         }}
       />
       <HomeStack.Screen
         name="AlarmScreen"
-        component={require('../screens/home/AlarmScreen').default}
+        component={AlarmScreen}
         options={{
           headerShown: false,
           presentation: 'fullScreenModal'
@@ -85,7 +86,7 @@ function ProfileStackScreen() {
         headerShadowVisible: false,
         headerTitle: 'Your Profile',
       }}>
-      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
     </ProfileStack.Navigator>
   );
 }
@@ -126,7 +127,7 @@ const MainNavigator = () => {
           } else if (route.name === 'ProfileTab') {
             targetIcon = UserIcon;
           } else if (route.name === 'ConnectionsTab') {
-            targetIcon = Notification03Icon;
+            targetIcon = UserGroup03Icon;
           } else if (route.name === 'MedicationTab') {
             targetIcon = FirstAidKitIcon;
           }
@@ -149,7 +150,7 @@ const MainNavigator = () => {
               /> */}
               <HugeiconsIcon
                 icon={targetIcon}
-                color={focused ? "#006A6A" : "#081E27"}
+                color={focused ? colors.primary : colors.placeholder}
                 size={24}
                 strokeWidth={1.5}
               />
@@ -159,10 +160,10 @@ const MainNavigator = () => {
       })}
     >
       <Tab.Screen name="HomeTab" component={HomeStackScreen} />
-      {/* <Tab.Screen name="ConnectionsTab" component={Connection} /> */}
       <Tab.Screen name="MedicationTab" component={Medication} />
-
-      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} headerShown={false} />
+      <Tab.Screen name="ConnectionsTab" component={Connection} />
+      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
+      {/* <Tab.Screen name="AlarmScreen" component={AlarmScreen} /> */}
     </Tab.Navigator>
   );
 };

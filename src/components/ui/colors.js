@@ -22,7 +22,7 @@ export const lightColors = {
   transparent: 'transparent',
   // Header colors
   headerTopBackground: '#FFFFFF',
-  headerBottomBackground: '#F3F4F6',
+  headerBottomBackground: '#dbdbdbff',
   headerText: '#1E1E1E',
   // Multi-color accents for specific sections/states
   success: '#10B981',

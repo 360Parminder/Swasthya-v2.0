@@ -60,8 +60,8 @@ const HydrationCard = () => (
   </View>
 );
 
-const CareNetworkCard = () => (
-  <View style={[cardStyles.card, cardStyles.careCard]}>
+const CareNetworkCard = ({ navigation }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('Connections')} style={[cardStyles.card, cardStyles.careCard]}>
     <Text style={cardStyles.careTitle}>CARE NETWORK</Text>
     <View style={cardStyles.avatarRow}>
       <Image source={{ uri: 'https://i.pravatar.cc/100?img=5' }} style={[cardStyles.careAvatar, { zIndex: 3 }]} />
@@ -72,7 +72,7 @@ const CareNetworkCard = () => (
     </View>
     <Text style={cardStyles.careName}>Dr. Sarah Miller</Text>
     <Text style={cardStyles.careRole}>Primary Physician - Online</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 const BloodPressureCard = () => (
@@ -95,7 +95,7 @@ const HomeScreen = () => {
   const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const navigation = useNavigation();
   const { authState } = useAuth();
-  const [medications, setMedications] = useState([{}, {}]); // Mock layout objects
+  const [medications, setMedications] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -165,7 +165,7 @@ const HomeScreen = () => {
 
         <HydrationCard />
 
-        <CareNetworkCard />
+        <CareNetworkCard navigation={navigation} />
 
         <BloodPressureCard />
       </ScrollView>

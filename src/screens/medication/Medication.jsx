@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ScrollView, SafeAreaView } from 'react-native';
 import AddMedication from '../../components/model/Medication/AddMedication';
 import { useThemeColors } from '../../components/ui/colors';
 import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 
 const Medication = () => {
   const COLORS = useThemeColors();
   const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const [modalType, setModalType] = useState(null);
+  const navigation = useNavigation();
 
   const closeModal = () => setModalType(null);
 
@@ -18,7 +22,16 @@ const Medication = () => {
   const TEAL = COLORS.background === '#121212' ? '#4DB6AC' : '#00897B';
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Custom Header */}
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={TEAL} strokeWidth={2.5} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: TEAL }]}>Medications</Text>
+          <View style={{ width: 24 }} />
+        </View>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -168,11 +181,28 @@ const Medication = () => {
         <ViewMedications medications={[]} />
       </GeneralModal>
       <AddMedication isVisible={modalType === 'add'} onClose={closeModal} />
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const getStyles = (COLORS) => StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: COLORS.background,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
