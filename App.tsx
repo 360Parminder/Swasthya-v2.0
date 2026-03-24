@@ -14,13 +14,13 @@ const App = () => {
       <StatusBar barStyle="light-content" />
       <AuthProvider>
         <ConnectionProvider>
-        <SafeAreaProvider>
-          <AppNavigator />
-        </SafeAreaProvider>
+          <SafeAreaProvider>
+            <AppNavigator />
+          </SafeAreaProvider>
         </ConnectionProvider>
       </AuthProvider>
       <Toast
-        config={toastConfig} 
+        config={toastConfig}
         // ref={(ref) => Toast.setRef(ref)} 
         position="top" // Optional: position can be 'top' (default) or 'bottom'
         topOffset={100} // Optional: adjust if your status bar overlaps

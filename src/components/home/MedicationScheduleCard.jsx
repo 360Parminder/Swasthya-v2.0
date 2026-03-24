@@ -21,14 +21,35 @@ const getIconForForm = (form) => {
 };
 
 const MedicationScheduleCard = ({ medications }) => {
-  console.log("medications", medications);
-
   const COLORS = useThemeColors();
   const navigation = useNavigation();
 
+  const activeCount = medications?.length || 0;
 
-  // const activeCount = Object.keys(medications).length > 0 ? medications.length : todaysMedications.length;
-  const activeCount = medications?.length;
+  // Flatten medications into individual doses
+  const scheduledDoses = useMemo(() => {
+    if (!medications || medications.length === 0) return [];
+
+    let flatList = [];
+    medications.forEach((med, originalIndex) => {
+      if (med.times && med.times.length > 0) {
+        med.times.forEach((t) => {
+          flatList.push({ ...med, doseInstance: t, originalIndex });
+        });
+      } else {
+        flatList.push({ ...med, doseInstance: null, originalIndex });
+      }
+    });
+
+    // Sort by time chronologically
+    flatList.sort((a, b) => {
+      if (!a.doseInstance?.reception_time || !b.doseInstance?.reception_time) return 0;
+      return new Date(a.doseInstance.reception_time) - new Date(b.doseInstance.reception_time);
+    });
+
+    return flatList;
+  }, [medications]);
+
   // Distinct icon themes for each medication subcard, with neutral backgrounds
   const getCardTheme = (index) => {
     const iconThemes = [
@@ -51,6 +72,7 @@ const MedicationScheduleCard = ({ medications }) => {
     ];
     return iconThemes[index % iconThemes.length];
   }
+  const isDarkMode = COLORS.background === '#121212';
 
   return (
     <TouchableOpacity
@@ -70,18 +92,32 @@ const MedicationScheduleCard = ({ medications }) => {
       </Text>
 
       <View style={styles.listContainer}>
-        {medications.map((med, index) => {
-          const theme = getCardTheme(index);
-          const isDarkMode = COLORS.background === '#121212';
-          const cardBg = isDarkMode ? '#3e3d3dff' : '#F7F9FA'; // lighter background
+        {scheduledDoses.length > 0 ? scheduledDoses.map((med, index) => {
+          // Keep identical medication visually consistent using its original index
+          const theme = getCardTheme(med.originalIndex);
+          const iconShape = getIconForForm(med?.forms?.toLowerCase() || '')?.name || theme.icon;
+          const cardBg = isDarkMode ? '#3e3d3dff' : '#F7F9FA';
 
-          // Fallback static time for presentation if not present
-          const timeDisplay = med?.time || (index === 0 ? '08:00\nAM' : '10:00\nPM');
+          let timeDisplay = index === 0 ? '08:00 AM' : '10:00 PM';
+          let doseStr = null;
+
+          if (med.doseInstance && med.doseInstance.reception_time) {
+            const d = new Date(med.doseInstance.reception_time);
+
+
+            timeDisplay = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            console.log(timeDisplay);
+
+            const doseValue = med.doseInstance.dose || '1';
+            const formStr = med?.forms ? med.forms.toLowerCase() : 'unit';
+            const pluralForm = parseInt(doseValue) > 1 && !formStr.endsWith('s') ? `${formStr}s` : formStr;
+            doseStr = `${doseValue} ${pluralForm}`;
+          }
 
           return (
-            <View key={med.id || index} style={[styles.medCard, { backgroundColor: cardBg }]}>
+            <View key={med._id ? `${med._id}-${index}` : index} style={[styles.medCard, { backgroundColor: cardBg }]}>
               <View style={styles.iconBox}>
-                <Icon name={theme.icon} size={22} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
+                <Icon name={iconShape === 'set-all' ? 'pill' : iconShape} size={22} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
               </View>
 
               <View style={styles.medInfo}>
@@ -89,21 +125,46 @@ const MedicationScheduleCard = ({ medications }) => {
                   {med?.medicine_name || (index === 0 ? 'Lisinopril' : 'Atorvastatin')}
                 </Text>
                 <Text style={[styles.medInstruction, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>
-                  {(med?.strength && med?.unit) ? `${med.strength}${med.unit} • ${med.description || 'Daily'}` : (index === 0 ? '10mg • Daily with breakfast' : '20mg • Before sleep')}
+                  {(med?.strength && med?.unit) ? `${med.strength} ${med.unit} • ${med.description || 'Daily'}` : (index === 0 ? '10mg • Daily with breakfast' : '20mg • Before sleep')}
                 </Text>
               </View>
 
               <View style={styles.timeBox}>
-                <Text style={[
-                  styles.timeText,
-                  { color: isDarkMode ? '#D1D5DB' : theme.iconColor, textAlign: 'right' }
-                ]}>
-                  {timeDisplay}
-                </Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={[
+                    styles.timeText,
+                    {
+                      color: isDarkMode ? '#D1D5DB' : theme.iconColor,
+                      textAlign: 'right'
+                    }
+                  ]}>
+                    {timeDisplay}
+                  </Text>
+
+                  {doseStr && (
+                    <View style={{ backgroundColor: isDarkMode ? '#4B5563' : (theme.iconColor + '1A'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
+                      <Text style={{
+                        fontSize: 10,
+                        color: isDarkMode ? '#D1D5DB' : theme.iconColor,
+                        fontWeight: '600'
+                      }}>
+                        {doseStr}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           );
-        })}
+        }) : (
+          <View style={[styles.emptyStateContainer, { backgroundColor: isDarkMode ? '#3e3d3dff' : '#F9FAFB' }]}>
+            <View style={[styles.emptyStateIconWrapper, { backgroundColor: isDarkMode ? '#4B5563' : '#E5E7EB' }]}>
+              <Icon name="emoticon-happy-outline" size={36} color={isDarkMode ? '#D1D5DB' : '#0F766E'} />
+            </View>
+            <Text style={[styles.emptyStateTitle, { color: COLORS.text || '#1F2937' }]}>All done for today!</Text>
+            <Text style={[styles.emptyStateSub, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>You have no medications left to take.</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -180,13 +241,38 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   timeBox: {
-    minWidth: 46,
+    minWidth: 90,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
   timeText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  emptyStateContainer: {
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  emptyStateIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  emptyStateSub: {
+    fontSize: 14,
+    fontWeight: '400',
+    textAlign: 'center',
   }
 });
 

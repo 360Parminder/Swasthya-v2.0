@@ -3,7 +3,11 @@ import {
     View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
     ScrollView, ActivityIndicator, Switch, Platform, KeyboardAvoidingView
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome6';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    PillsTabletIcon, PillIcon, MedicineBottle01Icon, VaccineIcon, SprayCanIcon, TestTube01Icon,
+    ArrowLeft01Icon, Search01Icon, ArrowDown01Icon, Calendar01Icon, Clock01Icon, CubeIcon, Notification03Icon
+} from '@hugeicons/core-free-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
 import { useThemeColors } from '../../ui/colors';
@@ -12,12 +16,12 @@ import { medicationApi } from '../../../api/medicationApi';
 import Toast from 'react-native-toast-message';
 
 const medicationForms = [
-    { label: 'Tablet', icon: 'tablets' },
-    { label: 'Capsule', icon: 'capsules' },
-    { label: 'Liquid', icon: 'bottle-droplet' },
-    { label: 'Injection', icon: 'syringe' },
-    { label: 'Inhaler', icon: 'inhaler' },
-    { label: 'Topical', icon: 'ointment' }
+    { label: 'Tablet', icon: PillsTabletIcon },
+    { label: 'Capsule', icon: PillIcon },
+    { label: 'Liquid', icon: MedicineBottle01Icon },
+    { label: 'Injection', icon: VaccineIcon },
+    { label: 'Inhaler', icon: SprayCanIcon },
+    { label: 'Topical', icon: TestTube01Icon }
 ];
 
 const AddMedication = ({ isVisible, onClose }) => {
@@ -25,7 +29,12 @@ const AddMedication = ({ isVisible, onClose }) => {
     const TEAL = COLORS.background === '#121212' ? '#4DB6AC' : '#006C64';
     const { connections } = useConnection();
 
-    // Form states
+    const getNormalizedTime = (dateObj = new Date()) => {
+        const d = new Date(dateObj);
+        // Use a fixed date to ensure the "date" component is not functionally set
+        return new Date(2000, 0, 1, d.getHours(), d.getMinutes(), 0, 0).toISOString();
+    };
+
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         forWhom: 'myself',
@@ -41,10 +50,10 @@ const AddMedication = ({ isVisible, onClose }) => {
         timesPerDay: 2,
         times: [{
             dose: '1',
-            reception_time: new Date().toISOString(),
+            reception_time: getNormalizedTime(),
         }, {
             dose: '1',
-            reception_time: new Date().toISOString(),
+            reception_time: getNormalizedTime(),
         }],
         quantityOnHand: '30',
         threshold: '5',
@@ -54,7 +63,6 @@ const AddMedication = ({ isVisible, onClose }) => {
             threshold: 0,
             remind: true
         }
-
     });
 
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -69,7 +77,7 @@ const AddMedication = ({ isVisible, onClose }) => {
         setShowTimePicker({ show: false, index: 0 });
         if (selectedTime) {
             const newTimes = [...formData.times];
-            newTimes[index] = { ...newTimes[index], reception_time: selectedTime.toISOString() };
+            newTimes[index] = { ...newTimes[index], reception_time: getNormalizedTime(selectedTime) };
             handleInputChange('times', newTimes);
         }
     };
@@ -81,7 +89,7 @@ const AddMedication = ({ isVisible, onClose }) => {
 
         const newTimes = [...formData.times];
         if (newCount > formData.timesPerDay) {
-            newTimes.push({ dose: formData.dosage || '1', reception_time: new Date().toISOString() });
+            newTimes.push({ dose: formData.dosage || '1', reception_time: getNormalizedTime() });
         } else if (newCount < formData.timesPerDay) {
             newTimes.pop();
         }
@@ -155,7 +163,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose} style={styles.backButton}>
-                        <Icon name="arrow-left" size={24} color={TEAL} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={TEAL} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Add Medication</Text>
                     <TouchableOpacity style={[styles.saveButton, { backgroundColor: TEAL }]} onPress={() => handleSubmit()} disabled={isLoading}>
@@ -189,7 +197,9 @@ const AddMedication = ({ isVisible, onClose }) => {
                         {formData.forWhom === 'connection' && (
                             <View style={styles.connectionSearchContainer}>
                                 <View style={styles.inputBoxBordered}>
-                                    <Icon name="search" size={20} color={COLORS.placeholder} style={styles.inputLeftIcon} />
+                                    <View style={styles.inputLeftIcon}>
+                                        <HugeiconsIcon icon={Search01Icon} size={20} color={COLORS.placeholder} />
+                                    </View>
                                     <TextInput
                                         style={styles.textInputBase}
                                         placeholder="Search connection (e.g. Sarah M.)"
@@ -233,7 +243,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                                         style={[styles.gridItem, isSelected && { borderColor: TEAL, backgroundColor: TEAL + '20' }]}
                                         onPress={() => handleInputChange('form', item.label)}
                                     >
-                                        <Icon name={item.icon} size={28} color={isSelected ? TEAL : COLORS.healthCardSubtext} />
+                                        <HugeiconsIcon icon={item.icon} size={28} color={isSelected ? TEAL : COLORS.healthCardSubtext} />
                                         <Text style={[styles.gridText, isSelected && { color: TEAL, fontWeight: '700' }]}>{item.label}</Text>
                                     </TouchableOpacity>
                                 );
@@ -267,7 +277,9 @@ const AddMedication = ({ isVisible, onClose }) => {
                                         inputIOS: styles.pickerInputStyle,
                                     }}
                                 />
-                                <Icon name="chevron-down" size={16} color={COLORS.healthCardSubtext} style={styles.dropdownAbsoluteIcon} />
+                                <View style={styles.dropdownAbsoluteIcon}>
+                                    <HugeiconsIcon icon={ArrowDown01Icon} size={16} color={COLORS.healthCardSubtext} />
+                                </View>
                             </View>
                         </View>
 
@@ -287,14 +299,14 @@ const AddMedication = ({ isVisible, onClose }) => {
                         {/* Schedule Card */}
                         <View style={styles.cardBoxOutline}>
                             <View style={styles.cardHeaderArea}>
-                                <Icon name="calendar-outline" size={20} color={TEAL} />
+                                <HugeiconsIcon icon={Calendar01Icon} size={20} color={TEAL} />
                                 <Text style={[styles.cardTitleBold, { color: TEAL }]}>Schedule</Text>
                             </View>
 
                             <Text style={styles.cardLabelText}>START DATE</Text>
                             <TouchableOpacity style={styles.inputBoxBordered} onPress={() => setShowDatePicker(true)}>
                                 <Text style={styles.inputTextValuePlaceholder}>{formData.startDate.toLocaleDateString()}</Text>
-                                <Icon name="calendar-outline" size={20} color={COLORS.placeholder} />
+                                <HugeiconsIcon icon={Calendar01Icon} size={20} color={COLORS.placeholder} />
                             </TouchableOpacity>
 
                             <Text style={styles.cardLabelText}>FREQUENCY</Text>
@@ -313,7 +325,9 @@ const AddMedication = ({ isVisible, onClose }) => {
                                         inputIOS: [styles.textInputBase, { width: '100%', paddingRight: 30 }]
                                     }}
                                 />
-                                <Icon name="chevron-down" size={20} color={COLORS.placeholder} style={{ position: 'absolute', right: 12 }} />
+                                <View style={{ position: 'absolute', right: 12 }}>
+                                    <HugeiconsIcon icon={ArrowDown01Icon} size={20} color={COLORS.placeholder} />
+                                </View>
                             </View>
 
                             <View style={styles.timesPerDayRowFlex}>
@@ -334,11 +348,11 @@ const AddMedication = ({ isVisible, onClose }) => {
                                     const timeDate = timeItem.reception_time ? new Date(timeItem.reception_time) : new Date();
                                     return (
                                         <View key={index} style={styles.timePillObj}>
-                                            <TouchableOpacity 
+                                            <TouchableOpacity
                                                 onPress={() => setShowTimePicker({ show: true, index })}
                                                 style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                                             >
-                                                <Icon name="time" size={14} color={TEAL} />
+                                                <HugeiconsIcon icon={Clock01Icon} size={14} color={TEAL} />
                                                 <Text style={styles.timePillInnerTxt}>
                                                     {timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </Text>
@@ -369,7 +383,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                         {/* Current Stock Card */}
                         <View style={[styles.cardBoxOutline, { marginBottom: 40 }]}>
                             <View style={styles.cardHeaderArea}>
-                                <Icon name="cube-outline" size={20} color={TEAL} />
+                                <HugeiconsIcon icon={CubeIcon} size={20} color={TEAL} />
                                 <Text style={[styles.cardTitleBold, { color: TEAL }]}>Current Stock</Text>
                             </View>
 
@@ -400,7 +414,7 @@ const AddMedication = ({ isVisible, onClose }) => {
                                                 placeholderTextColor={COLORS.placeholder}
                                             />
                                         </View>
-                                        <Icon name="notifications" size={20} color={COLORS.healthCardSubtext} />
+                                        <HugeiconsIcon icon={Notification03Icon} size={20} color={COLORS.healthCardSubtext} />
                                     </View>
                                 </View>
                             </View>

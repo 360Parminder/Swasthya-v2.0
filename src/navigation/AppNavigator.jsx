@@ -18,7 +18,6 @@ const AppNavigator = () => {
   return (
     <>
       <NavigationContainer>
-
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {authState?.token ? (
             <Stack.Screen name="Main" component={MainNavigator} />

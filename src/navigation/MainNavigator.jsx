@@ -141,7 +141,7 @@ const MainNavigator = () => {
               /> */}
               <HugeiconsIcon
                 icon={targetIcon}
-                color={focused ? colors.primary : colors.placeholder}
+                color={focused ? "#006A6A" : "#081E27"}
                 size={24}
                 strokeWidth={1.5}
               />

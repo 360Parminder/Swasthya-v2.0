@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -23,8 +24,8 @@ const HeartRateCard = () => (
       <Text style={cardStyles.heartUnit}> bpm</Text>
     </View>
     <View style={cardStyles.heartFooterRow}>
-       <Icon name="pulse" size={14} color="#A7F3D0" />
-       <Text style={cardStyles.heartFooterText}>Resting stable</Text>
+      <Icon name="pulse" size={14} color="#A7F3D0" />
+      <Text style={cardStyles.heartFooterText}>Resting stable</Text>
     </View>
   </View>
 );
@@ -35,9 +36,9 @@ const SleepQualityCard = () => (
     <Text style={cardStyles.sleepValue}>7h 30m</Text>
     <Text style={cardStyles.sleepSubtitle}>Deep Sleep: 2h 15m</Text>
     <View style={cardStyles.sleepBars}>
-       {[14, 20, 38, 24, 20, 18].map((h, i) => (
-         <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? '#546A7B' : '#B8C8D0' }]} />
-       ))}
+      {[14, 20, 38, 24, 20, 18].map((h, i) => (
+        <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? '#546A7B' : '#B8C8D0' }]} />
+      ))}
     </View>
   </View>
 );
@@ -63,11 +64,11 @@ const CareNetworkCard = () => (
   <View style={[cardStyles.card, cardStyles.careCard]}>
     <Text style={cardStyles.careTitle}>CARE NETWORK</Text>
     <View style={cardStyles.avatarRow}>
-       <Image source={{uri: 'https://i.pravatar.cc/100?img=5'}} style={[cardStyles.careAvatar, { zIndex: 3 }]}/>
-       <Image source={{uri: 'https://i.pravatar.cc/100?img=3'}} style={[cardStyles.careAvatar, { zIndex: 2, marginLeft: -12 }]}/>
-       <View style={[cardStyles.careMoreAvatar, { zIndex: 1, marginLeft: -12 }]}>
-         <Text style={cardStyles.careMoreText}>+3</Text>
-       </View>
+      <Image source={{ uri: 'https://i.pravatar.cc/100?img=5' }} style={[cardStyles.careAvatar, { zIndex: 3 }]} />
+      <Image source={{ uri: 'https://i.pravatar.cc/100?img=3' }} style={[cardStyles.careAvatar, { zIndex: 2, marginLeft: -12 }]} />
+      <View style={[cardStyles.careMoreAvatar, { zIndex: 1, marginLeft: -12 }]}>
+        <Text style={cardStyles.careMoreText}>+3</Text>
+      </View>
     </View>
     <Text style={cardStyles.careName}>Dr. Sarah Miller</Text>
     <Text style={cardStyles.careRole}>Primary Physician - Online</Text>
@@ -78,13 +79,13 @@ const BloodPressureCard = () => (
   <View style={[cardStyles.card, cardStyles.whiteCard, { marginBottom: 30 }]}>
     <Text style={[cardStyles.cardTitle, { textAlign: 'center', marginBottom: 6 }]}>BLOOD PRESSURE</Text>
     <Text style={[cardStyles.bpValue, { textAlign: 'center' }]}>120/80 <Text style={cardStyles.bpUnit}>mmHg</Text></Text>
-    
+
     <View style={cardStyles.rowBetweenBP}>
-       <Text style={cardStyles.bpFooterText}>Normal Range</Text>
-       <Text style={cardStyles.bpFooterBold}>Optimal</Text>
+      <Text style={cardStyles.bpFooterText}>Normal Range</Text>
+      <Text style={cardStyles.bpFooterBold}>Optimal</Text>
     </View>
     <View style={cardStyles.bpSliderBg}>
-       <View style={cardStyles.bpSliderThumb} />
+      <View style={cardStyles.bpSliderThumb} />
     </View>
   </View>
 );
@@ -95,6 +96,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { authState } = useAuth();
   const [medications, setMedications] = useState([{}, {}]); // Mock layout objects
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -104,50 +106,59 @@ const HomeScreen = () => {
     try {
       const response = await dashboardApi.getDashboardData();
       const meds = response?.data?.data?.medication;
-      setMedications(meds && meds.length > 0 ? meds : [{}, {}]);
+      setMedications(meds && meds.length > 0 ? meds : []);
     } catch (error) {
       console.error('Error fetching medications:', error);
     }
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchDashboardData();
+    setRefreshing(false);
+  }, []);
+
+  console.log(medications);
+
+
   return (
     <View style={styles.container}>
-      {/* Profile Header - Kept existing structure but changed colors */}
-      <View style={{ backgroundColor: 'transparent', paddingTop: 10 }}>
-        <View style={styles.headerBar}>
-          <View style={styles.headerContent}>
-            <View style={styles.profileSection}>
-              <Image
-                source={{ uri: authState?.user?.avatar || 'https://via.placeholder.com/150' }}
-                style={styles.profilePicture}
-              />
-              <View style={styles.profileInfo}>
-                <Text style={styles.greeting}>Hello</Text>
-                <Text style={styles.userName}>
-                  {authState?.user?.username || 'Parminder Singh'}
-                </Text>
-              </View>
+      {/* Profile Header */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerTop}>
+          <View style={styles.profileSection}>
+            <Image
+              source={{ uri: authState?.user?.avatar || 'https://via.placeholder.com/150' }}
+              style={styles.profilePicture}
+            />
+            <View style={styles.profileInfo}>
+              <Text style={styles.greeting}>Hello</Text>
+              <Text style={styles.userName}>
+                {authState?.user?.username || 'Parminder Singh'}
+              </Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-              <Icon name="notifications" size={24} color="#0F766E" />
-            </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+            <Icon name="notifications-outline" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
 
         {/* Date Display */}
         <View style={styles.dateContainer}>
-          <Text style={styles.dateDay}>{getDayAndDate().day}, </Text>
-          <Text style={styles.dateDate}>{getDayAndDate().date}</Text>
+          <Text style={styles.fullDateText}>{getDayAndDate().day}, {getDayAndDate().date}</Text>
         </View>
       </View>
-      
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F766E" />
+        }
       >
         <MedicationScheduleCard medications={medications} />
-        
+
         <HeartRateCard />
 
         <SleepQualityCard />
@@ -165,16 +176,22 @@ const HomeScreen = () => {
 const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FA', // Very light gray from design
+    // backgroundColor: '#F7F9FA', // Very light gray from design
   },
-  headerBar: {
-    backgroundColor: 'transparent',
+  headerContainer: {
     width: '100%',
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 5,
+    // marginBottom: 10,
+    backgroundColor: "#252525",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  headerContent: {
+  headerTop: {
+    backgroundColor: '#000000',
+    paddingTop: 13,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -185,9 +202,9 @@ const getStyles = (COLORS) => StyleSheet.create({
     flex: 1,
   },
   profilePicture: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     marginRight: 12,
   },
   profileInfo: {
@@ -195,41 +212,38 @@ const getStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'center',
   },
   greeting: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
-    letterSpacing: 0.5,
+    color: '#FFFFFF',
+    marginBottom: 2,
   },
   userName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 15,
-    backgroundColor: 'transparent',
+    paddingVertical: 10,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    backgroundColor: '#252525',
   },
-  dateDay: {
-    color: '#111827',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  dateDate: {
-    color: '#4B5563',
-    fontSize: 16,
-    fontWeight: '500',
+  fullDateText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 17,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingBottom: 60,
+    paddingTop: 10,
     gap: 16,
   },
 });
@@ -261,7 +275,7 @@ const cardStyles = StyleSheet.create({
     letterSpacing: 1.2,
     marginBottom: 10,
   },
-  
+
   /* Heart Rate */
   heartTitle: {
     fontSize: 11,
