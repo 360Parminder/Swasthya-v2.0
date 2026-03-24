@@ -113,7 +113,7 @@ const AddConnection = ({ isVisible, onClose }) => {
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose} style={styles.backButton}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={GREEN} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.primary} strokeWidth={2.5} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Connections</Text>
                     <View style={styles.menuPlaceholder}>
@@ -214,10 +214,10 @@ const getStyles = (COLORS, TEAL, GREEN) => StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     backButton: {
-        padding: 8,
+        padding: 2,
     },
     headerTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '700',
         color: COLORS.primary,
     },

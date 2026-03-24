@@ -19,10 +19,10 @@ const dummySent = [
 
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=random';
 
-const PendingRequests = ({ 
-    isVisible, 
-    onClose, 
-    receivedRequests = [], 
+const PendingRequests = ({
+    isVisible,
+    onClose,
+    receivedRequests = [],
     sentRequests = [],
     onAccept,
     onDecline,
@@ -31,7 +31,7 @@ const PendingRequests = ({
     const COLORS = useThemeColors();
     const TEAL = COLORS.background === '#121212' ? '#006A6A' : '#006A6A';
     const LIGHT_TEAL = '#E0F2FE'; // For active badge/text
-    
+
     const styles = useMemo(() => getStyles(COLORS, TEAL, LIGHT_TEAL), [COLORS, TEAL, LIGHT_TEAL]);
 
     // If arrays are empty, fall back to dummy data to mirror the design provided
@@ -44,16 +44,16 @@ const PendingRequests = ({
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose} style={styles.iconBtn}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={TEAL} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.primary} strokeWidth={2.5} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Connections</Text>
-                    <TouchableOpacity style={styles.iconBtn}>
-                        <HugeiconsIcon icon={MoreVerticalIcon} size={24} color={TEAL} />
-                    </TouchableOpacity>
+                    <View style={styles.menuPlaceholder}>
+                        {/* Placeholder for symmetry if needed, or 3-dots */}
+                    </View>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                    
+
                     {/* Received Invitations Section */}
                     {displayReceived.length > 0 && (
                         <View style={styles.sectionContainer}>
@@ -67,7 +67,7 @@ const PendingRequests = ({
                             {displayReceived.map((item, index) => (
                                 <View key={item.id || item._id || `recv-${index}`} style={styles.requestCard}>
                                     <Image source={{ uri: item.avatar || DEFAULT_AVATAR }} style={styles.requestAvatar} />
-                                    
+
                                     <View style={styles.requestInfo}>
                                         <Text style={styles.requestName}>{item.name || item.username}</Text>
                                         <View style={styles.statusRow}>
@@ -75,15 +75,15 @@ const PendingRequests = ({
                                             <Text style={[styles.statusText, { color: TEAL }]}>NEW CONNECTION REQUEST</Text>
                                         </View>
                                     </View>
-                                    
+
                                     <View style={styles.actionButtonsCol}>
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             style={styles.acceptBtn}
                                             onPress={() => onAccept && onAccept(item.id || item._id)}
                                         >
                                             <Text style={styles.acceptBtnText}>Accept</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             style={styles.declineBtn}
                                             onPress={() => onDecline && onDecline(item.id || item._id)}
                                         >
@@ -115,7 +115,7 @@ const PendingRequests = ({
                                             <Text style={styles.statusText}>AWAITING RESPONSE</Text>
                                         </View>
                                     </View>
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={styles.cancelBtn}
                                         onPress={() => onCancel && onCancel(item.id || item._id)}
                                     >
@@ -163,10 +163,13 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
     iconBtn: {
         padding: 8,
     },
+    menuPlaceholder: {
+        width: 40,
+    },
     headerTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '700',
-        color: TEAL,
+        color: COLORS.primary,
     },
     scrollContent: {
         paddingHorizontal: 20,
@@ -263,7 +266,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         alignItems: 'center',
     },
     acceptBtn: {
-        backgroundColor: TEAL,
+        backgroundColor: COLORS.primary,
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 24,
@@ -326,7 +329,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         lineHeight: 20,
     },
     privacyLink: {
-        color: TEAL,
+        color: COLORS.primary,
         fontWeight: '600',
     }
 });

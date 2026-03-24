@@ -8,7 +8,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Medication = () => {
   const COLORS = useThemeColors();
@@ -168,6 +169,34 @@ const Medication = () => {
               <View style={[styles.progressBarFill, { width: '85%', backgroundColor: TEAL }]} />
             </View>
           </View>
+        </View>
+
+        <View style={styles.actionCardsContainer}>
+          {/* History Card */}
+          <TouchableOpacity style={styles.actionCard} activeOpacity={0.8} onPress={() => navigation.navigate('MedicationHistory')}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#E0F2F1' }]}>
+              <MaterialIcon name="history" size={26} color={TEAL} />
+            </View>
+            <Text style={styles.actionTitle}>Medication History</Text>
+            <Text style={styles.actionSubtitle}>View your past adherence</Text>
+            <View style={styles.actionLinkRow}>
+              <Text style={[styles.actionLinkText, { color: TEAL }]}>VIEW HISTORY</Text>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={TEAL} strokeWidth={2.5} />
+            </View>
+          </TouchableOpacity>
+
+          {/* Refill Card */}
+          <TouchableOpacity style={styles.actionCard} activeOpacity={0.8}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#FEE2E2' }]}>
+              <MaterialIcon name="bell-alert" size={24} color="#DC2626" />
+            </View>
+            <Text style={styles.actionTitle}>Refill Status</Text>
+            <Text style={styles.actionSubtitle}>Check low stock alerts</Text>
+            <View style={styles.actionLinkRow}>
+              <Text style={[styles.actionLinkText, { color: '#DC2626' }]}>CHECK STOCK</Text>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={16} color="#DC2626" strokeWidth={2.5} />
+            </View>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -427,6 +456,51 @@ const getStyles = (COLORS) => StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  actionCardsContainer: {
+    gap: 16,
+    marginBottom: 20,
+  },
+  actionCard: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  actionIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  actionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.healthCardText,
+    marginBottom: 4,
+  },
+  actionSubtitle: {
+    fontSize: 14,
+    color: COLORS.healthCardSubtext,
+    marginBottom: 20,
+  },
+  actionLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionLinkText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginRight: 6,
   },
 });
 

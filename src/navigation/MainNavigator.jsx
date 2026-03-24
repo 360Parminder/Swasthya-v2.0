@@ -6,6 +6,7 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
 import Icon from 'react-native-vector-icons/Feather';
 import Medication from '../screens/medication/Medication';
+import MedicationHistory from '../screens/medication/MedicationHistory';
 import AlarmScreen from '../screens/home/AlarmScreen';
 import { View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
@@ -64,6 +65,13 @@ function HomeStackScreen() {
         options={{
           headerShown: false,
           presentation: 'fullScreenModal'
+        }}
+      />
+      <HomeStack.Screen
+        name="MedicationHistory"
+        component={MedicationHistory}
+        options={{
+          headerShown: false,
         }}
       />
     </HomeStack.Navigator>
