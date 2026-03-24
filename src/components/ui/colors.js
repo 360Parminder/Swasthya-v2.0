@@ -1,25 +1,29 @@
 import { useColorScheme } from 'react-native';
 
-const lightPurple = '#ab70e7ff';
-const darkPurple = '#912cf0ff';
+const light = '#68B8B8';
+const dark = '#006A6A';
 
 export const lightColors = {
-  primary: darkPurple, // Darker for text/brand contrast
-  accent: lightPurple,
+  primary: dark, // Darker for text/brand contrast
+  accent: light,
   background: '#F5F5F5',
-  cardBackground: '#E8E8E8',
-  inputBackground: '#D4D4D4',
+  cardBackground: '#FFFFFF',
+  inputBackground: '#E8E8E8',
   inputText: '#1E1E1E',
-  buttonBackground: darkPurple,
+  buttonBackground: dark,
   buttonText: '#FFFFFF',
   text: '#1E1E1E',
-  textSecondary: '#3A3A3A',
-  border: '#88888849',
+  textSecondary: '#4A4A4A',
+  border: '#E5E7EB',
   darkText: '#000000',
-  iconBackground: '#D4D4D4',
-  placeholder: '#6B6B6B',
+  iconBackground: '#F3F4F6',
+  placeholder: '#9CA3AF',
   white: '#FFFFFF',
   transparent: 'transparent',
+  // Header colors
+  headerTopBackground: '#FFFFFF',
+  headerBottomBackground: '#F3F4F6',
+  headerText: '#1E1E1E',
   // Multi-color accents for specific sections/states
   success: '#10B981',
   warning: '#F59E0B',
@@ -32,22 +36,26 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  primary: lightPurple, // Lighter for contrast on dark
-  accent: '#A855F7',
+  primary: light, // Lighter for contrast on dark
+  accent: dark,
   background: '#121212',
   cardBackground: '#1E1E1E',
   inputBackground: '#2A2A2A',
   inputText: '#D4D4D4',
-  buttonBackground: lightPurple,
+  buttonBackground: light,
   buttonText: '#121212',
   text: '#D4D4D4',
-  textSecondary: '#B0B0B0',
-  border: '#3a3a3ac1',
+  textSecondary: '#A3A3A3',
+  border: '#374151',
   darkText: '#000000',
   iconBackground: '#2A2A2A',
   placeholder: '#6B6B6B',
   white: '#FFFFFF',
   transparent: 'transparent',
+  // Header colors
+  headerTopBackground: '#000000',
+  headerBottomBackground: '#1C1C1E',
+  headerText: '#FFFFFF',
   // Multi-color accents
   success: '#34D399',
   warning: '#FBBF24',

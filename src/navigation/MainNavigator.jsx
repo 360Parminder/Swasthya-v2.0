@@ -57,6 +57,14 @@ function HomeStackScreen() {
           headerBackVisible: false,
         }}
       />
+      <HomeStack.Screen
+        name="AlarmScreen"
+        component={require('../screens/home/AlarmScreen').default}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal'
+        }}
+      />
     </HomeStack.Navigator>
   );
 }

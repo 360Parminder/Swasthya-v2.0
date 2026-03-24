@@ -139,7 +139,7 @@ const HomeScreen = () => {
             </View>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="notifications-outline" size={28} color="#FFFFFF" />
+            <Icon name="notifications-outline" size={28} color={COLORS.headerText} />
           </TouchableOpacity>
         </View>
 
@@ -154,7 +154,7 @@ const HomeScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F766E" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
       >
         <MedicationScheduleCard medications={medications} />
@@ -176,17 +176,17 @@ const HomeScreen = () => {
 const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: '#F7F9FA', // Very light gray from design
+    backgroundColor: COLORS.background, // Adaptive background color
   },
   headerContainer: {
     width: '100%',
     // marginBottom: 10,
-    backgroundColor: "#252525",
+    backgroundColor: COLORS.headerBottomBackground,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
   headerTop: {
-    backgroundColor: '#000000',
+    backgroundColor: COLORS.headerTopBackground,
     paddingTop: 13,
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -214,13 +214,13 @@ const getStyles = (COLORS) => StyleSheet.create({
   greeting: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: COLORS.headerText,
     marginBottom: 2,
   },
   userName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.headerText,
   },
   dateContainer: {
     flexDirection: 'row',
@@ -230,10 +230,10 @@ const getStyles = (COLORS) => StyleSheet.create({
     paddingVertical: 10,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    backgroundColor: '#252525',
+    backgroundColor: COLORS.headerBottomBackground,
   },
   fullDateText: {
-    color: '#FFFFFF',
+    color: COLORS.headerText,
     fontWeight: '600',
     fontSize: 17,
   },
