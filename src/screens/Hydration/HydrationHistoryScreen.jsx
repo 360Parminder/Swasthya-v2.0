@@ -63,7 +63,7 @@ const HydrationHistoryScreen = () => {
   const colors = useThemeColors();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
           <Icon name="arrow-back" size={24} color="#0F766E" />
@@ -75,7 +75,7 @@ const HydrationHistoryScreen = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Weekly Adherence */}
         <View style={styles.weeklyCard}>
           <View style={styles.weeklyHeader}>
@@ -150,34 +150,15 @@ const HydrationHistoryScreen = () => {
         </View>
 
       </ScrollView>
+    </>
 
-      {/* Static Mock Bottom Tab */}
-      <View style={styles.bottomTabContainer}>
-        <View style={styles.tabItem}>
-          <Icon name="water" size={24} color="#64748B" />
-          <Text style={styles.tabItemText}>Today</Text>
-        </View>
-        <View style={[styles.tabItem, styles.tabItemActive]}>
-          <Icon name="time-outline" size={24} color="#0F766E" />
-          <Text style={[styles.tabItemText, { color: '#0F766E' }]}>History</Text>
-        </View>
-        <View style={styles.tabItem}>
-          <Icon name="checkmark-done" size={24} color="#64748B" />
-          <Text style={styles.tabItemText}>Goals</Text>
-        </View>
-        <View style={styles.tabItem}>
-          <Icon name="person" size={24} color="#64748B" />
-          <Text style={styles.tabItemText}>Profile</Text>
-        </View>
-      </View>
-    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA', 
+    backgroundColor: '#FAFAFA',
   },
   header: {
     flexDirection: 'row',

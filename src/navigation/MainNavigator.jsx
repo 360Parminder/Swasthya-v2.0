@@ -14,6 +14,9 @@ import { useThemeColors } from '../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
 import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserGroup03Icon, UserIcon } from '@hugeicons/core-free-icons'
 import HydrationScreen from '../screens/Hydration/HydrationScreen';
+import HydrationHistoryScreen from '../screens/Hydration/HydrationHistoryScreen';
+import HydrationSettingsScreen from '../screens/Hydration/HydrationSettingsScreen';
+import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -50,6 +53,8 @@ function HomeStackScreen() {
           headerShown: false,
           title: 'My Connections',
           headerBackVisible: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
         }}
       />
       <HomeStack.Screen
@@ -59,6 +64,8 @@ function HomeStackScreen() {
           headerShown: false,
           title: 'Medication',
           headerBackVisible: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
         }}
       />
       <HomeStack.Screen
@@ -74,6 +81,8 @@ function HomeStackScreen() {
         component={MedicationHistory}
         options={{
           headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
         }}
       />
       <HomeStack.Screen
@@ -81,6 +90,35 @@ function HomeStackScreen() {
         component={HydrationScreen}
         options={{
           headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <HomeStack.Screen
+        name="HydrationHistory"
+        component={HydrationHistoryScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <HomeStack.Screen
+        name="HydrationSettings"
+        component={HydrationSettingsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <HomeStack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_right',
         }}
       />
     </HomeStack.Navigator>

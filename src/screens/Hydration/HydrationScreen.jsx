@@ -10,7 +10,9 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { useThemeColors } from '../../components/ui/colors';
+import { COLORS, useThemeColors } from '../../components/ui/colors';
+import { HugeiconsIcon } from '@hugeicons/react-native'
+import { ArrowLeft01Icon, DropletIcon, MoreVerticalCircle01Icon } from '@hugeicons/core-free-icons'
 
 // Helper component for Water Intake option
 const WaterOption = ({ title, amount, iconName }) => (
@@ -62,23 +64,23 @@ const HydrationScreen = () => {
   const arcLength = 0.75 * circumference;
   const gapLength = 0.25 * circumference;
   // Out of that 270 degree arc, we fill 75%
-  const progressRatio = 0.75; 
+  const progressRatio = 0.75;
   const progressLength = arcLength * progressRatio;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Icon name="arrow-back" size={24} color="#1F2937" />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.primary} strokeWidth={2.5} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Hydration</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <Icon name="ellipsis-vertical" size={24} color="#1F2937" />
+        <TouchableOpacity onPress={() => navigation.navigate('HydrationSettings')} style={styles.headerButton}>
+          <HugeiconsIcon icon={MoreVerticalCircle01Icon} size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Top Progress Chart */}
         <View style={styles.progressSection}>
           <View style={styles.svgContainer}>
@@ -132,12 +134,12 @@ const HydrationScreen = () => {
         </View>
 
         {/* Weekly Trends */}
-        <View style={styles.sectionContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('HydrationHistory')} style={styles.sectionContainer}>
           <View style={styles.rowBetween}>
             <Text style={styles.sectionTitle}>Weekly Trends</Text>
             <Text style={styles.avgText}>AVG 1.8L</Text>
           </View>
-          
+
           <View style={styles.chartCard}>
             {/* Dummy chart bars space */}
             <View style={{ height: 100 }} />
@@ -150,7 +152,7 @@ const HydrationScreen = () => {
               ))}
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Today's Logs */}
         <View style={styles.sectionContainer}>
@@ -163,7 +165,7 @@ const HydrationScreen = () => {
 
         {/* Pro Tip */}
         <View style={styles.proTipCard}>
-          <Icon name="bulb" size={24} color="#475569" style={styles.bulbIcon} />
+          <HugeiconsIcon icon={DropletIcon} size={24} color={COLORS.primary} strokeWidth={2.5} />
           <Text style={styles.proTipTitle}>Pro Tip</Text>
           <Text style={styles.proTipText}>
             Drinking water first thing in the morning boosts your metabolism and mental clarity. You're doing great!

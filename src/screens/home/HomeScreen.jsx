@@ -15,6 +15,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
+import { HugeiconsIcon } from '@hugeicons/react-native'
+import { Notification01Icon } from '@hugeicons/core-free-icons';
 
 const HeartRateCard = () => (
   <View style={[cardStyles.card, cardStyles.heartCard]}>
@@ -134,12 +136,12 @@ const HomeScreen = () => {
             <View style={styles.profileInfo}>
               <Text style={styles.greeting}>Hello</Text>
               <Text style={styles.userName}>
-                {authState?.user?.username || 'Parminder Singh'}
+                {authState?.user?.username || 'User name '}
               </Text>
             </View>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="notifications-outline" size={28} color={COLORS.headerText} />
+            <HugeiconsIcon icon={Notification01Icon} size={24} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
 

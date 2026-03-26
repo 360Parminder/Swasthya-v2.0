@@ -6,7 +6,7 @@ import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
-  Notification03Icon, UserIcon, Mail01Icon, SmartPhone01Icon, 
+  Notification03Icon, UserIcon, Mail01Icon, SmartPhone01Icon,
   Settings02Icon, HelpCircleIcon, Delete02Icon, Logout02Icon, PencilEdit02Icon,
   Calendar01Icon, ArrowRight01Icon, Restaurant01Icon
 } from '@hugeicons/core-free-icons';
@@ -23,7 +23,7 @@ const ProfileScreen = () => {
   const TEAL = COLORS.background === '#121212' ? '#4DB6AC' : '#006A6A';
   const CARD_BG = COLORS.cardBackground;
   const PAGE_BG = COLORS.background;
-  
+
   const styles = React.useMemo(() => getStyles(COLORS, TEAL, CARD_BG, PAGE_BG), [COLORS, TEAL, CARD_BG, PAGE_BG]);
 
   useEffect(() => {
@@ -57,27 +57,27 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        
+
         {/* Header */}
         <View style={styles.header}>
-            <View style={styles.headerLeftAvatarRing}>
-                <Image source={{ uri: userAvatar }} style={styles.headerSmallAvatar} />
-            </View>
-            <Text style={styles.headerTitle}>Health+ Wellness</Text>
-            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <HugeiconsIcon icon={Notification03Icon} size={22} color={COLORS.textSecondary} />
-            </TouchableOpacity>
+          {/* <View style={styles.headerLeftAvatarRing}>
+            <Image source={{ uri: userAvatar }} style={styles.headerSmallAvatar} />
+          </View>
+          <Text style={styles.headerTitle}>Health+ Wellness</Text>
+          <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <HugeiconsIcon icon={Notification03Icon} size={22} color={COLORS.textSecondary} />
+          </TouchableOpacity> */}
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          
+
           {/* Main User Profile Image & Name */}
           <View style={styles.heroSection}>
             <View style={styles.heroAvatarContainer}>
-                <Image source={{ uri: userAvatar }} style={styles.heroAvatar} />
-                <TouchableOpacity style={styles.editBadge}>
-                    <HugeiconsIcon icon={PencilEdit02Icon} size={14} color={TEAL} variant="solid" />
-                </TouchableOpacity>
+              <Image source={{ uri: userAvatar }} style={styles.heroAvatar} />
+              <TouchableOpacity style={styles.editBadge}>
+                <HugeiconsIcon icon={PencilEdit02Icon} size={14} color={TEAL} variant="solid" />
+              </TouchableOpacity>
             </View>
             <Text style={styles.heroName}>{userName}</Text>
             <Text style={styles.heroSubtitle}>Member since Jan 2024</Text>
@@ -86,37 +86,37 @@ const ProfileScreen = () => {
           {/* IDENTITY SECTION */}
           <Text style={styles.sectionHeader}>IDENTITY</Text>
           <View style={styles.sectionCard}>
-            
+
             <View style={styles.rowItem}>
-                <View style={styles.rowIconBox}>
-                    <HugeiconsIcon icon={UserIcon} size={20} color={COLORS.healthCardSubtext} variant="solid" />
-                </View>
-                <View style={styles.rowTextCol}>
-                    <Text style={styles.rowLabel}>FULL NAME</Text>
-                    <Text style={styles.rowValue}>{userName}</Text>
-                </View>
+              <View style={styles.rowIconBox}>
+                <HugeiconsIcon icon={UserIcon} size={20} color={COLORS.healthCardSubtext} variant="solid" />
+              </View>
+              <View style={styles.rowTextCol}>
+                <Text style={styles.rowLabel}>FULL NAME</Text>
+                <Text style={styles.rowValue}>{userName}</Text>
+              </View>
             </View>
             <View style={styles.divider} />
-            
+
             <View style={styles.rowItem}>
-                <View style={styles.rowIconBox}>
-                    <HugeiconsIcon icon={Mail01Icon} size={20} color={COLORS.healthCardSubtext} variant="solid" />
-                </View>
-                <View style={styles.rowTextCol}>
-                    <Text style={styles.rowLabel}>EMAIL</Text>
-                    <Text style={styles.rowValue}>{userEmail}</Text>
-                </View>
+              <View style={styles.rowIconBox}>
+                <HugeiconsIcon icon={Mail01Icon} size={20} color={COLORS.healthCardSubtext} variant="solid" />
+              </View>
+              <View style={styles.rowTextCol}>
+                <Text style={styles.rowLabel}>EMAIL</Text>
+                <Text style={styles.rowValue}>{userEmail}</Text>
+              </View>
             </View>
             <View style={styles.divider} />
-            
+
             <View style={styles.rowItem}>
-                <View style={styles.rowIconBox}>
-                    <HugeiconsIcon icon={SmartPhone01Icon} size={20} color={COLORS.healthCardSubtext} variant="solid" />
-                </View>
-                <View style={styles.rowTextCol}>
-                    <Text style={styles.rowLabel}>MOBILE</Text>
-                    <Text style={styles.rowValue}>{userMobile}</Text>
-                </View>
+              <View style={styles.rowIconBox}>
+                <HugeiconsIcon icon={SmartPhone01Icon} size={20} color={COLORS.healthCardSubtext} variant="solid" />
+              </View>
+              <View style={styles.rowTextCol}>
+                <Text style={styles.rowLabel}>MOBILE</Text>
+                <Text style={styles.rowValue}>{userMobile}</Text>
+              </View>
             </View>
 
           </View>
@@ -124,39 +124,39 @@ const ProfileScreen = () => {
           {/* BIOMETRICS SECTION */}
           <Text style={styles.sectionHeader}>BIOMETRICS</Text>
           <View style={styles.gridContainer}>
-            
+
             <View style={styles.gridCard}>
-                <MaterialIcon name="weight" size={22} color={TEAL} />
-                <Text style={styles.gridLabel}>WEIGHT</Text>
-                <View style={styles.gridValueRow}>
-                    <Text style={styles.gridMainValue}>64.5</Text>
-                    <Text style={styles.gridSubValue}> KG</Text>
-                </View>
+              <MaterialIcon name="weight" size={22} color={TEAL} />
+              <Text style={styles.gridLabel}>WEIGHT</Text>
+              <View style={styles.gridValueRow}>
+                <Text style={styles.gridMainValue}>64.5</Text>
+                <Text style={styles.gridSubValue}> KG</Text>
+              </View>
             </View>
 
             <View style={styles.gridCard}>
-                <MaterialIcon name="ruler" size={22} color={TEAL} />
-                <Text style={styles.gridLabel}>HEIGHT</Text>
-                <View style={styles.gridValueRow}>
-                    <Text style={styles.gridMainValue}>172</Text>
-                    <Text style={styles.gridSubValue}> CM</Text>
-                </View>
+              <MaterialIcon name="ruler" size={22} color={TEAL} />
+              <Text style={styles.gridLabel}>HEIGHT</Text>
+              <View style={styles.gridValueRow}>
+                <Text style={styles.gridMainValue}>172</Text>
+                <Text style={styles.gridSubValue}> CM</Text>
+              </View>
             </View>
 
             <View style={styles.gridCard}>
-                <MaterialIcon name="gender-female" size={22} color={TEAL} />
-                <Text style={styles.gridLabel}>GENDER</Text>
-                <View style={styles.gridValueRow}>
-                    <Text style={styles.gridMainValue}>Female</Text>
-                </View>
+              <MaterialIcon name="gender-female" size={22} color={TEAL} />
+              <Text style={styles.gridLabel}>GENDER</Text>
+              <View style={styles.gridValueRow}>
+                <Text style={styles.gridMainValue}>Female</Text>
+              </View>
             </View>
 
             <View style={styles.gridCard}>
-                <HugeiconsIcon icon={Calendar01Icon} size={22} color={TEAL} variant="solid" />
-                <Text style={styles.gridLabel}>DOB</Text>
-                <View style={styles.gridValueRow}>
-                    <Text style={styles.gridMainValue}>12 May 1992</Text>
-                </View>
+              <HugeiconsIcon icon={Calendar01Icon} size={22} color={TEAL} variant="solid" />
+              <Text style={styles.gridLabel}>DOB</Text>
+              <View style={styles.gridValueRow}>
+                <Text style={styles.gridMainValue}>12 May 1992</Text>
+              </View>
             </View>
 
           </View>
@@ -164,54 +164,54 @@ const ProfileScreen = () => {
           {/* PREFERENCES SECTION */}
           <Text style={styles.sectionHeader}>PREFERENCES</Text>
           <View style={styles.sectionCard}>
-            
+
             <View style={styles.prefHeaderRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <HugeiconsIcon icon={Restaurant01Icon} size={20} color={COLORS.healthCardSubtext} />
-                    <Text style={styles.prefHeaderTitle}>Dietary Focus</Text>
-                </View>
-                <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <HugeiconsIcon icon={Settings02Icon} size={18} color={TEAL} variant="solid" />
-                </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <HugeiconsIcon icon={Restaurant01Icon} size={20} color={COLORS.healthCardSubtext} />
+                <Text style={styles.prefHeaderTitle}>Dietary Focus</Text>
+              </View>
+              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <HugeiconsIcon icon={Settings02Icon} size={18} color={TEAL} variant="solid" />
+              </TouchableOpacity>
             </View>
-            
+
             <View style={styles.pillContainer}>
-                <View style={[styles.pill, styles.pillActive]}>
-                    <Text style={[styles.pillText, styles.pillTextActive]}>Plant-based</Text>
-                </View>
-                <View style={styles.pill}>
-                    <Text style={styles.pillText}>Gluten-free</Text>
-                </View>
-                <View style={[styles.pill, styles.pillActive]}>
-                    <Text style={[styles.pillText, styles.pillTextActive]}>Organic Only</Text>
-                </View>
-                <View style={styles.pill}>
-                    <Text style={styles.pillText}>Low Sodium</Text>
-                </View>
+              <View style={[styles.pill, styles.pillActive]}>
+                <Text style={[styles.pillText, styles.pillTextActive]}>Plant-based</Text>
+              </View>
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>Gluten-free</Text>
+              </View>
+              <View style={[styles.pill, styles.pillActive]}>
+                <Text style={[styles.pillText, styles.pillTextActive]}>Organic Only</Text>
+              </View>
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>Low Sodium</Text>
+              </View>
             </View>
 
           </View>
 
           {/* Links Section */}
           <View style={{ marginTop: 10 }}>
-            <TouchableOpacity style={styles.linkCard} onPress={() => {}}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={styles.linkIconBox}>
-                        <HugeiconsIcon icon={HelpCircleIcon} size={18} color="#FFFFFF" variant="solid" />
-                    </View>
-                    <Text style={styles.linkText}>Help & Support</Text>
+            <TouchableOpacity style={styles.linkCard} onPress={() => { }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={styles.linkIconBox}>
+                  <HugeiconsIcon icon={HelpCircleIcon} size={18} color="#FFFFFF" variant="solid" />
                 </View>
-                <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={COLORS.placeholder} />
+                <Text style={styles.linkText}>Help & Support</Text>
+              </View>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={COLORS.placeholder} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.linkCard} onPress={() => {}}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={[styles.linkIconBox, { backgroundColor: '#DC2626' }]}>
-                        <HugeiconsIcon icon={Delete02Icon} size={18} color="#FFFFFF" />
-                    </View>
-                    <Text style={[styles.linkText, { color: '#DC2626' }]}>Delete Account</Text>
+            <TouchableOpacity style={styles.linkCard} onPress={() => { }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={[styles.linkIconBox, { backgroundColor: '#DC2626' }]}>
+                  <HugeiconsIcon icon={Delete02Icon} size={18} color="#FFFFFF" />
                 </View>
-                <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={COLORS.placeholder} />
+                <Text style={[styles.linkText, { color: '#DC2626' }]}>Delete Account</Text>
+              </View>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={COLORS.placeholder} />
             </TouchableOpacity>
           </View>
 
@@ -220,7 +220,7 @@ const ProfileScreen = () => {
             <HugeiconsIcon icon={Logout02Icon} size={20} color="#FFFFFF" strokeWidth={2} />
             <Text style={styles.logoutBtnText}>Logout</Text>
           </TouchableOpacity>
-          
+
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>

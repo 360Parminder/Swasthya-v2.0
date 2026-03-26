@@ -4,7 +4,8 @@ import { medicationApi } from '../../api/medicationApi';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
-    ArrowLeft01Icon, Search02Icon, MoreVerticalIcon, Tick02Icon
+    ArrowLeft01Icon, Search02Icon, MoreVerticalIcon, Tick02Icon,
+    MoreVerticalCircle01Icon
 } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -184,10 +185,7 @@ const MedicationHistory = () => {
                     </View>
                     <View style={styles.headerRight}>
                         <TouchableOpacity style={styles.iconBtn}>
-                            <HugeiconsIcon icon={Search02Icon} size={22} color="#6B7280" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconBtn}>
-                            <HugeiconsIcon icon={MoreVerticalIcon} size={22} color="#6B7280" />
+                            <HugeiconsIcon icon={MoreVerticalCircle01Icon} size={24} color={COLORS.primary} />
                         </TouchableOpacity>
                     </View>
                 </View>
