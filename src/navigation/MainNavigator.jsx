@@ -8,10 +8,12 @@ import Icon from 'react-native-vector-icons/Feather';
 import Medication from '../screens/medication/Medication';
 import MedicationHistory from '../screens/medication/MedicationHistory';
 import AlarmScreen from '../screens/home/AlarmScreen';
+
 import { View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
 import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserGroup03Icon, UserIcon } from '@hugeicons/core-free-icons'
+import HydrationScreen from '../screens/Hydration/HydrationScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -70,6 +72,13 @@ function HomeStackScreen() {
       <HomeStack.Screen
         name="MedicationHistory"
         component={MedicationHistory}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <HomeStack.Screen
+        name="Hydration"
+        component={HydrationScreen}
         options={{
           headerShown: false,
         }}

@@ -1,22 +1,35 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Platform, ActivityIndicator } from 'react-native';
+import { medicationApi } from '../../api/medicationApi';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { 
+import {
     ArrowLeft01Icon, Search02Icon, MoreVerticalIcon, Tick02Icon
 } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// --- Dummy Data ---
-const DATES = [
-    { day: 'MON', date: '16' },
-    { day: 'TUE', date: '17' },
-    { day: 'WED', date: '18' },
-    { day: 'THU', date: '19', active: true },
-    { day: 'FRI', date: '20' },
-    { day: 'SAT', date: '21' },
-];
+// Dynamic Date Generator (Last 30 Days)
+const generateDates = () => {
+    const dates = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        dates.push({
+            dateObj: d,
+            day: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+            date: d.getDate().toString(),
+            fullDate: d.toISOString().split('T')[0], // YYYY-MM-DD format for API
+            isToday: i === 0,
+            monthYear: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        });
+    }
+    return dates;
+};
+
+const DYNAMIC_DATES = generateDates();
+const TODAY_FULL_DATE = DYNAMIC_DATES[DYNAMIC_DATES.length - 1].fullDate;
 
 const HISTORY_TIMELINE = [
     {
@@ -68,13 +81,63 @@ const MedicationHistory = () => {
     const COLORS = useThemeColors();
     const navigation = useNavigation();
 
+    // State logic
+    const [selectedDateObj, setSelectedDateObj] = useState(DYNAMIC_DATES[DYNAMIC_DATES.length - 1]);
+    const [historyData, setHistoryData] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    // ScrollView reference for the date selector
+    const dateScrollRef = useRef(null);
+
     // Theming values matching the image
-    const TEAL = '#006A6A'; // Main Teal UI
-    const DARK_TEAL = '#004D40'; // Deep Card Background
-    const PAGE_BG = COLORS.background === '#121212' ? '#121212' : '#F9FAFB'; // Outer rim background
+    const TEAL = '#006A6A';
+    const DARK_TEAL = '#004D40';
+    const PAGE_BG = COLORS.background === '#121212' ? '#121212' : '#F9FAFB';
     const CARD_BG = COLORS.cardBackground;
-    
+
     const styles = useMemo(() => getStyles(COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG), [COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG]);
+
+    // Fetch data on date selection
+    useEffect(() => {
+        const fetchDayHistory = async () => {
+            setLoadingHistory(true);
+            try {
+                // Call API for the specific date
+                console.log(selectedDateObj);
+
+                const datePayload = new Date(selectedDateObj.fullDate);
+                const response = await medicationApi.getHistoryByDate(datePayload);
+                console.log(response.data);
+
+
+                // If API returns valid data formatted correctly, use it. Otherwise fallback to dummy data for UI demonstration.
+                if (response?.data?.medication && response.data.medication.length > 0) {
+                    setHistoryData(response.data.medication);
+                } else {
+                    // Providing dummy state for UI so the design renders even if unlinked 
+                    setHistoryData(HISTORY_TIMELINE.filter(group => selectedDateObj.isToday ? group.group.includes('TODAY') : true));
+                }
+            } catch (error) {
+                console.log(error)
+                console.error("Error fetching history for date:", error);
+                // Fallback to display the static UI representation on error
+                setHistoryData(HISTORY_TIMELINE);
+            } finally {
+                setLoadingHistory(false);
+            }
+        };
+
+        fetchDayHistory();
+    }, [selectedDateObj]);
+
+    // Auto scroll to latest date
+    useEffect(() => {
+        setTimeout(() => {
+            if (dateScrollRef.current) {
+                dateScrollRef.current.scrollToEnd({ animated: true });
+            }
+        }, 100);
+    }, []);
 
     const renderTimelineIcon = (type) => {
         if (type === 'taken') {
@@ -99,7 +162,7 @@ const MedicationHistory = () => {
     };
 
     const getBadgeStyle = (status) => {
-        switch(status) {
+        switch (status) {
             case 'TAKEN': return { bg: '#D1FAE5', text: '#047857' };
             case 'MISSED': return { bg: '#FEE2E2', text: '#DC2626' };
             case 'SKIPPED': return { bg: '#FEF3C7', text: '#D97706' };
@@ -110,7 +173,7 @@ const MedicationHistory = () => {
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
-                
+
                 {/* Custom Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
@@ -133,7 +196,7 @@ const MedicationHistory = () => {
                 <View style={styles.headerDivider} />
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    
+
                     {/* Adherence Header Section */}
                     <View style={styles.adherenceMainCard}>
                         <View style={styles.adherenceLeftCol}>
@@ -169,7 +232,7 @@ const MedicationHistory = () => {
 
                     {/* Date Selector Row */}
                     <View style={styles.dateSelectorHeader}>
-                        <Text style={styles.currentMonthText}>October 2023</Text>
+                        <Text style={styles.currentMonthText}>{selectedDateObj.monthYear}</Text>
                         <View style={styles.dateArrows}>
                             <TouchableOpacity style={styles.dateArrowBtn}>
                                 <MaterialIcon name="chevron-left" size={24} color="#9CA3AF" />
@@ -181,54 +244,75 @@ const MedicationHistory = () => {
                         </View>
                     </View>
 
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.calendarScrollView}>
-                        {DATES.map((item, idx) => (
-                            <View key={idx} style={[styles.dateItem, item.active && styles.dateItemActive]}>
-                                <Text style={[styles.dayText, item.active && styles.dayTextActive]}>{item.day}</Text>
-                                <Text style={[styles.dateText, item.active && styles.dateTextActive]}>{item.date}</Text>
-                                {item.active && <View style={styles.activeDot} />}
-                            </View>
-                        ))}
+                    <ScrollView
+                        ref={dateScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.calendarScrollView}
+                    >
+                        {DYNAMIC_DATES.map((item, idx) => {
+                            const isActive = item.fullDate === selectedDateObj.fullDate;
+                            return (
+                                <TouchableOpacity
+                                    key={idx}
+                                    onPress={() => setSelectedDateObj(item)}
+                                    activeOpacity={0.8}
+                                    style={[styles.dateItem, isActive && styles.dateItemActive]}
+                                >
+                                    <Text style={[styles.dayText, isActive && styles.dayTextActive]}>{item.day}</Text>
+                                    <Text style={[styles.dateText, isActive && styles.dateTextActive]}>{item.date}</Text>
+                                    {isActive && <View style={styles.activeDot} />}
+                                </TouchableOpacity>
+                            );
+                        })}
                     </ScrollView>
 
                     {/* Timeline List Section */}
                     <View style={styles.timelineSectionWrapper}>
                         {/* The continuous vertical line matching design */}
-                        <View style={styles.timelineLine} />
+                        {historyData.length > 0 && <View style={styles.timelineLine} />}
 
-                        {HISTORY_TIMELINE.map((group, gIdx) => (
-                            <View key={gIdx} style={styles.timelineGroup}>
-                                <Text style={styles.timelineGroupHeader}>{group.group}</Text>
-                                
-                                {group.items.map((entry, eIdx) => {
-                                    const badgeStyles = getBadgeStyle(entry.status);
-                                    return (
-                                        <View key={entry.id} style={styles.timelineItemRow}>
-                                            <View style={styles.timelineIconCol}>
-                                                {renderTimelineIcon(entry.iconType)}
-                                            </View>
-                                            <View style={styles.timelineContentCard}>
-                                                <View style={styles.timelineCardHeader}>
-                                                    <Text style={styles.timelineCardTitle}>{entry.name}</Text>
-                                                    <View style={[styles.timelineBadge, { backgroundColor: badgeStyles.bg }]}>
-                                                        <Text style={[styles.timelineBadgeText, { color: badgeStyles.text }]}>{entry.status}</Text>
+                        {loadingHistory ? (
+                            <ActivityIndicator size="large" color={TEAL} style={{ marginTop: 40 }} />
+                        ) : historyData.length > 0 ? (
+                            historyData.map((group, gIdx) => (
+                                <View key={gIdx} style={styles.timelineGroup}>
+                                    <Text style={styles.timelineGroupHeader}>{group.group}</Text>
+
+                                    {group.items.map((entry, eIdx) => {
+                                        const badgeStyles = getBadgeStyle(entry.status);
+                                        return (
+                                            <View key={entry.id} style={styles.timelineItemRow}>
+                                                <View style={styles.timelineIconCol}>
+                                                    {renderTimelineIcon(entry.iconType)}
+                                                </View>
+                                                <View style={styles.timelineContentCard}>
+                                                    <View style={styles.timelineCardHeader}>
+                                                        <Text style={styles.timelineCardTitle}>{entry.name}</Text>
+                                                        <View style={[styles.timelineBadge, { backgroundColor: badgeStyles.bg }]}>
+                                                            <Text style={[styles.timelineBadgeText, { color: badgeStyles.text }]}>{entry.status}</Text>
+                                                        </View>
+                                                    </View>
+                                                    <Text style={styles.timelineCardSubtitle}>{entry.doseInfo}</Text>
+                                                    <View style={styles.timelineCardFooter}>
+                                                        <MaterialIcon
+                                                            name={entry.isNote ? "note-text-outline" : "clock-outline"}
+                                                            size={14}
+                                                            color="#9CA3AF"
+                                                        />
+                                                        <Text style={styles.timelineCardFooterText}>{entry.timeInfo}</Text>
                                                     </View>
                                                 </View>
-                                                <Text style={styles.timelineCardSubtitle}>{entry.doseInfo}</Text>
-                                                <View style={styles.timelineCardFooter}>
-                                                    <MaterialIcon 
-                                                        name={entry.isNote ? "note-text-outline" : "clock-outline"} 
-                                                        size={14} 
-                                                        color="#9CA3AF" 
-                                                    />
-                                                    <Text style={styles.timelineCardFooterText}>{entry.timeInfo}</Text>
-                                                </View>
                                             </View>
-                                        </View>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </View>
+                            ))
+                        ) : (
+                            <View style={{ alignItems: 'center', marginTop: 40 }}>
+                                <Text style={{ color: COLORS.healthCardSubtext, fontSize: 14 }}>No history logs available for this date.</Text>
                             </View>
-                        ))}
+                        )}
                     </View>
 
                     <View style={{ height: 60 }} />
@@ -458,7 +542,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
         color: '#6B7280',
         letterSpacing: 1,
         marginBottom: 16,
-        marginLeft: 42, 
+        marginLeft: 42,
     },
     timelineItemRow: {
         flexDirection: 'row',

@@ -43,8 +43,8 @@ const SleepQualityCard = () => (
   </View>
 );
 
-const HydrationCard = () => (
-  <View style={[cardStyles.card, cardStyles.whiteCard]}>
+const HydrationCard = ({ navigation }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('Hydration')} style={[cardStyles.card, cardStyles.whiteCard]}>
     <View style={cardStyles.rowBetween}>
       <Text style={cardStyles.cardTitle}>HYDRATION</Text>
       <Icon name="water" size={18} color="#0D47A1" />
@@ -57,7 +57,7 @@ const HydrationCard = () => (
       <View style={cardStyles.hydrationProgressFill} />
     </View>
     <Text style={cardStyles.hydrationGoal}>75% OF GOAL</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 const CareNetworkCard = ({ navigation }) => (
@@ -163,7 +163,7 @@ const HomeScreen = () => {
 
         <SleepQualityCard />
 
-        <HydrationCard />
+        <HydrationCard navigation={navigation} />
 
         <CareNetworkCard navigation={navigation} />
 

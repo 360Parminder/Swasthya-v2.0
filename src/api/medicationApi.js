@@ -7,4 +7,9 @@ export const medicationApi = {
     getAllMedications: () => apiClient.get('/medication/all'),
     updateMedication: (id, data) => apiClient.put(`/medication/${id}`, data),
     deleteMedication: (id) => apiClient.delete(`/medication/${id}`),
+    getHistoryByDate: (date) => apiClient.get(`/medication/bydate`, {
+        params: {
+            date
+        }
+    }),
 }

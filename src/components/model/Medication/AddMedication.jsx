@@ -46,6 +46,7 @@ const AddMedication = ({ isVisible, onClose }) => {
         unit: 'mg',
         dosage: '1',
         startDate: new Date(),
+        endDate: new Date(),
         frequency: 'Daily',
         timesPerDay: 2,
         times: [{
@@ -122,6 +123,7 @@ const AddMedication = ({ isVisible, onClose }) => {
             forWhom: formData.forWhom,
             relative_id: formData.relativeId,
             start_date: formData.startDate,
+            end_date: formData.endDate,
             frequency: { type: formData.frequency },
             times: timesArr,
             stock: {
@@ -306,6 +308,12 @@ const AddMedication = ({ isVisible, onClose }) => {
                             <Text style={styles.cardLabelText}>START DATE</Text>
                             <TouchableOpacity style={styles.inputBoxBordered} onPress={() => setShowDatePicker(true)}>
                                 <Text style={styles.inputTextValuePlaceholder}>{formData.startDate.toLocaleDateString()}</Text>
+                                <HugeiconsIcon icon={Calendar01Icon} size={20} color={COLORS.placeholder} />
+                            </TouchableOpacity>
+
+                            <Text style={styles.cardLabelText}>END DATE</Text>
+                            <TouchableOpacity style={styles.inputBoxBordered} onPress={() => setShowDatePicker(true)}>
+                                <Text style={styles.inputTextValuePlaceholder}>{formData.endDate.toLocaleDateString()}</Text>
                                 <HugeiconsIcon icon={Calendar01Icon} size={20} color={COLORS.placeholder} />
                             </TouchableOpacity>
 
