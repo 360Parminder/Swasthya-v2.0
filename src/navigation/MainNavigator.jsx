@@ -17,6 +17,8 @@ import HydrationScreen from '../screens/Hydration/HydrationScreen';
 import HydrationHistoryScreen from '../screens/Hydration/HydrationHistoryScreen';
 import HydrationSettingsScreen from '../screens/Hydration/HydrationSettingsScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
+import SleepDetailsScreen from '../screens/sleep/SleepDetailsScreen';
+import SleepScheduleScreen from '../screens/sleep/SleepScheduleScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -121,6 +123,24 @@ function HomeStackScreen() {
           animation: 'slide_from_right',
         }}
       />
+      <HomeStack.Screen
+        name="SleepDetails"
+        component={SleepDetailsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <HomeStack.Screen
+        name="SleepSchedule"
+        component={SleepScheduleScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -214,10 +234,18 @@ const MainNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStackScreen} />
-      <Tab.Screen name="MedicationTab" component={Medication} />
-      <Tab.Screen name="ConnectionsTab" component={Connection} />
-      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen} options={{
+        lazy: true,
+      }} />
+      <Tab.Screen name="MedicationTab" component={Medication} options={{
+        lazy: true,
+      }} />
+      <Tab.Screen name="ConnectionsTab" component={Connection} options={{
+        lazy: true,
+      }} />
+      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} options={{
+        lazy: true,
+      }} />
       {/* <Tab.Screen name="AlarmScreen" component={AlarmScreen} /> */}
     </Tab.Navigator>
   );

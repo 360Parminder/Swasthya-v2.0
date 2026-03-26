@@ -32,8 +32,8 @@ const HeartRateCard = () => (
   </View>
 );
 
-const SleepQualityCard = () => (
-  <View style={[cardStyles.card, cardStyles.whiteCard]}>
+const SleepQualityCard = ({ navigation }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('SleepDetails')} style={[cardStyles.card, cardStyles.whiteCard]}>
     <Text style={cardStyles.cardTitle}>SLEEP QUALITY</Text>
     <Text style={cardStyles.sleepValue}>7h 30m</Text>
     <Text style={cardStyles.sleepSubtitle}>Deep Sleep: 2h 15m</Text>
@@ -42,7 +42,7 @@ const SleepQualityCard = () => (
         <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? '#546A7B' : '#B8C8D0' }]} />
       ))}
     </View>
-  </View>
+  </TouchableOpacity>
 );
 
 const HydrationCard = ({ navigation }) => (
@@ -163,7 +163,7 @@ const HomeScreen = () => {
 
         <HeartRateCard />
 
-        <SleepQualityCard />
+        <SleepQualityCard navigation={navigation} />
 
         <HydrationCard navigation={navigation} />
 
