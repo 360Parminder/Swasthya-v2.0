@@ -1,17 +1,17 @@
 // src/config/colors.js
 export const colors = {
-  primary: '#3498db',
-  secondary: '#2ecc71',
-  background: '#ffffff',
-  text: '#2c3e50',
-  lightText: '#ecf0f1',
-  error: '#e74c3c',
+  primary: '#0A4174',
+  secondary: '#4E8EA2',
+  background: '#F0F6FA',
+  text: '#001D39',
+  lightText: '#BDD8E9',
+  error: '#EF4444',
 };
 export const darkColors = {
-  primary: '#2980b9',
-  secondary: '#27ae60',   
-  background: '#2c3e50',
-  text: '#ecf0f1',
-  lightText: '#bdc3c7',
-  error: '#c0392b',
+  primary: '#7BBDE8',
+  secondary: '#6EA2B3',
+  background: '#001D39',
+  text: '#BDD8E9',
+  lightText: '#6EA2B3',
+  error: '#F87171',
 };
