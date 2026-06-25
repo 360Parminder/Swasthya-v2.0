@@ -1,6 +1,6 @@
 // src/api/endpoints.js
 
-const BASE_URL = 'http://localhost:8003';
+const BASE_URL = 'http://192.168.1.35:8003';
 
 const endpoints = {
   auth: {

@@ -11,12 +11,12 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../../components/ui/colors';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
-import { HugeiconsIcon } from '@hugeicons/react-native'
-import { Notification01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Notification01Icon, Pulse01Icon, DropletIcon } from '@hugeicons/core-free-icons';
 
 const HeartRateCard = () => (
   <View style={[cardStyles.card, cardStyles.heartCard]}>
@@ -26,7 +26,7 @@ const HeartRateCard = () => (
       <Text style={cardStyles.heartUnit}> bpm</Text>
     </View>
     <View style={cardStyles.heartFooterRow}>
-      <Icon name="pulse" size={14} color="#A7F3D0" />
+      <HugeiconsIcon icon={Pulse01Icon} size={14} color="#A7F3D0" />
       <Text style={cardStyles.heartFooterText}>Resting stable</Text>
     </View>
   </View>
@@ -49,7 +49,7 @@ const HydrationCard = ({ navigation }) => (
   <TouchableOpacity onPress={() => navigation.navigate('Hydration')} style={[cardStyles.card, cardStyles.whiteCard]}>
     <View style={cardStyles.rowBetween}>
       <Text style={cardStyles.cardTitle}>HYDRATION</Text>
-      <Icon name="water" size={18} color="#0D47A1" />
+      <HugeiconsIcon icon={DropletIcon} size={18} color="#0D47A1" />
     </View>
     <View style={cardStyles.hydrationValueRow}>
       <Text style={cardStyles.hydrationValue}>1.5 </Text>
@@ -99,6 +99,7 @@ const HomeScreen = () => {
   const { authState } = useAuth();
   const [medications, setMedications] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     fetchDashboardData();
@@ -127,7 +128,7 @@ const HomeScreen = () => {
     <View style={styles.container}>
       {/* Profile Header */}
       <View style={styles.headerContainer}>
-        <View style={styles.headerTop}>
+        <View style={[styles.headerTop, { paddingTop: insets.top + 13 }]}>
           <View style={styles.profileSection}>
             <Image
               source={{ uri: authState?.user?.avatar || 'https://via.placeholder.com/150' }}

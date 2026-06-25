@@ -1,17 +1,35 @@
 // src/config/colors.js
+
+const palette = {
+  neutral: {
+    50: '#fafafa',
+    100: '#f5f5f5',
+    300: '#d4d4d4',
+    500: '#737373',
+    900: '#171717',
+    950: '#0a0a0a',
+  },
+  violet: {
+    400: '#a78bfa',
+    500: '#8b5cf6',
+    600: '#7c3aed',
+  }
+};
+
 export const colors = {
-  primary: '#0A4174',
-  secondary: '#4E8EA2',
-  background: '#F0F6FA',
-  text: '#001D39',
-  lightText: '#BDD8E9',
+  primary: palette.violet[600],
+  secondary: palette.violet[500],
+  background: palette.neutral[50],
+  text: palette.neutral[900],
+  lightText: palette.neutral[500],
   error: '#EF4444',
 };
+
 export const darkColors = {
-  primary: '#7BBDE8',
-  secondary: '#6EA2B3',
-  background: '#001D39',
-  text: '#BDD8E9',
-  lightText: '#6EA2B3',
+  primary: palette.violet[500],
+  secondary: palette.violet[400],
+  background: palette.neutral[950],
+  text: palette.neutral[50],
+  lightText: palette.neutral[300],
   error: '#F87171',
 };

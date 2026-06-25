@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
 import { COLORS } from '../../components/ui/colors';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { CallIcon, LockKeyIcon } from '@hugeicons/core-free-icons';
 
 const SignInScreen = ({ navigation }) => {
   const { login, isLoading } = useAuth();
@@ -40,9 +41,11 @@ const SignInScreen = ({ navigation }) => {
 
   return (
 
-    <View
-      style={styles.container}
-    >
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1, width: '100%', alignItems: 'center' }}
+      >
       <View style={{ marginBottom: 20, justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
         <Image
           source={require('../../../assets/images/logo.png')}
@@ -63,14 +66,13 @@ const SignInScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={{ width: '100%', paddingHorizontal: 20 }}>
-        <View style={{}}>
-          <Icon name="call-outline" size={20} color={COLORS.primary} style={{ position: 'absolute', top: 12, left: 10, zIndex: 1 }} />
-          <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={'#000000'} keyboardType='phone-pad' style={{ position: 'relative', paddingLeft: 35, backgroundColor: '#e5e5e5ef', color: COLORS.darkText, borderBottomWidth: 0.2, borderTopRightRadius: 10, borderTopLeftRadius: 10 }} />
-
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e5e5e5ef', borderTopRightRadius: 10, borderTopLeftRadius: 10, paddingHorizontal: 10, height: 50, borderBottomWidth: 0.2 }}>
+          <HugeiconsIcon icon={CallIcon} size={20} color={COLORS.primary} />
+          <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={'#000000'} keyboardType='phone-pad' style={{ flex: 1, paddingLeft: 10, color: COLORS.darkText, height: '100%' }} />
         </View>
-        <View>
-          <Icon name="lock-closed-outline" size={20} color={COLORS.primary} style={{ position: 'absolute', top: 12, left: 10, zIndex: 1 }} />
-          <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={'#000000'} style={{ position: 'relative', paddingLeft: 35, backgroundColor: '#e5e5e5ef', color: COLORS.darkText, borderBottomWidth: 1, borderBottomRightRadius: 10, borderBottomLeftRadius: 10 }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e5e5e5ef', borderBottomRightRadius: 10, borderBottomLeftRadius: 10, paddingHorizontal: 10, height: 50, borderBottomWidth: 1 }}>
+          <HugeiconsIcon icon={LockKeyIcon} size={20} color={COLORS.primary} />
+          <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={'#000000'} style={{ flex: 1, paddingLeft: 10, color: COLORS.darkText, height: '100%' }} />
         </View>
       </View>
       <TouchableOpacity>
@@ -99,7 +101,8 @@ const SignInScreen = ({ navigation }) => {
           </Text>
         )}
       </TouchableOpacity>
-    </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

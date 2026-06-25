@@ -2,21 +2,22 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../ui/colors';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { PillIcon, MedicineBottle01Icon, InjectionIcon, HappyIcon } from '@hugeicons/core-free-icons';
 
 // ─── Medication Type Icons & Map ────────────────────────────────────
 const getIconForForm = (form) => {
   switch (form) {
     case 'tablet':
     case 'capsule':
-      return { name: 'set-all', color: '#047857' }; // We can use 'pill'
+      return { icon: PillIcon, color: '#047857' };
     case 'liquid':
     case 'drops':
-      return { name: 'bottle-tonic-plus', color: '#1D4ED8' };
+      return { icon: MedicineBottle01Icon, color: '#1D4ED8' };
     case 'injection':
-      return { name: 'needle', color: '#D97706' };
+      return { icon: InjectionIcon, color: '#D97706' };
     default:
-      return { name: 'pill', color: '#047857' };
+      return { icon: PillIcon, color: '#047857' };
   }
 };
 
@@ -54,19 +55,19 @@ const MedicationScheduleCard = ({ medications }) => {
   const getCardTheme = (index) => {
     const iconThemes = [
       {
-        icon: 'pill',
+        icon: PillIcon,
         iconColor: '#0F766E' // Teal
       },
       {
-        icon: 'bottle-tonic-plus',
+        icon: MedicineBottle01Icon,
         iconColor: '#1D4ED8' // Blue
       },
       {
-        icon: 'needle',
+        icon: InjectionIcon,
         iconColor: '#C2410C' // Orange
       },
       {
-        icon: 'pill',
+        icon: PillIcon,
         iconColor: '#6D28D9' // Purple
       }
     ];
@@ -95,7 +96,7 @@ const MedicationScheduleCard = ({ medications }) => {
         {scheduledDoses.length > 0 ? scheduledDoses.map((med, index) => {
           // Keep identical medication visually consistent using its original index
           const theme = getCardTheme(med.originalIndex);
-          const iconShape = getIconForForm(med?.forms?.toLowerCase() || '')?.name || theme.icon;
+          const iconShape = getIconForForm(med?.forms?.toLowerCase() || '')?.icon || theme.icon;
           const cardBg = isDarkMode ? '#3e3d3dff' : '#F7F9FA';
 
           let timeDisplay = index === 0 ? '08:00 AM' : '10:00 PM';
@@ -117,7 +118,7 @@ const MedicationScheduleCard = ({ medications }) => {
           return (
             <View key={med._id ? `${med._id}-${index}` : index} style={[styles.medCard, { backgroundColor: cardBg }]}>
               <View style={styles.iconBox}>
-                <Icon name={iconShape === 'set-all' ? 'pill' : iconShape} size={22} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
+                <HugeiconsIcon icon={iconShape} size={22} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
               </View>
 
               <View style={styles.medInfo}>
@@ -159,7 +160,7 @@ const MedicationScheduleCard = ({ medications }) => {
         }) : (
           <View style={[styles.emptyStateContainer, { backgroundColor: isDarkMode ? '#3e3d3dff' : '#F9FAFB' }]}>
             <View style={[styles.emptyStateIconWrapper, { backgroundColor: isDarkMode ? '#4B5563' : '#E5E7EB' }]}>
-              <Icon name="emoticon-happy-outline" size={36} color={isDarkMode ? '#D1D5DB' : '#0F766E'} />
+              <HugeiconsIcon icon={HappyIcon} size={36} color={isDarkMode ? '#D1D5DB' : '#0F766E'} />
             </View>
             <Text style={[styles.emptyStateTitle, { color: COLORS.text || '#1F2937' }]}>All done for today!</Text>
             <Text style={[styles.emptyStateSub, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>You have no medications left to take.</Text>
