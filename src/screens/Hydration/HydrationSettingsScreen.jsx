@@ -8,11 +8,11 @@ import {
   TextInput,
   Switch,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, useThemeColors } from '../../components/ui/colors';
-import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react-native'
+import { ArrowLeft01Icon, DropletIcon, Settings02Icon, Calendar01Icon, Notification03Icon, ArrowDown01Icon, Sun02Icon, Clock01Icon, Moon02Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
 
 const HydrationSettingsScreen = () => {
   const navigation = useNavigation();
@@ -46,7 +46,7 @@ const HydrationSettingsScreen = () => {
         {/* Smart Advice Banner */}
         <View style={styles.adviceCard}>
           <View style={styles.adviceIconCircle}>
-            <Icon name="water" size={20} color="#FFFFFF" />
+            <HugeiconsIcon icon={DropletIcon} size={20} color="#FFFFFF" />
           </View>
           <View style={{ flex: 1, marginLeft: 14 }}>
             <Text style={styles.adviceTitle}>Smart Advice</Text>
@@ -60,7 +60,7 @@ const HydrationSettingsScreen = () => {
         {/* Daily Goal Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Icon name="water" size={18} color="#0F766E" />
+            <HugeiconsIcon icon={DropletIcon} size={18} color="#0F766E" />
             <Text style={styles.cardTitle}>Daily Goal</Text>
           </View>
 
@@ -97,7 +97,7 @@ const HydrationSettingsScreen = () => {
         {/* Measurement Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Icon name="settings-outline" size={18} color="#0F766E" />
+            <HugeiconsIcon icon={Settings02Icon} size={18} color="#0F766E" />
             <Text style={styles.cardTitle}>Measurement</Text>
           </View>
 
@@ -128,7 +128,7 @@ const HydrationSettingsScreen = () => {
         {/* Weekly Outlook Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Icon name="calendar-outline" size={18} color="#0F766E" />
+            <HugeiconsIcon icon={Calendar01Icon} size={18} color="#0F766E" />
             <Text style={styles.cardTitle}>Weekly Outlook</Text>
             <View style={styles.totalPill}>
               <Text style={styles.totalPillText}>Total: 14.0L</Text>
@@ -149,7 +149,7 @@ const HydrationSettingsScreen = () => {
         {/* Reminder Protocol Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Icon name="notifications-outline" size={18} color="#0F766E" />
+            <HugeiconsIcon icon={Notification03Icon} size={18} color="#0F766E" />
             <Text style={[styles.cardTitle, { flex: 1 }]}>Reminder Protocol</Text>
             <Switch
               value={reminderEnabled}
@@ -164,7 +164,7 @@ const HydrationSettingsScreen = () => {
               <Text style={styles.fieldLabel}>FREQUENCY</Text>
               <TouchableOpacity style={styles.selectBox}>
                 <Text style={styles.selectBoxText}>{frequency}</Text>
-                <Icon name="chevron-down" size={18} color="#64748B" />
+                <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#64748B" />
               </TouchableOpacity>
 
               <Text style={styles.fieldLabel}>START TIME</Text>
@@ -177,8 +177,8 @@ const HydrationSettingsScreen = () => {
                   placeholderTextColor="#CBD5E1"
                 />
                 <View style={styles.timeIcons}>
-                  <Icon name="sunny-outline" size={18} color="#64748B" style={{ marginRight: 10 }} />
-                  <Icon name="time-outline" size={18} color="#64748B" />
+                  <HugeiconsIcon icon={Sun02Icon} size={18} color="#64748B" style={{ marginRight: 10 }} />
+                  <HugeiconsIcon icon={Clock01Icon} size={18} color="#64748B" />
                 </View>
               </View>
 
@@ -192,8 +192,8 @@ const HydrationSettingsScreen = () => {
                   placeholderTextColor="#CBD5E1"
                 />
                 <View style={styles.timeIcons}>
-                  <Icon name="moon-outline" size={18} color="#64748B" style={{ marginRight: 10 }} />
-                  <Icon name="time-outline" size={18} color="#64748B" />
+                  <HugeiconsIcon icon={Moon02Icon} size={18} color="#64748B" style={{ marginRight: 10 }} />
+                  <HugeiconsIcon icon={Clock01Icon} size={18} color="#64748B" />
                 </View>
               </View>
 

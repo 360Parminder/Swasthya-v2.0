@@ -8,12 +8,12 @@ import {
   Switch,
   Image,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { COLORS, useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, Moon02Icon } from '@hugeicons/core-free-icons';
+import { ArrowLeft01Icon, Moon02Icon, Sun02Icon, Clock01Icon } from '@hugeicons/core-free-icons';
 
 // Duration Pill
 const DurationPill = ({ value, label, selected, onPress }) => (
@@ -110,13 +110,13 @@ const SleepScheduleScreen = () => {
               You are within the recommended range for optimal cognitive function.
             </Text>
           </View>
-          <Icon name="moon" size={36} color="rgba(255,255,255,0.15)" />
+          <HugeiconsIcon icon={Moon02Icon} size={36} color="rgba(255,255,255,0.15)" />
         </View>
 
         {/* Bedtime Card */}
         <View style={styles.timeCard}>
           <View style={styles.timeCardHeader}>
-            <Icon name="moon" size={22} color="#0F766E" />
+            <HugeiconsIcon icon={Moon02Icon} size={22} color="#0F766E" />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.timeCardTitle}>Bedtime</Text>
               <Text style={styles.timeCardSub}>Wind down starts 22:00</Text>
@@ -141,7 +141,7 @@ const SleepScheduleScreen = () => {
         {/* Wake Up Card */}
         <View style={styles.timeCard}>
           <View style={styles.timeCardHeader}>
-            <Icon name="sunny" size={22} color="#F59E0B" />
+            <HugeiconsIcon icon={Sun02Icon} size={22} color="#F59E0B" />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.timeCardTitle}>Wake Up</Text>
               <Text style={styles.timeCardSub}>Smart alarm enabled</Text>
@@ -167,7 +167,7 @@ const SleepScheduleScreen = () => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <Icon name="time-outline" size={20} color="#0F766E" />
+              <HugeiconsIcon icon={Clock01Icon} size={20} color="#0F766E" />
               <Text style={styles.sectionCardTitle}>Wind-down Reminder</Text>
             </View>
             <Switch

@@ -7,7 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { PlusSignCircleIcon, Coffee01Icon, Coffee02Icon } from '@hugeicons/core-free-icons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { COLORS, useThemeColors } from '../../components/ui/colors';
@@ -19,7 +19,7 @@ const WaterOption = ({ title, amount, iconName }) => (
   <View style={styles.waterOptionCard}>
     <View style={styles.waterOptionLeft}>
       <View style={styles.waterOptionIconBox}>
-        <Icon name={iconName} size={20} color="#0F766E" />
+        <HugeiconsIcon icon={iconName} size={20} color="#0F766E" />
       </View>
       <View>
         <Text style={styles.waterOptionTitle}>{title}</Text>
@@ -27,7 +27,7 @@ const WaterOption = ({ title, amount, iconName }) => (
       </View>
     </View>
     <TouchableOpacity style={styles.waterOptionButton}>
-      <Icon name="add-circle" size={24} color="#6B7280" />
+      <HugeiconsIcon icon={PlusSignCircleIcon} size={24} color="#6B7280" />
     </TouchableOpacity>
   </View>
 );
@@ -128,9 +128,9 @@ const HydrationScreen = () => {
         {/* Log Water Intake */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Log Water Intake</Text>
-          <WaterOption title="Small Glass" amount="200ml" iconName="water-outline" />
-          <WaterOption title="Medium Mug" amount="350ml" iconName="cafe-outline" />
-          <WaterOption title="Large Bottle" amount="500ml" iconName="pint-outline" />
+          <WaterOption title="Small Glass" amount="200ml" iconName={DropletIcon} />
+          <WaterOption title="Medium Mug" amount="350ml" iconName={Coffee01Icon} />
+          <WaterOption title="Large Bottle" amount="500ml" iconName={Coffee02Icon} />
         </View>
 
         {/* Weekly Trends */}
@@ -170,7 +170,7 @@ const HydrationScreen = () => {
           <Text style={styles.proTipText}>
             Drinking water first thing in the morning boosts your metabolism and mental clarity. You're doing great!
           </Text>
-          <Icon name="water" size={100} color="#BAE6FD" style={styles.proTipBgWater} />
+          <HugeiconsIcon icon={DropletIcon} size={100} color="#BAE6FD" style={styles.proTipBgWater} />
         </View>
 
       </ScrollView>

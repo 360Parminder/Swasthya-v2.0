@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import Connection from '../screens/connections/Connection';
-import Icon from 'react-native-vector-icons/Feather';
+
 import Medication from '../screens/medication/Medication';
 import MedicationHistory from '../screens/medication/MedicationHistory';
 import AlarmScreen from '../screens/home/AlarmScreen';

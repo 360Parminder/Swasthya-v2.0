@@ -10,12 +10,12 @@ import {
   ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons';
+
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { COLORS, useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, Notification01Icon, Moon02Icon } from '@hugeicons/core-free-icons';
+import { ArrowLeft01Icon, Notification01Icon, Moon02Icon, Tick02Icon, ThermometerIcon, DropletIcon, Leaf01Icon, SlidersHorizontalIcon } from '@hugeicons/core-free-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +23,7 @@ const { width } = Dimensions.get('window');
 const ChecklistItem = ({ label, checked, badge }) => (
   <View style={styles.checkItem}>
     <View style={[styles.checkCircle, checked && styles.checkCircleActive]}>
-      {checked && <Icon name="checkmark" size={14} color="#FFFFFF" />}
+      {checked && <HugeiconsIcon icon={Tick02Icon} size={14} color="#FFFFFF" />}
     </View>
     <Text style={styles.checkLabel}>{label}</Text>
     {badge && (
@@ -37,7 +37,7 @@ const ChecklistItem = ({ label, checked, badge }) => (
 // Environment Row
 const EnvRow = ({ iconName, iconColor, label, value, badge, badgeColor }) => (
   <View style={styles.envRow}>
-    <Icon name={iconName} size={22} color={iconColor} />
+    <HugeiconsIcon icon={iconName} size={22} color={iconColor} />
     <View style={{ marginLeft: 14, flex: 1 }}>
       <Text style={styles.envLabel}>{label}</Text>
       <Text style={styles.envValue}>{value}</Text>
@@ -166,7 +166,7 @@ const SleepDetailsScreen = () => {
               <Text style={styles.sectionSubtitle}>4 of 5 tasks completed</Text>
             </View>
             <TouchableOpacity>
-              <Icon name="options-outline" size={22} color="#94A3B8" />
+              <HugeiconsIcon icon={SlidersHorizontalIcon} size={22} color="#94A3B8" />
             </TouchableOpacity>
           </View>
 
@@ -181,7 +181,7 @@ const SleepDetailsScreen = () => {
           <Text style={styles.sectionTitle}>Room Environment</Text>
           <View style={{ marginTop: 16 }}>
             <EnvRow
-              iconName="thermometer-outline"
+              iconName={ThermometerIcon}
               iconColor="#EF4444"
               label="Temperature"
               value="68°F"
@@ -189,7 +189,7 @@ const SleepDetailsScreen = () => {
               badgeColor="#0F766E"
             />
             <EnvRow
-              iconName="water-outline"
+              iconName={DropletIcon}
               iconColor="#3B82F6"
               label="Humidity"
               value="45%"
@@ -197,7 +197,7 @@ const SleepDetailsScreen = () => {
               badgeColor="#3B82F6"
             />
             <EnvRow
-              iconName="leaf-outline"
+              iconName={Leaf01Icon}
               iconColor="#10B981"
               label="Air Quality"
               value="Fresh"
@@ -219,7 +219,7 @@ const SleepDetailsScreen = () => {
             </View>
             <Text style={styles.streakMsg}>Keep it up!</Text>
           </View>
-          <Icon name="moon" size={50} color="rgba(255,255,255,0.12)" />
+          <HugeiconsIcon icon={Moon02Icon} size={50} color="rgba(255,255,255,0.12)" />
         </View>
 
 

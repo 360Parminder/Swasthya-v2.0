@@ -4,26 +4,29 @@ import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { PillIcon, MedicineBottle01Icon, InjectionIcon, HappyIcon } from '@hugeicons/core-free-icons';
+import { useColorScheme } from 'react-native';
 
 // ─── Medication Type Icons & Map ────────────────────────────────────
 const getIconForForm = (form) => {
   switch (form) {
     case 'tablet':
     case 'capsule':
-      return { icon: PillIcon, color: '#047857' };
+      return PillIcon;
     case 'liquid':
     case 'drops':
-      return { icon: MedicineBottle01Icon, color: '#1D4ED8' };
+      return MedicineBottle01Icon;
     case 'injection':
-      return { icon: InjectionIcon, color: '#D97706' };
+      return InjectionIcon;
     default:
-      return { icon: PillIcon, color: '#047857' };
+      return PillIcon;
   }
 };
 
 const MedicationScheduleCard = ({ medications }) => {
   const COLORS = useThemeColors();
   const navigation = useNavigation();
+  const scheme = useColorScheme();
+  const isDarkMode = scheme === 'dark';
 
   const activeCount = medications?.length || 0;
 
@@ -52,39 +55,16 @@ const MedicationScheduleCard = ({ medications }) => {
   }, [medications]);
 
   // Distinct icon themes for each medication subcard, with neutral backgrounds
-  const getCardTheme = (index) => {
-    const iconThemes = [
-      {
-        icon: PillIcon,
-        iconColor: '#0F766E' // Teal
-      },
-      {
-        icon: MedicineBottle01Icon,
-        iconColor: '#1D4ED8' // Blue
-      },
-      {
-        icon: InjectionIcon,
-        iconColor: '#C2410C' // Orange
-      },
-      {
-        icon: PillIcon,
-        iconColor: '#6D28D9' // Purple
-      }
-    ];
-    return iconThemes[index % iconThemes.length];
-  }
-  const isDarkMode = COLORS.background === '#121212';
-
   return (
     <TouchableOpacity
-      style={[styles.container, { backgroundColor: COLORS.cardBackground || '#FFFFFF' }]}
+      style={[styles.container, { backgroundColor: COLORS.cardBackground }]}
       onPress={() => navigation.navigate('Medication')}
       activeOpacity={0.9}
     >
       <View style={styles.headerRow}>
-        <Text style={styles.headerSubtitle}>MEDICATION SCHEDULE</Text>
-        <View style={styles.badgeContainer}>
-          <Text style={styles.badgeText}>ACTIVE</Text>
+        <Text style={[styles.headerSubtitle, { color: COLORS.primary }]}>MEDICATION SCHEDULE</Text>
+        <View style={[styles.badgeContainer, { backgroundColor: isDarkMode ? COLORS.surfaceAlt : COLORS.primarySoft }]}>
+          <Text style={[styles.badgeText, { color: isDarkMode ? COLORS.primarySoftText : COLORS.primary }]}>ACTIVE</Text>
         </View>
       </View>
 
@@ -94,10 +74,9 @@ const MedicationScheduleCard = ({ medications }) => {
 
       <View style={styles.listContainer}>
         {scheduledDoses.length > 0 ? scheduledDoses.map((med, index) => {
-          // Keep identical medication visually consistent using its original index
-          const theme = getCardTheme(med.originalIndex);
-          const iconShape = getIconForForm(med?.forms?.toLowerCase() || '')?.icon || theme.icon;
-          const cardBg = isDarkMode ? '#3e3d3dff' : '#F7F9FA';
+          const iconShape = getIconForForm(med?.forms?.toLowerCase() || '');
+          const cardBg = COLORS.surfaceAlt;
+          const iconColor = COLORS.primary;
 
           let timeDisplay = index === 0 ? '08:00 AM' : '10:00 PM';
           let doseStr = null;
@@ -118,14 +97,14 @@ const MedicationScheduleCard = ({ medications }) => {
           return (
             <View key={med._id ? `${med._id}-${index}` : index} style={[styles.medCard, { backgroundColor: cardBg }]}>
               <View style={styles.iconBox}>
-                <HugeiconsIcon icon={iconShape} size={22} color={isDarkMode ? '#D1D5DB' : theme.iconColor} />
+                <HugeiconsIcon icon={iconShape} size={22} color={isDarkMode ? COLORS.primarySoftText : iconColor} />
               </View>
 
               <View style={styles.medInfo}>
-                <Text style={[styles.medName, { color: COLORS.text || '#1F2937' }]}>
+                <Text style={[styles.medName, { color: COLORS.textPrimary }]}>
                   {med?.medicine_name || (index === 0 ? 'Lisinopril' : 'Atorvastatin')}
                 </Text>
-                <Text style={[styles.medInstruction, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>
+                <Text style={[styles.medInstruction, { color: COLORS.textSecondary }]}>
                   {(med?.strength && med?.unit) ? `${med.strength} ${med.unit} • ${med.description || 'Daily'}` : (index === 0 ? '10mg • Daily with breakfast' : '20mg • Before sleep')}
                 </Text>
               </View>
@@ -135,7 +114,7 @@ const MedicationScheduleCard = ({ medications }) => {
                   <Text style={[
                     styles.timeText,
                     {
-                      color: isDarkMode ? '#D1D5DB' : theme.iconColor,
+                      color: isDarkMode ? COLORS.textSecondary : iconColor,
                       textAlign: 'right'
                     }
                   ]}>
@@ -143,10 +122,10 @@ const MedicationScheduleCard = ({ medications }) => {
                   </Text>
 
                   {doseStr && (
-                    <View style={{ backgroundColor: isDarkMode ? '#4B5563' : (theme.iconColor + '1A'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
+                    <View style={{ backgroundColor: isDarkMode ? COLORS.border : (iconColor + '1A'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
                       <Text style={{
                         fontSize: 10,
-                        color: isDarkMode ? '#D1D5DB' : theme.iconColor,
+                        color: isDarkMode ? COLORS.textSecondary : iconColor,
                         fontWeight: '600'
                       }}>
                         {doseStr}
@@ -158,12 +137,12 @@ const MedicationScheduleCard = ({ medications }) => {
             </View>
           );
         }) : (
-          <View style={[styles.emptyStateContainer, { backgroundColor: isDarkMode ? '#3e3d3dff' : '#F9FAFB' }]}>
-            <View style={[styles.emptyStateIconWrapper, { backgroundColor: isDarkMode ? '#4B5563' : '#E5E7EB' }]}>
-              <HugeiconsIcon icon={HappyIcon} size={36} color={isDarkMode ? '#D1D5DB' : '#0F766E'} />
+          <View style={[styles.emptyStateContainer, { backgroundColor: COLORS.surfaceAlt }]}>
+            <View style={[styles.emptyStateIconWrapper, { backgroundColor: COLORS.border }]}>
+              <HugeiconsIcon icon={HappyIcon} size={36} color={isDarkMode ? COLORS.textSecondary : COLORS.primary} />
             </View>
-            <Text style={[styles.emptyStateTitle, { color: COLORS.text || '#1F2937' }]}>All done for today!</Text>
-            <Text style={[styles.emptyStateSub, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>You have no medications left to take.</Text>
+            <Text style={[styles.emptyStateTitle, { color: COLORS.textPrimary }]}>All done for today!</Text>
+            <Text style={[styles.emptyStateSub, { color: COLORS.textSecondary }]}>You have no medications left to take.</Text>
           </View>
         )}
       </View>
@@ -189,19 +168,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   headerSubtitle: {
-    color: '#0F766E',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
   },
   badgeContainer: {
-    backgroundColor: '#D1FAE5',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   badgeText: {
-    color: '#065F46',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,

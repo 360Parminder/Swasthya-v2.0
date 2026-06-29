@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Text, FlatList, Image } from 'react-native';
 import { COLORS } from '../../../components/ui/colors';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Tick02Icon } from '@hugeicons/core-free-icons';
 
 const formImages = {
   tablet: require('../../../../assets/images/tablet.png'),
@@ -53,7 +54,7 @@ const ViewMedications = ({ medications }) => {
         </View>
       </View>
       <View style={styles.checkIconContainer}>
-        <Icon name="checkmark" size={24} color={COLORS.text} style={{ alignSelf: 'center', fontWeight: '600' }} />
+        <HugeiconsIcon icon={Tick02Icon} size={24} color={COLORS.text} style={{ alignSelf: 'center', fontWeight: '600' }} />
       </View>
     </View>
   );

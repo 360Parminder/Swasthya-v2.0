@@ -1,8 +1,8 @@
 // src/config/toastConfig.js
 import { Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-import Icon from 'react-native-vector-icons/Ionicons';
-
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Tick02Icon, Alert02Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 export const toastConfig = {
   success: ({ text1, props, ...rest }) => (
     <View style={{ 
@@ -13,7 +13,7 @@ export const toastConfig = {
       flexDirection: 'row',
       alignItems: 'center'
     }}>
-      <Icon name="checkmark-circle" size={24} color="white" />
+      <HugeiconsIcon icon={Tick02Icon} size={24} color="white" />
       <View style={{ marginLeft: 10 }}>
         <Text style={{ color: 'white', fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
@@ -31,7 +31,7 @@ export const toastConfig = {
       flexDirection: 'row',
       alignItems: 'center'
       }}>
-        <Icon name="alert-circle" size={24} color="white" />
+        <HugeiconsIcon icon={Alert02Icon} size={24} color="white" />
       <View style={{ marginLeft: 10 }}>
         <Text style={{ color: 'white', fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
@@ -49,7 +49,7 @@ export const toastConfig = {
       flexDirection: 'row',
       alignItems: 'center'
     }}>
-      <Icon name="information-circle" size={24} color="white" />
+      <HugeiconsIcon icon={InformationCircleIcon} size={24} color="white" />
       <View style={{ marginLeft: 10 }}>
         <Text style={{ color: 'white', fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
@@ -58,4 +58,15 @@ export const toastConfig = {
       </View>
     </View>
   )
+};
+
+export const showToast = (type, message, subMessage = '') => {
+  Toast.show({
+    type,
+    text1: message,
+    text2: subMessage,
+    visibilityTime: 3000,
+    autoHide: true,
+    topOffset: 10,
+  });
 };

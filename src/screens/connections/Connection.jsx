@@ -13,7 +13,7 @@ import Toast from 'react-native-toast-message';
 import { connectionApi } from '../../api/connectionApi';
 import { useAuth } from '../../context/AuthContext';
 import { useThemeColors } from '../../components/ui/colors';
-import Icon from 'react-native-vector-icons/Ionicons';
+
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -23,6 +23,8 @@ import {
   UserAdd01Icon,
   PillIcon,
   FirstAidKitIcon,
+  Clock01Icon,
+  ArrowRight01Icon
 } from '@hugeicons/core-free-icons';
 
 import AddConnection from '../../components/model/Connection/AddConnection';
@@ -175,13 +177,13 @@ const Connection = () => {
 
                 {index % 2 === 0 ? (
                   <View style={styles.connectionFooterRow}>
-                    <Icon name="time-outline" size={14} color={COLORS.textSecondary} />
+                    <HugeiconsIcon icon={Clock01Icon} size={14} color={COLORS.textSecondary} />
                     <Text style={styles.connectionFooterText}>Last active 2h ago</Text>
                   </View>
                 ) : (
                   <TouchableOpacity style={styles.connectionFooterRow}>
                     <Text style={styles.viewScheduleText}>View Profile</Text>
-                    <Icon name="chevron-forward" size={14} color={COLORS.primary} />
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={14} color={COLORS.primary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -214,7 +216,7 @@ const Connection = () => {
                 <Text style={[styles.careButtonText, { color: '#FFFFFF' }]}>Prescriptions</Text>
               </TouchableOpacity>
             </View>
-            <Icon name="medical" size={120} color="rgba(255,255,255,0.06)" style={styles.careBgIcon} />
+            <HugeiconsIcon icon={FirstAidKitIcon} size={120} color="rgba(255,255,255,0.06)" style={styles.careBgIcon} />
           </View>
 
           {/* Need more support? */}

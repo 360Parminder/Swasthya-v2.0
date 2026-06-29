@@ -7,11 +7,10 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { ArrowLeft01Icon, Settings02Icon, FirstAidKitIcon, Tick02Icon, UserIcon, Alert02Icon, DropletIcon, NotificationOff03Icon } from '@hugeicons/core-free-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, Settings02Icon } from '@hugeicons/core-free-icons';
 
 const NotificationsScreen = () => {
   const navigation = useNavigation();
@@ -48,7 +47,7 @@ const NotificationsScreen = () => {
         <View style={styles.notifCard}>
           <View style={styles.notifTopRow}>
             <View style={styles.pillIconCircle}>
-              <Icon name="medkit" size={22} color="#FFFFFF" />
+              <HugeiconsIcon icon={FirstAidKitIcon} size={22} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={styles.notifTitleRow}>
@@ -61,7 +60,7 @@ const NotificationsScreen = () => {
             </View>
           </View>
           <TouchableOpacity style={styles.markTakenButton}>
-            <Icon name="checkmark-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <HugeiconsIcon icon={Tick02Icon} size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.markTakenText}>Mark as Taken</Text>
           </TouchableOpacity>
         </View>
@@ -86,7 +85,7 @@ const NotificationsScreen = () => {
             </View>
           </View>
           <View style={styles.inviteBottomRow}>
-            <Icon name="person" size={18} color="#94A3B8" />
+            <HugeiconsIcon icon={UserIcon} size={18} color="#94A3B8" />
             <View style={styles.inviteButtonsRow}>
               <TouchableOpacity style={styles.acceptButton}>
                 <Text style={styles.acceptButtonText}>Accept</Text>
@@ -108,7 +107,7 @@ const NotificationsScreen = () => {
         <View style={styles.notifCard}>
           <View style={styles.notifTopRow}>
             <View style={styles.warningIconCircle}>
-              <Icon name="warning" size={20} color="#FFFFFF" />
+              <HugeiconsIcon icon={Alert02Icon} size={20} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={styles.notifTitleRow}>
@@ -129,7 +128,7 @@ const NotificationsScreen = () => {
         <View style={styles.notifCard}>
           <View style={styles.notifTopRow}>
             <View style={styles.hydrationIconCircle}>
-              <Icon name="water" size={20} color="#FFFFFF" />
+              <HugeiconsIcon icon={DropletIcon} size={20} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={styles.notifTitleRow}>
@@ -145,7 +144,7 @@ const NotificationsScreen = () => {
 
         {/* End of notifications */}
         <View style={styles.endSection}>
-          <Icon name="notifications-off-outline" size={28} color="#CBD5E1" style={{ marginBottom: 10 }} />
+          <HugeiconsIcon icon={NotificationOff03Icon} size={28} color="#CBD5E1" style={{ marginBottom: 10 }} />
           <Text style={styles.endText}>
             You've reached the end of your recent{'\n'}notifications.
           </Text>

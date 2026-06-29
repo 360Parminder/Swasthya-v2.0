@@ -12,82 +12,83 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../../components/ui/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from 'react-native';
 import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Notification01Icon, Pulse01Icon, DropletIcon } from '@hugeicons/core-free-icons';
 
-const HeartRateCard = () => (
-  <View style={[cardStyles.card, cardStyles.heartCard]}>
-    <Text style={cardStyles.heartTitle}>HEART RATE</Text>
+const HeartRateCard = ({ colors, isDarkMode }) => (
+  <View style={[cardStyles.card, { backgroundColor: isDarkMode ? colors.surfaceAlt : colors.primary }]}>
+    <Text style={[cardStyles.cardTitle, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>HEART RATE</Text>
     <View style={cardStyles.heartValueRow}>
-      <Text style={cardStyles.heartValue}>72</Text>
-      <Text style={cardStyles.heartUnit}> bpm</Text>
+      <Text style={[cardStyles.heartValue, { color: isDarkMode ? colors.textPrimary : '#FFFFFF' }]}>72</Text>
+      <Text style={[cardStyles.heartUnit, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}> bpm</Text>
     </View>
     <View style={cardStyles.heartFooterRow}>
-      <HugeiconsIcon icon={Pulse01Icon} size={14} color="#A7F3D0" />
-      <Text style={cardStyles.heartFooterText}>Resting stable</Text>
+      <HugeiconsIcon icon={Pulse01Icon} size={14} color={isDarkMode ? colors.textSecondary : colors.primarySoft} />
+      <Text style={[cardStyles.heartFooterText, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>Resting stable</Text>
     </View>
   </View>
 );
 
-const SleepQualityCard = ({ navigation }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('SleepDetails')} style={[cardStyles.card, cardStyles.whiteCard]}>
-    <Text style={cardStyles.cardTitle}>SLEEP QUALITY</Text>
-    <Text style={cardStyles.sleepValue}>7h 30m</Text>
-    <Text style={cardStyles.sleepSubtitle}>Deep Sleep: 2h 15m</Text>
+const SleepQualityCard = ({ navigation, colors, isDarkMode }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('SleepDetails')} style={[cardStyles.card, { backgroundColor: colors.surface }]}>
+    <Text style={[cardStyles.cardTitle, { color: colors.textSecondary }]}>SLEEP QUALITY</Text>
+    <Text style={[cardStyles.sleepValue, { color: colors.textPrimary }]}>7h 30m</Text>
+    <Text style={[cardStyles.sleepSubtitle, { color: colors.textMuted }]}>Deep Sleep: 2h 15m</Text>
     <View style={cardStyles.sleepBars}>
       {[14, 20, 38, 24, 20, 18].map((h, i) => (
-        <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? '#546A7B' : '#B8C8D0' }]} />
+        <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? colors.primary : colors.borderStrong }]} />
       ))}
     </View>
   </TouchableOpacity>
 );
 
-const HydrationCard = ({ navigation }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('Hydration')} style={[cardStyles.card, cardStyles.whiteCard]}>
+const HydrationCard = ({ navigation, colors, isDarkMode }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('Hydration')} style={[cardStyles.card, { backgroundColor: colors.surface }]}>
     <View style={cardStyles.rowBetween}>
-      <Text style={cardStyles.cardTitle}>HYDRATION</Text>
-      <HugeiconsIcon icon={DropletIcon} size={18} color="#0D47A1" />
+      <Text style={[cardStyles.cardTitle, { color: colors.textSecondary, marginBottom: 0 }]}>HYDRATION</Text>
+      <HugeiconsIcon icon={DropletIcon} size={18} color={colors.primary} />
     </View>
     <View style={cardStyles.hydrationValueRow}>
-      <Text style={cardStyles.hydrationValue}>1.5 </Text>
-      <Text style={cardStyles.hydrationUnit}>/ 2L</Text>
+      <Text style={[cardStyles.hydrationValue, { color: colors.textPrimary }]}>1.5 </Text>
+      <Text style={[cardStyles.hydrationUnit, { color: colors.textSecondary }]}>/ 2L</Text>
     </View>
-    <View style={cardStyles.hydrationProgressBg}>
-      <View style={cardStyles.hydrationProgressFill} />
+    <View style={[cardStyles.hydrationProgressBg, { backgroundColor: colors.border }]}>
+      <View style={[cardStyles.hydrationProgressFill, { backgroundColor: colors.primary }]} />
     </View>
-    <Text style={cardStyles.hydrationGoal}>75% OF GOAL</Text>
+    <Text style={[cardStyles.hydrationGoal, { color: colors.primary }]}>75% OF GOAL</Text>
   </TouchableOpacity>
 );
 
-const CareNetworkCard = ({ navigation }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('Connections')} style={[cardStyles.card, cardStyles.careCard]}>
-    <Text style={cardStyles.careTitle}>CARE NETWORK</Text>
+const CareNetworkCard = ({ navigation, colors, isDarkMode }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('Connections')} style={[cardStyles.card, { backgroundColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]}>
+    <Text style={[cardStyles.cardTitle, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>CARE NETWORK</Text>
     <View style={cardStyles.avatarRow}>
-      <Image source={{ uri: 'https://i.pravatar.cc/100?img=5' }} style={[cardStyles.careAvatar, { zIndex: 3 }]} />
-      <Image source={{ uri: 'https://i.pravatar.cc/100?img=3' }} style={[cardStyles.careAvatar, { zIndex: 2, marginLeft: -12 }]} />
-      <View style={[cardStyles.careMoreAvatar, { zIndex: 1, marginLeft: -12 }]}>
-        <Text style={cardStyles.careMoreText}>+3</Text>
+      <Image source={{ uri: 'https://i.pravatar.cc/100?img=5' }} style={[cardStyles.careAvatar, { zIndex: 3, borderColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]} />
+      <Image source={{ uri: 'https://i.pravatar.cc/100?img=3' }} style={[cardStyles.careAvatar, { zIndex: 2, marginLeft: -12, borderColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]} />
+      <View style={[cardStyles.careMoreAvatar, { zIndex: 1, marginLeft: -12, backgroundColor: isDarkMode ? colors.surface : colors.primarySoft, borderColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]}>
+        <Text style={[cardStyles.careMoreText, { color: isDarkMode ? colors.textPrimary : colors.primary }]}>+3</Text>
       </View>
     </View>
-    <Text style={cardStyles.careName}>Dr. Sarah Miller</Text>
-    <Text style={cardStyles.careRole}>Primary Physician - Online</Text>
+    <Text style={[cardStyles.careName, { color: isDarkMode ? colors.textPrimary : '#FFFFFF' }]}>Dr. Sarah Miller</Text>
+    <Text style={[cardStyles.careRole, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>Primary Physician - Online</Text>
   </TouchableOpacity>
 );
 
-const BloodPressureCard = () => (
-  <View style={[cardStyles.card, cardStyles.whiteCard, { marginBottom: 30 }]}>
-    <Text style={[cardStyles.cardTitle, { textAlign: 'center', marginBottom: 6 }]}>BLOOD PRESSURE</Text>
-    <Text style={[cardStyles.bpValue, { textAlign: 'center' }]}>120/80 <Text style={cardStyles.bpUnit}>mmHg</Text></Text>
+const BloodPressureCard = ({ colors, isDarkMode }) => (
+  <View style={[cardStyles.card, { backgroundColor: colors.surface, marginBottom: 30 }]}>
+    <Text style={[cardStyles.cardTitle, { textAlign: 'center', marginBottom: 6, color: colors.textSecondary }]}>BLOOD PRESSURE</Text>
+    <Text style={[cardStyles.bpValue, { textAlign: 'center', color: colors.textPrimary }]}>120/80 <Text style={[cardStyles.bpUnit, { color: colors.textSecondary }]}>mmHg</Text></Text>
 
     <View style={cardStyles.rowBetweenBP}>
-      <Text style={cardStyles.bpFooterText}>Normal Range</Text>
-      <Text style={cardStyles.bpFooterBold}>Optimal</Text>
+      <Text style={[cardStyles.bpFooterText, { color: colors.textSecondary }]}>Normal Range</Text>
+      <Text style={[cardStyles.bpFooterBold, { color: colors.primary }]}>Optimal</Text>
     </View>
-    <View style={cardStyles.bpSliderBg}>
-      <View style={cardStyles.bpSliderThumb} />
+    <View style={[cardStyles.bpSliderBg, { backgroundColor: colors.border }]}>
+      <View style={[cardStyles.bpSliderThumb, { backgroundColor: colors.primary, borderColor: colors.surface }]} />
     </View>
   </View>
 );
@@ -100,6 +101,8 @@ const HomeScreen = () => {
   const [medications, setMedications] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+  const scheme = useColorScheme();
+  const isDarkMode = scheme === 'dark';
 
   useEffect(() => {
     fetchDashboardData();
@@ -162,15 +165,15 @@ const HomeScreen = () => {
       >
         <MedicationScheduleCard medications={medications} />
 
-        <HeartRateCard />
+        <HeartRateCard colors={COLORS} isDarkMode={isDarkMode} />
 
-        <SleepQualityCard navigation={navigation} />
+        <SleepQualityCard navigation={navigation} colors={COLORS} isDarkMode={isDarkMode} />
 
-        <HydrationCard navigation={navigation} />
+        <HydrationCard navigation={navigation} colors={COLORS} isDarkMode={isDarkMode} />
 
-        <CareNetworkCard navigation={navigation} />
+        <CareNetworkCard navigation={navigation} colors={COLORS} isDarkMode={isDarkMode} />
 
-        <BloodPressureCard />
+        <BloodPressureCard colors={COLORS} isDarkMode={isDarkMode} />
       </ScrollView>
     </View>
   );

@@ -5,10 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     ArrowLeft01Icon, Search02Icon, MoreVerticalIcon, Tick02Icon,
-    MoreVerticalCircle01Icon
+    MoreVerticalCircle01Icon, AlertCircleIcon, Cancel01Icon,
+    ChartBarBigIcon, ArrowRight01Icon, Note01Icon, Time02Icon
 } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Dynamic Date Generator (Last 30 Days)
 const generateDates = () => {
@@ -91,9 +91,9 @@ const MedicationHistory = () => {
     const dateScrollRef = useRef(null);
 
     // Theming values matching the image
-    const TEAL = '#006A6A';
-    const DARK_TEAL = '#004D40';
-    const PAGE_BG = COLORS.background === '#121212' ? '#121212' : '#F9FAFB';
+    const TEAL = COLORS.primary;
+    const DARK_TEAL = COLORS.primaryHover;
+    const PAGE_BG = COLORS.background;
     const CARD_BG = COLORS.cardBackground;
 
     const styles = useMemo(() => getStyles(COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG), [COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG]);
@@ -143,20 +143,20 @@ const MedicationHistory = () => {
     const renderTimelineIcon = (type) => {
         if (type === 'taken') {
             return (
-                <View style={[styles.timelineIconWrapper, { backgroundColor: '#D1FAE5' }]}>
-                    <HugeiconsIcon icon={Tick02Icon} size={14} color="#047857" variant="solid" />
+                <View style={[styles.timelineIconWrapper, { backgroundColor: COLORS.success + '33' }]}>
+                    <HugeiconsIcon icon={Tick02Icon} size={14} color={COLORS.success} variant="solid" />
                 </View>
             );
         } else if (type === 'missed') {
             return (
-                <View style={[styles.timelineIconWrapper, { backgroundColor: '#FEE2E2' }]}>
-                    <MaterialIcon name="alert-circle" size={14} color="#DC2626" />
+                <View style={[styles.timelineIconWrapper, { backgroundColor: COLORS.danger + '33' }]}>
+                    <HugeiconsIcon icon={AlertCircleIcon} size={14} color={COLORS.danger} />
                 </View>
             );
         } else if (type === 'skipped') {
             return (
-                <View style={[styles.timelineIconWrapper, { backgroundColor: '#FEF3C7' }]}>
-                    <MaterialIcon name="cancel" size={14} color="#D97706" />
+                <View style={[styles.timelineIconWrapper, { backgroundColor: COLORS.warning + '33' }]}>
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} color={COLORS.warning} />
                 </View>
             );
         }
@@ -164,10 +164,10 @@ const MedicationHistory = () => {
 
     const getBadgeStyle = (status) => {
         switch (status) {
-            case 'TAKEN': return { bg: '#D1FAE5', text: '#047857' };
-            case 'MISSED': return { bg: '#FEE2E2', text: '#DC2626' };
-            case 'SKIPPED': return { bg: '#FEF3C7', text: '#D97706' };
-            default: return { bg: '#E5E7EB', text: '#374151' };
+            case 'TAKEN': return { bg: COLORS.success + '33', text: COLORS.success };
+            case 'MISSED': return { bg: COLORS.danger + '33', text: COLORS.danger };
+            case 'SKIPPED': return { bg: COLORS.warning + '33', text: COLORS.warning };
+            default: return { bg: COLORS.border, text: COLORS.textSecondary };
         }
     };
 
@@ -206,7 +206,7 @@ const MedicationHistory = () => {
                         </View>
                         <View style={styles.adherenceRightCol}>
                             {/* A subtle mock bar chart rendering */}
-                            <MaterialIcon name="chart-bar" size={64} color="rgba(255,255,255,0.15)" />
+                            <HugeiconsIcon icon={ChartBarBigIcon} size={64} color="rgba(255,255,255,0.15)" />
                         </View>
                     </View>
 
@@ -214,14 +214,14 @@ const MedicationHistory = () => {
                     <View style={styles.statsRow}>
                         <View style={styles.statMiniCard}>
                             <View style={styles.statMiniHeader}>
-                                <HugeiconsIcon icon={Tick02Icon} size={14} color="#047857" variant="solid" />
+                                <HugeiconsIcon icon={Tick02Icon} size={14} color={COLORS.success} variant="solid" />
                                 <Text style={styles.statMiniLabel}>TAKEN</Text>
                             </View>
                             <Text style={styles.statMiniValueBlack}>24</Text>
                         </View>
                         <View style={styles.statMiniCard}>
                             <View style={styles.statMiniHeader}>
-                                <MaterialIcon name="close" size={16} color="#DC2626" />
+                                <HugeiconsIcon icon={Cancel01Icon} size={16} color={COLORS.danger} />
                                 <Text style={styles.statMiniLabel}>MISSED</Text>
                             </View>
                             <Text style={styles.statMiniValueRed}>2</Text>
@@ -233,11 +233,11 @@ const MedicationHistory = () => {
                         <Text style={styles.currentMonthText}>{selectedDateObj.monthYear}</Text>
                         <View style={styles.dateArrows}>
                             <TouchableOpacity style={styles.dateArrowBtn}>
-                                <MaterialIcon name="chevron-left" size={24} color="#9CA3AF" />
+                                <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.textMuted} />
                             </TouchableOpacity>
                             <View style={{ width: 16 }} />
                             <TouchableOpacity style={styles.dateArrowBtn}>
-                                <MaterialIcon name="chevron-right" size={24} color="#9CA3AF" />
+                                <HugeiconsIcon icon={ArrowRight01Icon} size={24} color={COLORS.textMuted} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -293,10 +293,10 @@ const MedicationHistory = () => {
                                                     </View>
                                                     <Text style={styles.timelineCardSubtitle}>{entry.doseInfo}</Text>
                                                     <View style={styles.timelineCardFooter}>
-                                                        <MaterialIcon
-                                                            name={entry.isNote ? "note-text-outline" : "clock-outline"}
+                                                        <HugeiconsIcon
+                                                            icon={entry.isNote ? Note01Icon : Time02Icon}
                                                             size={14}
-                                                            color="#9CA3AF"
+                                                            color={COLORS.textMuted}
                                                         />
                                                         <Text style={styles.timelineCardFooterText}>{entry.timeInfo}</Text>
                                                     </View>
@@ -323,7 +323,7 @@ const MedicationHistory = () => {
 const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.background,
     },
     container: {
         flex: 1,
@@ -336,7 +336,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
         paddingHorizontal: 16,
         paddingTop: Platform.OS === 'ios' ? 10 : 16,
         paddingBottom: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.background,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -357,7 +357,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     },
     headerDivider: {
         height: 1,
-        backgroundColor: '#E5E7EB',
+        backgroundColor: COLORS.border,
         width: '100%',
     },
     scrollContent: {
@@ -441,7 +441,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     statMiniLabel: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#4B5563',
+        color: COLORS.textSecondary,
         marginLeft: 6,
         letterSpacing: 1,
     },
@@ -453,7 +453,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     statMiniValueRed: {
         fontSize: 24,
         fontWeight: '800',
-        color: '#DC2626',
+        color: COLORS.danger,
     },
     // Calendar Picker Header
     dateSelectorHeader: {
@@ -497,25 +497,25 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     dayText: {
         fontSize: 11,
         fontWeight: '600',
-        color: '#9CA3AF',
+        color: COLORS.textMuted,
         marginBottom: 4,
     },
     dayTextActive: {
-        color: 'rgba(255,255,255,0.85)',
+        color: COLORS.buttonText,
     },
     dateText: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#4B5563',
+        color: COLORS.textSecondary,
     },
     dateTextActive: {
-        color: '#FFFFFF',
+        color: COLORS.buttonText,
     },
     activeDot: {
         width: 4,
         height: 4,
         borderRadius: 2,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.buttonText,
         marginTop: 6,
     },
     // Timeline section
@@ -529,7 +529,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
         top: 24,
         bottom: 0,
         width: 1,
-        backgroundColor: '#E5E7EB', // Line color matching image grey baseline
+        backgroundColor: COLORS.border, // Line color matching image grey baseline
     },
     timelineGroup: {
         marginBottom: 20,
@@ -537,7 +537,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     timelineGroupHeader: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#6B7280',
+        color: COLORS.textSecondary,
         letterSpacing: 1,
         marginBottom: 16,
         marginLeft: 42,
@@ -562,7 +562,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     },
     timelineContentCard: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.healthCardBackground,
         borderRadius: 16,
         padding: 16,
         marginLeft: 14,
@@ -597,7 +597,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     },
     timelineCardSubtitle: {
         fontSize: 14,
-        color: '#6B7280',
+        color: COLORS.healthCardSubtext,
         marginBottom: 10,
     },
     timelineCardFooter: {
@@ -606,7 +606,7 @@ const getStyles = (COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG) => StyleSheet.crea
     },
     timelineCardFooterText: {
         fontSize: 11,
-        color: '#9CA3AF',
+        color: COLORS.textMuted,
         marginLeft: 6,
     }
 });

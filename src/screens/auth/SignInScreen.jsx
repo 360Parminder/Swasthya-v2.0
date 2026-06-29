@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
-import { COLORS } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { CallIcon, LockKeyIcon } from '@hugeicons/core-free-icons';
 
 const SignInScreen = ({ navigation }) => {
   const { login, isLoading } = useAuth();
+  const COLORS = useThemeColors();
+  const styles = useMemo(() => getStyles(COLORS), [COLORS]);
+  
   const [data, setData] = useState({
     mobile: '',
     password: '',
@@ -66,13 +69,13 @@ const SignInScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={{ width: '100%', paddingHorizontal: 20 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e5e5e5ef', borderTopRightRadius: 10, borderTopLeftRadius: 10, paddingHorizontal: 10, height: 50, borderBottomWidth: 0.2 }}>
+        <View style={styles.inputContainerTop}>
           <HugeiconsIcon icon={CallIcon} size={20} color={COLORS.primary} />
-          <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={'#000000'} keyboardType='phone-pad' style={{ flex: 1, paddingLeft: 10, color: COLORS.darkText, height: '100%' }} />
+          <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={COLORS.placeholder} keyboardType='phone-pad' style={styles.input} />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e5e5e5ef', borderBottomRightRadius: 10, borderBottomLeftRadius: 10, paddingHorizontal: 10, height: 50, borderBottomWidth: 1 }}>
+        <View style={styles.inputContainerBottom}>
           <HugeiconsIcon icon={LockKeyIcon} size={20} color={COLORS.primary} />
-          <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={'#000000'} style={{ flex: 1, paddingLeft: 10, color: COLORS.darkText, height: '100%' }} />
+          <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={COLORS.placeholder} style={styles.input} />
         </View>
       </View>
       <TouchableOpacity>
@@ -94,9 +97,9 @@ const SignInScreen = ({ navigation }) => {
           opacity: isLoading ? 0.8 : 1,
         }}>
         {isLoading ? (
-          <ActivityIndicator size="small" color={COLORS.text} />
+          <ActivityIndicator size="small" color={COLORS.buttonText || '#FFFFFF'} />
         ) : (
-          <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '600' }}>
+          <Text style={{ color: COLORS.buttonText || '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
             Login
           </Text>
         )}
@@ -108,13 +111,11 @@ const SignInScreen = ({ navigation }) => {
 
 export default SignInScreen;
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
     alignItems: 'center',
-    // experimental_backgroundImage: 'url(../../../assets/images/background.png)'
-
   },
   topContainer: {
     marginTop: 20,
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     height: '65%',
-    marginBottom: 0, // Add some bottom margin
+    marginBottom: 0, 
   },
   title: {
     fontSize: 26,
@@ -154,4 +155,32 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10,
   },
+  inputContainerTop: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: COLORS.inputBackground, 
+    borderTopRightRadius: 10, 
+    borderTopLeftRadius: 10, 
+    paddingHorizontal: 10, 
+    height: 50, 
+    borderBottomWidth: 0.5,
+    borderBottomColor: COLORS.border,
+  },
+  inputContainerBottom: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: COLORS.inputBackground, 
+    borderBottomRightRadius: 10, 
+    borderBottomLeftRadius: 10, 
+    paddingHorizontal: 10, 
+    height: 50, 
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  input: {
+    flex: 1, 
+    paddingLeft: 10, 
+    color: COLORS.inputText || COLORS.text, 
+    height: '100%' 
+  }
 });

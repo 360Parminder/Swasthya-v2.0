@@ -7,7 +7,8 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, Calendar01Icon, ChartColumnIcon, DropletIcon, Coffee01Icon, Coffee02Icon, StarIcon, Tick02Icon, MoreVerticalIcon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../../components/ui/colors';
 
@@ -16,7 +17,7 @@ const EntryCard = ({ icon, title, time, amount, isGrayed = false }) => (
   <View style={styles.entryCard}>
     <View style={styles.entryLeft}>
       <View style={[styles.entryIconBox, isGrayed ? styles.entryIconBoxGray : styles.entryIconBoxBlue]}>
-        <Icon name={icon} size={20} color={isGrayed ? "#6B7280" : "#0F766E"} />
+        <HugeiconsIcon icon={icon} size={20} color={isGrayed ? "#6B7280" : "#0F766E"} />
       </View>
       <View>
         <Text style={styles.entryTitle}>{title}</Text>
@@ -26,7 +27,7 @@ const EntryCard = ({ icon, title, time, amount, isGrayed = false }) => (
     <View style={styles.entryRight}>
       <Text style={styles.entryAmount}>{amount}</Text>
       <TouchableOpacity>
-        <Icon name="ellipsis-vertical" size={16} color="#CBD5E1" style={{ marginLeft: 8 }} />
+        <HugeiconsIcon icon={MoreVerticalIcon} size={16} color="#CBD5E1" style={{ marginLeft: 8 }} />
       </TouchableOpacity>
     </View>
   </View>
@@ -36,7 +37,7 @@ const SectionHeader = ({ title, progressText, progressFill, progressColor, isRed
   <View style={styles.sectionHeaderRow}>
     <Text style={styles.sectionHeaderText}>{title}</Text>
     <View style={styles.sectionHeaderRight}>
-      {hasCheck && <Icon name="checkmark-circle" size={12} color="#0F766E" style={{ marginRight: 4 }} />}
+      {hasCheck && <HugeiconsIcon icon={Tick02Icon} size={12} color="#0F766E" style={{ marginRight: 4 }} />}
       <Text style={[styles.sectionProgressText, isRed ? { color: '#E11D48' } : {}]}>{progressText}</Text>
       <View style={styles.miniProgressBarBg}>
         <View style={[styles.miniProgressBarFill, { width: progressFill, backgroundColor: progressColor }]} />
@@ -50,7 +51,7 @@ const ChartBar = ({ day, heightPct, hasStar }) => (
     <View style={styles.chartBarBg}>
       <View style={[styles.chartBarFill, { height: heightPct }]}>
         {hasStar && (
-          <Icon name="star" size={10} color="#FFFFFF" style={styles.chartStar} />
+          <HugeiconsIcon icon={StarIcon} size={10} color="#FFFFFF" style={styles.chartStar} />
         )}
       </View>
     </View>
@@ -66,11 +67,11 @@ const HydrationHistoryScreen = () => {
     <>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Icon name="arrow-back" size={24} color="#0F766E" />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#0F766E" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Hydration History</Text>
         <TouchableOpacity style={styles.headerButton}>
-          <Icon name="calendar-outline" size={24} color="#0F766E" />
+          <HugeiconsIcon icon={Calendar01Icon} size={24} color="#0F766E" />
         </TouchableOpacity>
       </View>
 
@@ -80,7 +81,7 @@ const HydrationHistoryScreen = () => {
         <View style={styles.weeklyCard}>
           <View style={styles.weeklyHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Icon name="stats-chart" size={18} color="#0F766E" style={{ marginRight: 8 }} />
+              <HugeiconsIcon icon={ChartColumnIcon} size={18} color="#0F766E" style={{ marginRight: 8 }} />
               <Text style={styles.weeklyTitle}>Weekly Adherence</Text>
             </View>
             <View style={styles.last7Pill}>
@@ -116,23 +117,23 @@ const HydrationHistoryScreen = () => {
         {/* Today */}
         <View style={styles.dailySection}>
           <SectionHeader title="Today" progressText="1.5L / 2.0L" progressFill="75%" progressColor="#0F766E" />
-          <EntryCard icon="pint-outline" title="Large Bottle" time="14:32" amount="750ml" />
-          <EntryCard icon="cafe-outline" title="Medium Mug" time="11:15" amount="350ml" />
-          <EntryCard icon="water-outline" title="Small Glass" time="08:45" amount="400ml" />
+          <EntryCard icon={Coffee02Icon} title="Large Bottle" time="14:32" amount="750ml" />
+          <EntryCard icon={Coffee01Icon} title="Medium Mug" time="11:15" amount="350ml" />
+          <EntryCard icon={DropletIcon} title="Small Glass" time="08:45" amount="400ml" />
         </View>
 
         {/* Yesterday */}
         <View style={styles.dailySection}>
           <SectionHeader title="Yesterday" progressText="1.1L / 2.0L" progressFill="55%" progressColor="#E11D48" isRed />
-          <EntryCard icon="pint-outline" title="Large Bottle" time="18:20" amount="750ml" isGrayed />
-          <EntryCard icon="cafe-outline" title="Medium Mug" time="09:10" amount="350ml" isGrayed />
+          <EntryCard icon={Coffee02Icon} title="Large Bottle" time="18:20" amount="750ml" isGrayed />
+          <EntryCard icon={Coffee01Icon} title="Medium Mug" time="09:10" amount="350ml" isGrayed />
         </View>
 
         {/* Monday */}
         <View style={styles.dailySection}>
           <SectionHeader title="Monday, Oct 23" progressText="2.1L / 2.0L" progressFill="100%" progressColor="#0F766E" hasCheck />
           <TouchableOpacity style={styles.expandCard}>
-            <Icon name="calendar-outline" size={20} color="#94A3B8" style={{ marginBottom: 4 }} />
+            <HugeiconsIcon icon={Calendar01Icon} size={20} color="#94A3B8" style={{ marginBottom: 4 }} />
             <Text style={styles.expandText}>Click to expand Monday's 5 entries</Text>
           </TouchableOpacity>
         </View>
@@ -144,9 +145,9 @@ const HydrationHistoryScreen = () => {
             Based on your activity levels this week, increasing your water intake by 250ml before morning coffee may improve focus by up to 15%.
           </Text>
           <TouchableOpacity style={styles.insightPlusBtn}>
-            <Icon name="add" size={24} color="#FFFFFF" />
+            <HugeiconsIcon icon={PlusSignIcon} size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Icon name="water" size={140} color="#000000" style={styles.insightWatermark} />
+          <HugeiconsIcon icon={DropletIcon} size={140} color="#000000" style={styles.insightWatermark} />
         </View>
 
       </ScrollView>

@@ -4,7 +4,8 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { alarmService } from '../../services/alarmService';
 import { notificationService } from '../../services/notificationService';
 import { dashboardApi } from '../../api/dashboard';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { AlarmClockIcon, Tick02Icon, Moon02Icon } from '@hugeicons/core-free-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -63,7 +64,7 @@ const AlarmScreen = () => {
       <View style={styles.content}>
         
         <View style={styles.iconContainer}>
-          <Icon name="bell-ring" size={64} color="#0F766E" />
+          <HugeiconsIcon icon={AlarmClockIcon} size={64} color="#0F766E" />
         </View>
         
         <Text style={styles.timeText}>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit'})}</Text>
@@ -79,12 +80,12 @@ const AlarmScreen = () => {
 
         <View style={styles.actions}>
            <TouchableOpacity style={[styles.button, styles.takenButton]} onPress={handleTaken}>
-             <Icon name="check" size={24} color="#FFF" style={styles.btnIcon} />
+             <HugeiconsIcon icon={Tick02Icon} size={24} color="#FFF" style={styles.btnIcon} />
              <Text style={styles.buttonText}>Take Now</Text>
            </TouchableOpacity>
            
            <TouchableOpacity style={[styles.button, styles.snoozeButton]} onPress={handleSnooze}>
-             <Icon name="sleep" size={24} color="#4B5563" style={styles.btnIcon} />
+             <HugeiconsIcon icon={Moon02Icon} size={24} color="#4B5563" style={styles.btnIcon} />
              <Text style={[styles.buttonText, styles.snoozeText]}>Snooze (10m)</Text>
            </TouchableOpacity>
         </View>

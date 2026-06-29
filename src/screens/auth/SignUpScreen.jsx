@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowDown01Icon, Calendar01Icon, UserIcon, WeightScale01Icon, RulerIcon, SmartPhone01Icon, Mail01Icon, LockKeyIcon, Tick02Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import Input from '../../components/common/Input';
 import { useThemeColors } from '../../components/ui/colors';
 
@@ -81,7 +82,7 @@ const SignUpScreen = ({ navigation }) => {
         <Text style={[styles.dropdownButtonText, !value && styles.placeholderText]}>
           {value || `Select ${label}`}
         </Text>
-        <Icon name="chevron-down" size={20} color={COLORS.text} />
+        <HugeiconsIcon icon={ArrowDown01Icon} size={20} color={COLORS.text} />
       </TouchableOpacity>
       {dropdownOpen[label.toLowerCase()] && (
         <View style={styles.dropdownOptionsContainer}>
@@ -127,7 +128,7 @@ const SignUpScreen = ({ navigation }) => {
           style={[styles.dateButton, error && styles.errorInput]}
           onPress={() => setShowPicker(true)}
         >
-          <Icon name="calendar-outline" size={20} color={COLORS.primary} style={styles.dateIcon} />
+          <HugeiconsIcon icon={Calendar01Icon} size={20} color={COLORS.primary} style={styles.dateIcon} />
           <Text style={[styles.dateButtonText, !value && styles.placeholderText]}>
             {value || 'Select Date (YYYY-MM-DD)'}
           </Text>
@@ -234,7 +235,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Full Name</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="person-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={UserIcon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="Enter your full name"
@@ -308,7 +309,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Weight (kg)</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="scale-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={WeightScale01Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="e.g., 70"
@@ -331,7 +332,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Height (cm)</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="resize-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={RulerIcon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="e.g., 180"
@@ -362,7 +363,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Mobile Number</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="call-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={SmartPhone01Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="Enter 10-digit number"
@@ -386,7 +387,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Email Address</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="mail-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={Mail01Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="Enter your email"
@@ -423,7 +424,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Password</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="lock-closed-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={LockKeyIcon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="Min 6 characters"
@@ -446,7 +447,7 @@ const SignUpScreen = ({ navigation }) => {
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Confirm Password</Text>
                     <View style={styles.iconInputWrapper}>
-                      <Icon name="shield-checkmark-outline" size={20} color={COLORS.primary} style={styles.fieldIcon} />
+                      <HugeiconsIcon icon={Tick02Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
                       <TextInput
                         style={styles.fieldInput}
                         placeholder="Re-enter password"
@@ -484,7 +485,7 @@ const SignUpScreen = ({ navigation }) => {
             end={{ x: 1, y: 0 }}
             style={styles.stepBtnSecondary}
           >
-            <Icon name="chevron-back" size={24} color="#fff" style={{ marginRight: 5 }} />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#fff" style={{ marginRight: 5 }} />
             <Text style={styles.btnText}>Back</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -497,7 +498,7 @@ const SignUpScreen = ({ navigation }) => {
           style={styles.stepBtn}
         >
           <Text style={styles.btnText}>{isFinal ? 'Create Account' : 'Next'}</Text>
-          <Icon name="arrow-forward" size={20} color="#fff" style={{ marginLeft: 8 }} />
+          <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#fff" style={{ marginLeft: 8 }} />
         </LinearGradient>
       </TouchableOpacity>
     </View>

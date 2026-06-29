@@ -4,11 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/authApi';
 import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import {
   Notification03Icon, UserIcon, Mail01Icon, SmartPhone01Icon,
   Settings02Icon, HelpCircleIcon, Delete02Icon, Logout02Icon, PencilEdit02Icon,
-  Calendar01Icon, ArrowRight01Icon, Restaurant01Icon
+  Calendar01Icon, ArrowRight01Icon, Restaurant01Icon,
+  WeightScale01Icon, RulerIcon, WomanIcon
 } from '@hugeicons/core-free-icons';
 
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=random';
@@ -126,7 +127,7 @@ const ProfileScreen = () => {
           <View style={styles.gridContainer}>
 
             <View style={styles.gridCard}>
-              <MaterialIcon name="weight" size={22} color={TEAL} />
+              <HugeiconsIcon icon={WeightScale01Icon} size={22} color={TEAL} />
               <Text style={styles.gridLabel}>WEIGHT</Text>
               <View style={styles.gridValueRow}>
                 <Text style={styles.gridMainValue}>64.5</Text>
@@ -135,7 +136,7 @@ const ProfileScreen = () => {
             </View>
 
             <View style={styles.gridCard}>
-              <MaterialIcon name="ruler" size={22} color={TEAL} />
+              <HugeiconsIcon icon={RulerIcon} size={22} color={TEAL} />
               <Text style={styles.gridLabel}>HEIGHT</Text>
               <View style={styles.gridValueRow}>
                 <Text style={styles.gridMainValue}>172</Text>
@@ -144,7 +145,7 @@ const ProfileScreen = () => {
             </View>
 
             <View style={styles.gridCard}>
-              <MaterialIcon name="gender-female" size={22} color={TEAL} />
+              <HugeiconsIcon icon={WomanIcon} size={22} color={TEAL} />
               <Text style={styles.gridLabel}>GENDER</Text>
               <View style={styles.gridValueRow}>
                 <Text style={styles.gridMainValue}>Female</Text>

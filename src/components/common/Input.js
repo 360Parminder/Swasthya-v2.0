@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useThemeColors } from '../ui/colors';
-import Icon from 'react-native-vector-icons/Ionicons'; // Make sure to install this package
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ViewIcon, ViewOffSlashIcon } from '@hugeicons/core-free-icons';
 
 const Input = ({
   control,
@@ -44,8 +45,8 @@ const Input = ({
                 onPress={togglePasswordVisibility}
                 style={styles.eyeIcon}
               >
-                <Icon 
-                  name={isPasswordVisible ? 'eye-off' : 'eye'}
+                <HugeiconsIcon 
+                  icon={isPasswordVisible ? ViewOffSlashIcon : ViewIcon}
                   size={24}
                   color={COLORS.text}
                 />

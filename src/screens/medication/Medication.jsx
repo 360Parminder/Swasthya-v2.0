@@ -4,13 +4,10 @@ import AddMedication from '../../components/model/Medication/AddMedication';
 import { useThemeColors } from '../../components/ui/colors';
 import GeneralModal from '../../components/common/GeneralModal';
 import ViewMedications from '../../components/model/Medication/ViewMedications';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import { ArrowLeft01Icon, ArrowRight01Icon, Add01Icon, Medicine01Icon, BandageIcon, PillsTabletIcon, UserAdd01Icon, Time02Icon, Notification01Icon } from '@hugeicons/core-free-icons';
 const Medication = () => {
   const COLORS = useThemeColors();
   const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
@@ -19,8 +16,8 @@ const Medication = () => {
 
   const closeModal = () => setModalType(null);
 
-  // Adaptive teal color for the design
-  const TEAL = COLORS.background === '#121212' ? '#4DB6AC' : '#00897B';
+  // Adaptive primary color for the design
+  const TEAL = COLORS.primary;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -54,7 +51,7 @@ const Medication = () => {
             onPress={() => setModalType('add')}
             activeOpacity={0.7}
           >
-            <Icon name="add" size={18} color="#FFFFFF" />
+            <HugeiconsIcon icon={Add01Icon} size={18} color={COLORS.buttonText} strokeWidth={2.5} />
             <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
@@ -62,8 +59,8 @@ const Medication = () => {
         <View style={styles.cardsList}>
           {/* Card 1: Lisinopril */}
           <View style={styles.medCard}>
-            <View style={[styles.medIconWrapper, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-              <Icon name="medkit" size={24} color={COLORS.success} />
+            <View style={[styles.medIconWrapper, { backgroundColor: COLORS.success + '33' }]}>
+              <HugeiconsIcon icon={Medicine01Icon} size={24} color={COLORS.success} />
             </View>
             <View style={styles.medInfo}>
               <Text style={styles.medTitle}>Lisinopril</Text>
@@ -71,7 +68,7 @@ const Medication = () => {
             </View>
             <View style={styles.medRight}>
               <Text style={styles.medTime}>08:00 AM</Text>
-              <View style={[styles.badge, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+              <View style={[styles.badge, { backgroundColor: COLORS.success + '33' }]}>
                 <Text style={[styles.badgeText, { color: COLORS.success }]}>ACTIVE</Text>
               </View>
             </View>
@@ -79,8 +76,8 @@ const Medication = () => {
 
           {/* Card 2: Vitamin D3 */}
           <View style={styles.medCard}>
-            <View style={[styles.medIconWrapper, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
-              <Icon name="bandage" size={24} color={COLORS.info} />
+            <View style={[styles.medIconWrapper, { backgroundColor: COLORS.info + '33' }]}>
+              <HugeiconsIcon icon={BandageIcon} size={24} color={COLORS.info} />
             </View>
             <View style={styles.medInfo}>
               <Text style={styles.medTitle}>Vitamin D3</Text>
@@ -88,7 +85,7 @@ const Medication = () => {
             </View>
             <View style={styles.medRight}>
               <Text style={styles.medTime}>12:30 PM</Text>
-              <View style={[styles.badge, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+              <View style={[styles.badge, { backgroundColor: COLORS.info + '33' }]}>
                 <Text style={[styles.badgeText, { color: COLORS.info }]}>UPCOMING</Text>
               </View>
             </View>
@@ -96,8 +93,8 @@ const Medication = () => {
 
           {/* Card 3: Metformin */}
           <View style={styles.medCard}>
-            <View style={[styles.medIconWrapper, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
-              <Icon name="medical" size={24} color={COLORS.danger} />
+            <View style={[styles.medIconWrapper, { backgroundColor: COLORS.danger + '33' }]}>
+              <HugeiconsIcon icon={PillsTabletIcon} size={24} color={COLORS.danger} />
             </View>
             <View style={styles.medInfo}>
               <Text style={styles.medTitle}>Metformin</Text>
@@ -105,7 +102,7 @@ const Medication = () => {
             </View>
             <View style={styles.medRight}>
               <Text style={styles.medTime}>07:00 PM</Text>
-              <View style={[styles.badge, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
+              <View style={[styles.badge, { backgroundColor: COLORS.danger + '33' }]}>
                 <Text style={[styles.badgeText, { color: COLORS.danger }]}>MISSED</Text>
               </View>
             </View>
@@ -120,7 +117,7 @@ const Medication = () => {
               <Text style={styles.connectionsSubtitle}>Overseeing Sarah's Plan</Text>
             </View>
             <View style={styles.connectionsIconWrapper}>
-              <Icon name="person-add" size={20} color={TEAL} />
+              <HugeiconsIcon icon={UserAdd01Icon} size={20} color={TEAL} />
             </View>
           </View>
 
@@ -136,7 +133,7 @@ const Medication = () => {
                   <Text style={styles.connMedTitle}>Atorvastatin</Text>
                   <Text style={styles.connMedSubtitle}>20mg Oral</Text>
                 </View>
-                <View style={[styles.badge, styles.connBadge, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+                <View style={[styles.badge, styles.connBadge, { backgroundColor: COLORS.info + '33' }]}>
                   <Text style={[styles.badgeText, { color: COLORS.info }]}>UPCOMING</Text>
                 </View>
               </View>
@@ -153,7 +150,7 @@ const Medication = () => {
                   <Text style={styles.connMedTitle}>Amoxicillin</Text>
                   <Text style={styles.connMedSubtitle}>500mg Liquid</Text>
                 </View>
-                <View style={[styles.badge, styles.connBadge, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                <View style={[styles.badge, styles.connBadge, { backgroundColor: COLORS.success + '33' }]}>
                   <Text style={[styles.badgeText, { color: COLORS.success }]}>ACTIVE</Text>
                 </View>
               </View>
@@ -174,8 +171,8 @@ const Medication = () => {
         <View style={styles.actionCardsContainer}>
           {/* History Card */}
           <TouchableOpacity style={styles.actionCard} activeOpacity={0.8} onPress={() => navigation.navigate('MedicationHistory')}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#E0F2F1' }]}>
-              <MaterialIcon name="history" size={26} color={TEAL} />
+            <View style={[styles.actionIconBox, { backgroundColor: COLORS.primarySoft }]}>
+              <HugeiconsIcon icon={Time02Icon} size={26} color={TEAL} />
             </View>
             <Text style={styles.actionTitle}>Medication History</Text>
             <Text style={styles.actionSubtitle}>View your past adherence</Text>
@@ -187,14 +184,14 @@ const Medication = () => {
 
           {/* Refill Card */}
           <TouchableOpacity style={styles.actionCard} activeOpacity={0.8}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#FEE2E2' }]}>
-              <MaterialIcon name="bell-alert" size={24} color="#DC2626" />
+            <View style={[styles.actionIconBox, { backgroundColor: COLORS.danger + '33' }]}>
+              <HugeiconsIcon icon={Notification01Icon} size={24} color={COLORS.danger} />
             </View>
             <Text style={styles.actionTitle}>Refill Status</Text>
             <Text style={styles.actionSubtitle}>Check low stock alerts</Text>
             <View style={styles.actionLinkRow}>
-              <Text style={[styles.actionLinkText, { color: '#DC2626' }]}>CHECK STOCK</Text>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} color="#DC2626" strokeWidth={2.5} />
+              <Text style={[styles.actionLinkText, { color: COLORS.danger }]}>CHECK STOCK</Text>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={COLORS.danger} strokeWidth={2.5} />
             </View>
           </TouchableOpacity>
         </View>
@@ -279,7 +276,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     gap: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
     fontWeight: '600',
     fontSize: 14,
   },

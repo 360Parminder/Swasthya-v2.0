@@ -1,7 +1,8 @@
 // src/components/common/GeneralModal.js
 import React from 'react';
 import { StyleSheet, View, Modal, TouchableOpacity, Text } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, MoreHorizontalCircle01Icon } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../ui/colors';
 import { BlurView } from '@react-native-community/blur';
 
@@ -30,13 +31,13 @@ const GeneralModal = ({
           <View style={styles.modalHeader}>
             {closeButtonPosition === 'top-left' && (
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Icon name="chevron-back" color={COLORS.text} size={24} />
+                <HugeiconsIcon icon={ArrowLeft01Icon} color={COLORS.text} size={24} />
               </TouchableOpacity>
             )}
             <Text style={styles.modalTitle}>{title}</Text>
 
             <TouchableOpacity style={styles.closeButton}>
-              <Icon name="ellipsis-horizontal-circle-outline" color={COLORS.text} size={24} />
+              <HugeiconsIcon icon={MoreHorizontalCircle01Icon} color={COLORS.text} size={24} />
             </TouchableOpacity>
           </View>
           {/* Modal Content - Accepts any children */}
