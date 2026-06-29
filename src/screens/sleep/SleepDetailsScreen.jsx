@@ -20,10 +20,10 @@ import { ArrowLeft01Icon, Notification01Icon, Moon02Icon, Tick02Icon, Thermomete
 const { width } = Dimensions.get('window');
 
 // Checklist Item
-const ChecklistItem = ({ label, checked, badge }) => (
+const ChecklistItem = ({ label, checked, badge, COLORS, styles }) => (
   <View style={styles.checkItem}>
     <View style={[styles.checkCircle, checked && styles.checkCircleActive]}>
-      {checked && <HugeiconsIcon icon={Tick02Icon} size={14} color="#FFFFFF" />}
+      {checked && <HugeiconsIcon icon={Tick02Icon} size={14} color={COLORS.buttonText} />}
     </View>
     <Text style={styles.checkLabel}>{label}</Text>
     {badge && (
@@ -35,7 +35,7 @@ const ChecklistItem = ({ label, checked, badge }) => (
 );
 
 // Environment Row
-const EnvRow = ({ iconName, iconColor, label, value, badge, badgeColor }) => (
+const EnvRow = ({ iconName, iconColor, label, value, badge, badgeColor, COLORS, styles }) => (
   <View style={styles.envRow}>
     <HugeiconsIcon icon={iconName} size={22} color={iconColor} />
     <View style={{ marginLeft: 14, flex: 1 }}>
@@ -43,7 +43,7 @@ const EnvRow = ({ iconName, iconColor, label, value, badge, badgeColor }) => (
       <Text style={styles.envValue}>{value}</Text>
     </View>
     {badge && (
-      <Text style={[styles.envBadge, { color: badgeColor || '#0F766E' }]}>{badge}</Text>
+      <Text style={[styles.envBadge, { color: badgeColor || COLORS.primary }]}>{badge}</Text>
     )}
   </View>
 );
@@ -71,7 +71,8 @@ const EfficiencyCard = ({ day, barHeights, isHighlight }) => (
 
 const SleepDetailsScreen = () => {
   const navigation = useNavigation();
-  const colors = useThemeColors();
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
 
   // Circular goal indicator
   const radius = 65;
@@ -85,12 +86,12 @@ const SleepDetailsScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.primary} strokeWidth={2.5} />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.primary} strokeWidth={2.5} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sleep Routine</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.navigate('SleepSchedule')} style={styles.headerButton}>
-            <HugeiconsIcon icon={Moon02Icon} size={22} color={colors.primary} />
+            <HugeiconsIcon icon={Moon02Icon} size={22} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -142,7 +143,7 @@ const SleepDetailsScreen = () => {
                     cx={radius + strokeWidth}
                     cy={radius + strokeWidth}
                     r={radius}
-                    stroke="#5EEAD4"
+                    stroke={COLORS.primary}
                     strokeWidth={strokeWidth}
                     fill="none"
                     strokeLinecap="round"
@@ -166,14 +167,14 @@ const SleepDetailsScreen = () => {
               <Text style={styles.sectionSubtitle}>4 of 5 tasks completed</Text>
             </View>
             <TouchableOpacity>
-              <HugeiconsIcon icon={SlidersHorizontalIcon} size={22} color="#94A3B8" />
+              <HugeiconsIcon icon={SlidersHorizontalIcon} size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
           </View>
 
-          <ChecklistItem label="Digital detox (No screens)" checked />
-          <ChecklistItem label="Dim ambient lighting" checked />
-          <ChecklistItem label="10-minute meditation" checked />
-          <ChecklistItem label="Room temperature check" badge="Active" />
+          <ChecklistItem label="Digital detox (No screens)" checked COLORS={COLORS} styles={styles} />
+          <ChecklistItem label="Dim ambient lighting" checked COLORS={COLORS} styles={styles} />
+          <ChecklistItem label="10-minute meditation" checked COLORS={COLORS} styles={styles} />
+          <ChecklistItem label="Room temperature check" badge="Active" COLORS={COLORS} styles={styles} />
         </View>
 
         {/* Room Environment */}
@@ -182,25 +183,28 @@ const SleepDetailsScreen = () => {
           <View style={{ marginTop: 16 }}>
             <EnvRow
               iconName={ThermometerIcon}
-              iconColor="#EF4444"
+              iconColor={COLORS.danger}
               label="Temperature"
               value="68°F"
               badge="OPTIMAL"
-              badgeColor="#0F766E"
+              badgeColor={COLORS.primary}
+              COLORS={COLORS} styles={styles}
             />
             <EnvRow
               iconName={DropletIcon}
-              iconColor="#3B82F6"
+              iconColor={COLORS.info}
               label="Humidity"
               value="45%"
               badge="IDEAL"
-              badgeColor="#3B82F6"
+              badgeColor={COLORS.info}
+              COLORS={COLORS} styles={styles}
             />
             <EnvRow
               iconName={Leaf01Icon}
-              iconColor="#10B981"
+              iconColor={COLORS.success}
               label="Air Quality"
               value="Fresh"
+              COLORS={COLORS} styles={styles}
             />
           </View>
         </View>
@@ -228,14 +232,14 @@ const SleepDetailsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
   },
   headerButton: {
     padding: 8,
@@ -243,7 +247,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F766E',
+    color: COLORS.primary,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -322,14 +326,14 @@ const styles = StyleSheet.create({
   },
   goalLabel: {
     fontSize: 11,
-    color: '#5EEAD4',
+    color: COLORS.primarySoft,
     fontWeight: '600',
     marginTop: -2,
   },
 
   /* Section Card */
   sectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -348,11 +352,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     marginTop: 3,
   },
 
@@ -360,7 +364,7 @@ const styles = StyleSheet.create({
   checkItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -371,23 +375,23 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#CBD5E1',
+    borderColor: COLORS.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
   },
   checkCircleActive: {
-    backgroundColor: '#0F766E',
-    borderColor: '#0F766E',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   checkLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#334155',
+    color: COLORS.text,
     flex: 1,
   },
   activeBadge: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: COLORS.warning + '33', // faint warning
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -395,7 +399,7 @@ const styles = StyleSheet.create({
   activeBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#D97706',
+    color: COLORS.warning,
   },
 
   /* Environment */
@@ -404,17 +408,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: COLORS.border,
   },
   envLabel: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontWeight: '500',
   },
   envValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
     marginTop: 2,
   },
   envBadge: {
@@ -425,7 +429,7 @@ const styles = StyleSheet.create({
 
   /* Streak Card */
   streakCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 24,
     flexDirection: 'row',
@@ -434,20 +438,20 @@ const styles = StyleSheet.create({
   },
   streakLabel: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontWeight: '500',
     marginBottom: 6,
   },
   streakValue: {
     fontSize: 40,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.text,
     lineHeight: 44,
   },
   streakUnit: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
   streakDotsRow: {
     flexDirection: 'row',
@@ -459,14 +463,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#334155',
+    backgroundColor: COLORS.borderStrong,
   },
   streakDotFilled: {
-    backgroundColor: '#FBBF24',
+    backgroundColor: COLORS.warning,
   },
   streakMsg: {
     fontSize: 12,
-    color: '#5EEAD4',
+    color: COLORS.primary,
     fontWeight: '600',
   },
 

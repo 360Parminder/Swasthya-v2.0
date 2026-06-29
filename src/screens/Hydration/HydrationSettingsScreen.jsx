@@ -16,7 +16,8 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 
 const HydrationSettingsScreen = () => {
   const navigation = useNavigation();
-  const colors = useThemeColors();
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
 
   const [targetIntake, setTargetIntake] = useState('2000');
   const [metricActive, setMetricActive] = useState(true);
@@ -46,7 +47,7 @@ const HydrationSettingsScreen = () => {
         {/* Smart Advice Banner */}
         <View style={styles.adviceCard}>
           <View style={styles.adviceIconCircle}>
-            <HugeiconsIcon icon={DropletIcon} size={20} color="#FFFFFF" />
+            <HugeiconsIcon icon={DropletIcon} size={20} color={COLORS.buttonText} />
           </View>
           <View style={{ flex: 1, marginLeft: 14 }}>
             <Text style={styles.adviceTitle}>Smart Advice</Text>
@@ -60,7 +61,7 @@ const HydrationSettingsScreen = () => {
         {/* Daily Goal Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <HugeiconsIcon icon={DropletIcon} size={18} color="#0F766E" />
+            <HugeiconsIcon icon={DropletIcon} size={18} color={COLORS.primary} />
             <Text style={styles.cardTitle}>Daily Goal</Text>
           </View>
 
@@ -72,7 +73,7 @@ const HydrationSettingsScreen = () => {
               onChangeText={setTargetIntake}
               keyboardType="numeric"
               placeholder="2000"
-              placeholderTextColor="#CBD5E1"
+              placeholderTextColor={COLORS.placeholder}
             />
             <View style={styles.unitBadge}>
               <Text style={styles.unitBadgeText}>ml</Text>
@@ -97,7 +98,7 @@ const HydrationSettingsScreen = () => {
         {/* Measurement Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <HugeiconsIcon icon={Settings02Icon} size={18} color="#0F766E" />
+            <HugeiconsIcon icon={Settings02Icon} size={18} color={COLORS.primary} />
             <Text style={styles.cardTitle}>Measurement</Text>
           </View>
 
@@ -128,7 +129,7 @@ const HydrationSettingsScreen = () => {
         {/* Weekly Outlook Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <HugeiconsIcon icon={Calendar01Icon} size={18} color="#0F766E" />
+            <HugeiconsIcon icon={Calendar01Icon} size={18} color={COLORS.primary} />
             <Text style={styles.cardTitle}>Weekly Outlook</Text>
             <View style={styles.totalPill}>
               <Text style={styles.totalPillText}>Total: 14.0L</Text>
@@ -149,7 +150,7 @@ const HydrationSettingsScreen = () => {
         {/* Reminder Protocol Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <HugeiconsIcon icon={Notification03Icon} size={18} color="#0F766E" />
+            <HugeiconsIcon icon={Notification03Icon} size={18} color={COLORS.primary} />
             <Text style={[styles.cardTitle, { flex: 1 }]}>Reminder Protocol</Text>
             <Switch
               value={reminderEnabled}
@@ -164,7 +165,7 @@ const HydrationSettingsScreen = () => {
               <Text style={styles.fieldLabel}>FREQUENCY</Text>
               <TouchableOpacity style={styles.selectBox}>
                 <Text style={styles.selectBoxText}>{frequency}</Text>
-                <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#64748B" />
+                <HugeiconsIcon icon={ArrowDown01Icon} size={18} color={COLORS.textSecondary} />
               </TouchableOpacity>
 
               <Text style={styles.fieldLabel}>START TIME</Text>
@@ -174,11 +175,11 @@ const HydrationSettingsScreen = () => {
                   value={startTime}
                   onChangeText={setStartTime}
                   placeholder="08:00 AM"
-                  placeholderTextColor="#CBD5E1"
+                  placeholderTextColor={COLORS.placeholder}
                 />
                 <View style={styles.timeIcons}>
-                  <HugeiconsIcon icon={Sun02Icon} size={18} color="#64748B" style={{ marginRight: 10 }} />
-                  <HugeiconsIcon icon={Clock01Icon} size={18} color="#64748B" />
+                  <HugeiconsIcon icon={Sun02Icon} size={18} color={COLORS.textSecondary} style={{ marginRight: 10 }} />
+                  <HugeiconsIcon icon={Clock01Icon} size={18} color={COLORS.textSecondary} />
                 </View>
               </View>
 
@@ -189,11 +190,11 @@ const HydrationSettingsScreen = () => {
                   value={endTime}
                   onChangeText={setEndTime}
                   placeholder="10:00 PM"
-                  placeholderTextColor="#CBD5E1"
+                  placeholderTextColor={COLORS.placeholder}
                 />
                 <View style={styles.timeIcons}>
-                  <HugeiconsIcon icon={Moon02Icon} size={18} color="#64748B" style={{ marginRight: 10 }} />
-                  <HugeiconsIcon icon={Clock01Icon} size={18} color="#64748B" />
+                  <HugeiconsIcon icon={Moon02Icon} size={18} color={COLORS.textSecondary} style={{ marginRight: 10 }} />
+                  <HugeiconsIcon icon={Clock01Icon} size={18} color={COLORS.textSecondary} />
                 </View>
               </View>
 
@@ -229,14 +230,14 @@ const HydrationSettingsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
   },
   headerButton: {
     padding: 8,
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#0F766E',
+    color: COLORS.primary,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
 
   /* Smart Advice */
   adviceCard: {
-    backgroundColor: '#115E59',
+    backgroundColor: COLORS.primaryHover,
     borderRadius: 16,
     padding: 18,
     flexDirection: 'row',
@@ -266,30 +267,30 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   adviceTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
     marginBottom: 4,
   },
   adviceBody: {
     fontSize: 13,
-    color: '#CCFBF1',
+    color: COLORS.primarySoft,
     lineHeight: 20,
   },
   adviceHighlight: {
     fontWeight: '700',
-    color: '#5EEAD4',
+    color: COLORS.primary,
     textDecorationLine: 'underline',
   },
 
   /* Cards */
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0F5156',
+    color: COLORS.primaryHover,
     marginLeft: 10,
   },
 
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     letterSpacing: 1,
     marginBottom: 8,
     marginTop: 4,
@@ -324,14 +325,14 @@ const styles = StyleSheet.create({
   /* Text Input */
   textInput: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
-    backgroundColor: '#FFFFFF',
+    color: COLORS.text,
+    backgroundColor: COLORS.cardBackground,
   },
   inputRow: {
     flexDirection: 'row',
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   unitBadge: {
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
   unitBadgeText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
   },
 
   /* Quick Set */
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
   },
   quickSetButton: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -366,13 +367,13 @@ const styles = StyleSheet.create({
   quickSetText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
 
   /* Toggle */
   toggleRow: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.border,
     borderRadius: 12,
     padding: 4,
     marginBottom: 14,
@@ -384,7 +385,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   toggleBtnActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -394,20 +395,20 @@ const styles = StyleSheet.create({
   toggleBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
   toggleBtnTextActive: {
-    color: '#0F5156',
+    color: COLORS.primaryHover,
   },
   helperText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     lineHeight: 18,
   },
 
   /* Weekly Outlook */
   totalPill: {
-    backgroundColor: '#CCFBF1',
+    backgroundColor: COLORS.primarySoft,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
   totalPillText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0F766E',
+    color: COLORS.primary,
   },
   weekRow: {
     flexDirection: 'row',
@@ -427,12 +428,12 @@ const styles = StyleSheet.create({
   weekDayText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#64748B',
+    color: COLORS.textSecondary,
     letterSpacing: 0.5,
   },
   adjustBtn: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -440,13 +441,13 @@ const styles = StyleSheet.create({
   adjustBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
 
   /* Select Box */
   selectBox: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -458,7 +459,7 @@ const styles = StyleSheet.create({
   selectBoxText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1E293B',
+    color: COLORS.text,
   },
 
   /* Time Row */
@@ -475,7 +476,7 @@ const styles = StyleSheet.create({
 
   /* Vibrate sub-card */
   vibrateCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -485,17 +486,17 @@ const styles = StyleSheet.create({
   vibrateTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
     marginBottom: 3,
   },
   vibrateSubtitle: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
 
   /* Save / Restore */
   saveButton: {
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
@@ -505,7 +506,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
   },
   restoreButton: {
     alignItems: 'center',
@@ -515,7 +516,7 @@ const styles = StyleSheet.create({
   restoreText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
 });
 

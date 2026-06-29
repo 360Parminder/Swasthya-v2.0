@@ -48,7 +48,7 @@ const TimeRing = ({ time, progress, color }) => {
             cx={radius + strokeWidth}
             cy={radius + strokeWidth}
             r={radius}
-            stroke="#E2E8F0"
+            stroke={COLORS.border}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -71,7 +71,8 @@ const TimeRing = ({ time, progress, color }) => {
 
 const SleepScheduleScreen = () => {
   const navigation = useNavigation();
-  const colors = useThemeColors();
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
 
   const [windDownEnabled, setWindDownEnabled] = useState(true);
   const [selectedDuration, setSelectedDuration] = useState(30);
@@ -82,7 +83,7 @@ const SleepScheduleScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.primary} strokeWidth={2.5} />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.primary} strokeWidth={2.5} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sleep Schedule</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', width: 40 }}>
@@ -116,7 +117,7 @@ const SleepScheduleScreen = () => {
         {/* Bedtime Card */}
         <View style={styles.timeCard}>
           <View style={styles.timeCardHeader}>
-            <HugeiconsIcon icon={Moon02Icon} size={22} color="#0F766E" />
+            <HugeiconsIcon icon={Moon02Icon} size={22} color={COLORS.primary} />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.timeCardTitle}>Bedtime</Text>
               <Text style={styles.timeCardSub}>Wind down starts 22:00</Text>
@@ -124,7 +125,7 @@ const SleepScheduleScreen = () => {
           </View>
 
           <View style={styles.timeCardBody}>
-            <TimeRing time="22:30" progress={0.75} color="#0F766E" />
+            <TimeRing time="22:30" progress={0.75} color={COLORS.primary} />
           </View>
 
           <View style={styles.timeAdjustRow}>
@@ -141,7 +142,7 @@ const SleepScheduleScreen = () => {
         {/* Wake Up Card */}
         <View style={styles.timeCard}>
           <View style={styles.timeCardHeader}>
-            <HugeiconsIcon icon={Sun02Icon} size={22} color="#F59E0B" />
+            <HugeiconsIcon icon={Sun02Icon} size={22} color={COLORS.warning} />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.timeCardTitle}>Wake Up</Text>
               <Text style={styles.timeCardSub}>Smart alarm enabled</Text>
@@ -149,7 +150,7 @@ const SleepScheduleScreen = () => {
           </View>
 
           <View style={styles.timeCardBody}>
-            <TimeRing time="06:45" progress={0.45} color="#94A3B8" />
+            <TimeRing time="06:45" progress={0.45} color={COLORS.textMuted} />
           </View>
 
           <View style={styles.timeAdjustRow}>
@@ -167,14 +168,14 @@ const SleepScheduleScreen = () => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <HugeiconsIcon icon={Clock01Icon} size={20} color="#0F766E" />
+              <HugeiconsIcon icon={Clock01Icon} size={20} color={COLORS.primary} />
               <Text style={styles.sectionCardTitle}>Wind-down Reminder</Text>
             </View>
             <Switch
               value={windDownEnabled}
               onValueChange={setWindDownEnabled}
-              trackColor={{ false: '#E2E8F0', true: '#0F766E' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: COLORS.border, true: COLORS.primary }}
+              thumbColor={COLORS.buttonText}
             />
           </View>
 
@@ -231,14 +232,14 @@ const SleepScheduleScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
   },
   headerButton: {
     padding: 8,
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F766E',
+    color: COLORS.primary,
     marginLeft: 6,
   },
   headerAvatar: {
@@ -265,19 +266,19 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
     marginBottom: 6,
   },
   pageSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: COLORS.textSecondary,
     lineHeight: 22,
     marginBottom: 24,
   },
 
   /* Total Sleep Goal */
   goalCard: {
-    backgroundColor: '#115E59',
+    backgroundColor: COLORS.primaryHover,
     borderRadius: 16,
     padding: 24,
     flexDirection: 'row',
@@ -287,26 +288,26 @@ const styles = StyleSheet.create({
   goalLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#99F6E4',
+    color: COLORS.primarySoft,
     letterSpacing: 1.2,
     marginBottom: 6,
   },
   goalValue: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
     marginBottom: 8,
     lineHeight: 40,
   },
   goalDesc: {
     fontSize: 12,
-    color: '#99F6E4',
+    color: COLORS.primarySoft,
     lineHeight: 18,
   },
 
   /* Time Card */
   timeCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -324,11 +325,11 @@ const styles = StyleSheet.create({
   timeCardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
   },
   timeCardSub: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   timeCardBody: {
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   adjustBtn: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.border,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 10,
@@ -350,12 +351,12 @@ const styles = StyleSheet.create({
   adjustBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
   periodLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
 
   /* Time Ring */
@@ -368,12 +369,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 26,
     fontWeight: '600',
-    color: '#0F766E',
+    color: COLORS.primary,
   },
 
   /* Section Card */
   sectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   sectionCardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
     marginLeft: 10,
   },
 
@@ -408,34 +409,34 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.cardBackground,
   },
   durationPillSelected: {
-    borderColor: '#0F766E',
-    backgroundColor: '#F0FDFA',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primarySoft,
   },
   durationValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
   durationValueSelected: {
-    color: '#0F766E',
+    color: COLORS.primary,
   },
   durationLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     letterSpacing: 0.5,
     marginTop: 2,
   },
   durationLabelSelected: {
-    color: '#0F766E',
+    color: COLORS.primary,
   },
   helperText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     lineHeight: 18,
   },
 
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
   repeatTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
     marginBottom: 16,
   },
   daysRow: {
@@ -454,25 +455,25 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayCircleActive: {
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
   },
   dayText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
   dayTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
   },
 
   /* Save Button */
   saveButton: {
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
@@ -482,7 +483,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
   },
 });
 

@@ -20,8 +20,8 @@ const dummyContacts = [
 
 const AddConnection = ({ isVisible, onClose }) => {
     const COLORS = useThemeColors();
-    const TEAL = COLORS.background === '#121212' ? '#4DB6AC' : '#006C64';
-    const GREEN = '#059669'; // Emerald green as per the design
+    const TEAL = COLORS.primary;
+    const GREEN = COLORS.success;
 
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -90,8 +90,8 @@ const AddConnection = ({ isVisible, onClose }) => {
                 {item.avatar ? (
                     <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
                 ) : (
-                    <View style={[styles.avatarFallback, { backgroundColor: item.isPhone ? '#1D4ED8' : '#DBEAFE' }]}>
-                        <Text style={[styles.avatarFallbackText, { color: item.isPhone ? '#FFFFFF' : '#1E3A8A' }]}>
+                    <View style={[styles.avatarFallback, { backgroundColor: item.isPhone ? COLORS.info : (COLORS.info + '33') }]}>
+                        <Text style={[styles.avatarFallbackText, { color: item.isPhone ? COLORS.buttonText : COLORS.info }]}>
                             {item.initials}
                         </Text>
                     </View>
@@ -247,7 +247,7 @@ const getStyles = (COLORS, TEAL, GREEN) => StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.inputBackground || '#F3F4F6',
+        backgroundColor: COLORS.inputBackground,
         borderRadius: 24,
         paddingHorizontal: 16,
         height: 52,
@@ -334,7 +334,7 @@ const getStyles = (COLORS, TEAL, GREEN) => StyleSheet.create({
         borderRadius: 20,
     },
     inviteButtonText: {
-        color: '#FFFFFF',
+        color: COLORS.buttonText,
         fontSize: 13,
         fontWeight: '600',
     },
@@ -346,7 +346,7 @@ const getStyles = (COLORS, TEAL, GREEN) => StyleSheet.create({
     },
     infoCard: {
         flexDirection: 'row',
-        backgroundColor: '#F0FDF4', // Very light green background
+        backgroundColor: COLORS.success + '1A', // Very light green background
         borderRadius: 16,
         padding: 20,
         position: 'relative',

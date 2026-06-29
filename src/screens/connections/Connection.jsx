@@ -199,7 +199,7 @@ const Connection = () => {
           <View style={styles.professionalCareCard}>
             <View style={styles.careHeaderRow}>
                <View style={styles.careIconBox}>
-                 <HugeiconsIcon icon={FirstAidKitIcon} size={20} color="#004D40" variant="solid" />
+                 <HugeiconsIcon icon={FirstAidKitIcon} size={20} color={COLORS.primary} variant="solid" />
                </View>
                <Text style={styles.careTitle}>Professional Care Circle</Text>
             </View>
@@ -208,12 +208,12 @@ const Connection = () => {
             </Text>
             <View style={styles.careButtonsRow}>
               <TouchableOpacity style={styles.careButton}>
-                <HugeiconsIcon icon={TaskDaily01Icon} size={16} color="#004D40" />
+                <HugeiconsIcon icon={TaskDaily01Icon} size={16} color={COLORS.primary} />
                 <Text style={styles.careButtonText}>Medical Records</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.careButton, styles.careButtonOutlined]}>
-                <HugeiconsIcon icon={PillIcon} size={16} color="#FFFFFF" />
-                <Text style={[styles.careButtonText, { color: '#FFFFFF' }]}>Prescriptions</Text>
+                <HugeiconsIcon icon={PillIcon} size={16} color={COLORS.buttonText} />
+                <Text style={[styles.careButtonText, { color: COLORS.buttonText }]}>Prescriptions</Text>
               </TouchableOpacity>
             </View>
             <HugeiconsIcon icon={FirstAidKitIcon} size={120} color="rgba(255,255,255,0.06)" style={styles.careBgIcon} />
@@ -238,7 +238,7 @@ const Connection = () => {
 
         {/* Floating Action Button */}
         <TouchableOpacity style={styles.fab} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
-          <HugeiconsIcon icon={UserAdd01Icon} size={26} color="#FFFFFF" />
+          <HugeiconsIcon icon={UserAdd01Icon} size={26} color={COLORS.buttonText} />
         </TouchableOpacity>
 
         <PendingRequests
@@ -286,7 +286,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF3B30',
+    backgroundColor: COLORS.danger,
     zIndex: 10,
   },
   scrollContent: {
@@ -331,13 +331,13 @@ const getStyles = (COLORS) => StyleSheet.create({
     backgroundColor: COLORS.inputBackground,
   },
   activeConnectionBadge: {
-    backgroundColor: '#D1E8E2',
+    backgroundColor: COLORS.primarySoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   activeConnectionText: {
-    color: '#004D40',
+    color: COLORS.primary,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -391,7 +391,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     textAlign: 'center',
   },
   professionalCareCard: {
-    backgroundColor: '#004D40',
+    backgroundColor: COLORS.primary,
     borderRadius: 20,
     padding: 24,
     marginBottom: 16,
@@ -405,7 +405,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     zIndex: 2,
   },
   careIconBox: {
-    backgroundColor: '#A7F3D0',
+    backgroundColor: COLORS.buttonText,
     width: 40,
     height: 40,
     borderRadius: 12,
@@ -416,11 +416,11 @@ const getStyles = (COLORS) => StyleSheet.create({
   careTitle: {
     fontSize: 19,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
   },
   careDescription: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
+    color: COLORS.buttonText,
     lineHeight: 22,
     marginBottom: 20,
     zIndex: 2,
@@ -432,7 +432,7 @@ const getStyles = (COLORS) => StyleSheet.create({
   careButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#A7F3D0',
+    backgroundColor: COLORS.buttonText,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
@@ -442,7 +442,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   careButtonText: {
-    color: '#004D40',
+    color: COLORS.primary,
     fontWeight: '600',
     fontSize: 13,
     marginLeft: 6,
@@ -477,7 +477,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     paddingRight: 10,
   },
   findCoachesBtn: {
-    backgroundColor: '#006A6A',
+    backgroundColor: COLORS.primary,
     borderRadius: 30,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -485,7 +485,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'center',
   },
   findCoachesText: {
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
@@ -497,7 +497,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#006A6A',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -553,7 +553,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
   },
   rejectBtn: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: COLORS.danger,
     borderRadius: 6,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -561,7 +561,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
   },
   acceptText: {
-    color: '#fff',
+    color: COLORS.buttonText,
     fontWeight: '600',
     fontSize: 13,
   },

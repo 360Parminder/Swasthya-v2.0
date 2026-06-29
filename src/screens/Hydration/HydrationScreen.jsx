@@ -14,12 +14,11 @@ import { COLORS, useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
 import { ArrowLeft01Icon, DropletIcon, MoreVerticalCircle01Icon } from '@hugeicons/core-free-icons'
 
-// Helper component for Water Intake option
-const WaterOption = ({ title, amount, iconName }) => (
+const WaterOption = ({ title, amount, iconName, COLORS, styles }) => (
   <View style={styles.waterOptionCard}>
     <View style={styles.waterOptionLeft}>
       <View style={styles.waterOptionIconBox}>
-        <HugeiconsIcon icon={iconName} size={20} color="#0F766E" />
+        <HugeiconsIcon icon={iconName} size={20} color={COLORS.primary} />
       </View>
       <View>
         <Text style={styles.waterOptionTitle}>{title}</Text>
@@ -27,7 +26,7 @@ const WaterOption = ({ title, amount, iconName }) => (
       </View>
     </View>
     <TouchableOpacity style={styles.waterOptionButton}>
-      <HugeiconsIcon icon={PlusSignCircleIcon} size={24} color="#6B7280" />
+      <HugeiconsIcon icon={PlusSignCircleIcon} size={24} color={COLORS.textSecondary} />
     </TouchableOpacity>
   </View>
 );
@@ -54,7 +53,8 @@ const LogItem = ({ title, time, amount, isLast }) => (
 
 const HydrationScreen = () => {
   const navigation = useNavigation();
-  const colors = useThemeColors();
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
 
   // Settings for the progress arc
   const radius = 90;
@@ -102,7 +102,7 @@ const HydrationScreen = () => {
                   cx={radius + strokeWidth}
                   cy={radius + strokeWidth}
                   r={radius}
-                  stroke="#0F766E"
+                  stroke={COLORS.primary}
                   strokeWidth={strokeWidth}
                   fill="none"
                   strokeLinecap="round"
@@ -128,9 +128,9 @@ const HydrationScreen = () => {
         {/* Log Water Intake */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Log Water Intake</Text>
-          <WaterOption title="Small Glass" amount="200ml" iconName={DropletIcon} />
-          <WaterOption title="Medium Mug" amount="350ml" iconName={Coffee01Icon} />
-          <WaterOption title="Large Bottle" amount="500ml" iconName={Coffee02Icon} />
+          <WaterOption title="Small Glass" amount="200ml" iconName={DropletIcon} COLORS={COLORS} styles={styles} />
+          <WaterOption title="Medium Mug" amount="350ml" iconName={Coffee01Icon} COLORS={COLORS} styles={styles} />
+          <WaterOption title="Large Bottle" amount="500ml" iconName={Coffee02Icon} COLORS={COLORS} styles={styles} />
         </View>
 
         {/* Weekly Trends */}
@@ -178,10 +178,10 @@ const HydrationScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // Almost white/light gray matching the design
+    backgroundColor: COLORS.background, // Almost white/light gray matching the design
   },
   header: {
     flexDirection: 'row',
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: COLORS.text,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 200,
     width: 240,
     height: 240,
@@ -235,24 +235,24 @@ const styles = StyleSheet.create({
   innerMainValue: {
     fontSize: 54,
     fontWeight: '700',
-    color: '#0F766E',
+    color: COLORS.primary,
     letterSpacing: -1,
   },
   innerUnitText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#0F766E',
+    color: COLORS.primary,
     marginLeft: 2,
   },
   innerGoalText: {
     fontSize: 13,
-    color: '#4B5563',
+    color: COLORS.textSecondary,
     fontWeight: '500',
     marginTop: -2,
     marginBottom: 8,
   },
   innerPill: {
-    backgroundColor: '#A7F3D0',
+    backgroundColor: COLORS.primarySoft,
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   innerPillText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#047857',
+    color: COLORS.primary,
     letterSpacing: 0.5,
   },
 
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: COLORS.text,
     marginBottom: 16,
   },
   rowBetween: {
@@ -283,13 +283,13 @@ const styles = StyleSheet.create({
   avgText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0F766E',
+    color: COLORS.primary,
     letterSpacing: 0.5,
   },
 
   /* Water Option Cards */
   waterOptionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -320,12 +320,12 @@ const styles = StyleSheet.create({
   waterOptionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: COLORS.text,
     marginBottom: 2,
   },
   waterOptionAmount: {
     fontSize: 13,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
     fontWeight: '400',
   },
   waterOptionButton: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
 
   /* Chart Card */
   chartCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: 20,
     // Soft shadow
@@ -352,10 +352,10 @@ const styles = StyleSheet.create({
   chartDay: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
   chartDayActive: {
-    color: '#0F766E',
+    color: COLORS.primary,
   },
 
   /* Timeline Log Item */
@@ -371,13 +371,13 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
     marginTop: 6,
   },
   timelineLine: {
     width: 1,
     flex: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: COLORS.border,
     marginTop: 6,
     marginBottom: -6, // to connect seamlessly
   },
@@ -390,23 +390,23 @@ const styles = StyleSheet.create({
   logItemTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
+    color: COLORS.text,
     marginBottom: 4,
   },
   logItemTime: {
     fontSize: 13,
-    color: '#6B7280',
+    color: COLORS.textSecondary,
   },
   logItemAmount: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0F766E',
+    color: COLORS.primary,
     marginTop: 2,
   },
 
   /* Pro Tip Card */
   proTipCard: {
-    backgroundColor: '#E0F2FE', // Light blue background
+    backgroundColor: COLORS.primarySoft, // Light blue background
     borderRadius: 16,
     padding: 24,
     marginTop: 24,
@@ -419,12 +419,12 @@ const styles = StyleSheet.create({
   proTipTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.text,
     marginBottom: 8,
   },
   proTipText: {
     fontSize: 14,
-    color: '#475569',
+    color: COLORS.textSecondary,
     lineHeight: 22,
     fontWeight: '400',
     zIndex: 2,

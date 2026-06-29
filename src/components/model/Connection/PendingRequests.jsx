@@ -29,8 +29,8 @@ const PendingRequests = ({
     onCancel
 }) => {
     const COLORS = useThemeColors();
-    const TEAL = COLORS.background === '#121212' ? '#006A6A' : '#006A6A';
-    const LIGHT_TEAL = '#E0F2FE'; // For active badge/text
+    const TEAL = COLORS.primary;
+    const LIGHT_TEAL = COLORS.primarySoft;
 
     const styles = useMemo(() => getStyles(COLORS, TEAL, LIGHT_TEAL), [COLORS, TEAL, LIGHT_TEAL]);
 
@@ -71,7 +71,7 @@ const PendingRequests = ({
                                     <View style={styles.requestInfo}>
                                         <Text style={styles.requestName}>{item.name || item.username}</Text>
                                         <View style={styles.statusRow}>
-                                            <View style={[styles.statusDot, { backgroundColor: '#5EEAD4' }]} />
+                                            <View style={[styles.statusDot, { backgroundColor: COLORS.success }]} />
                                             <Text style={[styles.statusText, { color: TEAL }]}>NEW CONNECTION REQUEST</Text>
                                         </View>
                                     </View>
@@ -130,7 +130,7 @@ const PendingRequests = ({
                     <View style={styles.privacyCard}>
                         <View style={styles.privacyHeader}>
                             <View style={styles.lockIconContainer}>
-                                <HugeiconsIcon icon={LockKeyIcon} size={18} color="#004D40" variant="solid" />
+                                <HugeiconsIcon icon={LockKeyIcon} size={18} color={COLORS.primaryHover} variant="solid" />
                             </View>
                             <Text style={styles.privacyTitle}>Privacy & Security</Text>
                         </View>
@@ -149,7 +149,7 @@ const PendingRequests = ({
 const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background || '#F9FAFB',
+        backgroundColor: COLORS.background,
     },
     header: {
         flexDirection: 'row',
@@ -158,7 +158,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: Platform.OS === 'ios' ? 20 : 16,
         paddingBottom: 16,
-        backgroundColor: COLORS.background || '#F9FAFB',
+        backgroundColor: COLORS.background,
     },
     iconBtn: {
         padding: 8,
@@ -191,7 +191,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         color: COLORS.healthCardText,
     },
     totalBadge: {
-        backgroundColor: '#E5E7EB',
+        backgroundColor: COLORS.border,
         paddingHorizontal: 12,
         paddingVertical: 5,
         borderRadius: 14,
@@ -202,10 +202,10 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         color: COLORS.healthCardSubtext,
     },
     newBadge: {
-        backgroundColor: '#D1FAE5', // Light green mapping closely to mock
+        backgroundColor: COLORS.success + '33', // Light green mapping closely to mock
     },
     newBadgeText: {
-        color: '#047857', // Deeper green text
+        color: COLORS.success, // Deeper green text
     },
     // Cards
     requestCard: {
@@ -250,13 +250,13 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#4B5563', // gray-600
+        backgroundColor: COLORS.textSecondary,
         marginRight: 6,
     },
     statusText: {
         fontSize: 9,
         fontWeight: '700',
-        color: '#4B5563',
+        color: COLORS.textSecondary,
         letterSpacing: 0.5,
         textTransform: 'uppercase',
     },
@@ -273,7 +273,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         marginRight: 10,
     },
     acceptBtnText: {
-        color: '#FFFFFF',
+        color: COLORS.buttonText,
         fontSize: 13,
         fontWeight: '600',
     },
@@ -291,7 +291,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         paddingVertical: 8,
     },
     cancelBtnText: {
-        color: '#DC2626', // Red
+        color: COLORS.danger, // Red
         fontSize: 14,
         fontWeight: '600',
     },
@@ -310,7 +310,7 @@ const getStyles = (COLORS, TEAL, LIGHT_TEAL) => StyleSheet.create({
         marginBottom: 12,
     },
     lockIconContainer: {
-        backgroundColor: '#E0F2FE', // light teal/blue background for the icon
+        backgroundColor: COLORS.primarySoft, // light teal/blue background for the icon
         width: 32,
         height: 32,
         borderRadius: 10,

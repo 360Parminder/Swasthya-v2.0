@@ -217,7 +217,7 @@ const SignUpScreen = ({ navigation }) => {
             <Text style={styles.appTitle}>Swasthya</Text>
             <Text style={styles.subtitle}>Your journey towards better health begins here!</Text>
             <TouchableOpacity onPress={next} style={{ marginTop: 30 }}>
-              <LinearGradient colors={['#8b5cf6', '#6366f1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.getStartedBtn}>
+              <LinearGradient colors={[COLORS.primary, COLORS.primaryHover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.getStartedBtn}>
                 <Text style={styles.getStartedText}>Get Started →</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -480,7 +480,7 @@ const SignUpScreen = ({ navigation }) => {
       {onBack && (
         <TouchableOpacity onPress={onBack} style={{ flex: 1, marginHorizontal: 6 }}>
           <LinearGradient 
-            colors={['#6b7280', '#4b5563']} 
+            colors={[COLORS.textSecondary, COLORS.borderStrong]} 
             start={{ x: 0, y: 0 }} 
             end={{ x: 1, y: 0 }}
             style={styles.stepBtnSecondary}
@@ -492,7 +492,7 @@ const SignUpScreen = ({ navigation }) => {
       )}
       <TouchableOpacity onPress={onNext} style={{ flex: 1, marginHorizontal: 6 }}>
         <LinearGradient 
-          colors={['#8b5cf6', '#6366f1']} 
+          colors={[COLORS.primary, COLORS.primaryHover]} 
           start={{ x: 0, y: 0 }} 
           end={{ x: 1, y: 0 }}
           style={styles.stepBtn}
@@ -528,7 +528,7 @@ const SignUpScreen = ({ navigation }) => {
         start={{ x: 0.80, y: 0.25 }} 
         end={{ x: 0.0, y: 0.10 }}
         locations={[0, 1, 0]}
-        colors={['#8b5cf6', '#6366f1']}
+        colors={[COLORS.primary, COLORS.primaryHover]}
         style={styles.container}
       >
         <View style={styles.topContainer}>
@@ -836,10 +836,10 @@ const getStyles = (COLORS) => StyleSheet.create({
     color: COLORS.text,
   },
   errorInput: {
-    borderColor: '#ef4444',
+    borderColor: COLORS.danger,
   },
   errorText: {
-    color: '#ef4444',
+    color: COLORS.danger,
     fontSize: 12,
     marginTop: 6,
     marginLeft: 2,
@@ -858,7 +858,7 @@ const getStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    shadowColor: '#8b5cf6',
+    shadowColor: COLORS.primary,
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

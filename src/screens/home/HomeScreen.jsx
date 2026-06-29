@@ -23,7 +23,7 @@ const HeartRateCard = ({ colors, isDarkMode }) => (
   <View style={[cardStyles.card, { backgroundColor: isDarkMode ? colors.surfaceAlt : colors.primary }]}>
     <Text style={[cardStyles.cardTitle, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>HEART RATE</Text>
     <View style={cardStyles.heartValueRow}>
-      <Text style={[cardStyles.heartValue, { color: isDarkMode ? colors.textPrimary : '#FFFFFF' }]}>72</Text>
+      <Text style={[cardStyles.heartValue, { color: isDarkMode ? colors.textPrimary : colors.buttonText }]}>72</Text>
       <Text style={[cardStyles.heartUnit, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}> bpm</Text>
     </View>
     <View style={cardStyles.heartFooterRow}>
@@ -73,7 +73,7 @@ const CareNetworkCard = ({ navigation, colors, isDarkMode }) => (
         <Text style={[cardStyles.careMoreText, { color: isDarkMode ? colors.textPrimary : colors.primary }]}>+3</Text>
       </View>
     </View>
-    <Text style={[cardStyles.careName, { color: isDarkMode ? colors.textPrimary : '#FFFFFF' }]}>Dr. Sarah Miller</Text>
+    <Text style={[cardStyles.careName, { color: isDarkMode ? colors.textPrimary : colors.buttonText }]}>Dr. Sarah Miller</Text>
     <Text style={[cardStyles.careRole, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>Primary Physician - Online</Text>
   </TouchableOpacity>
 );

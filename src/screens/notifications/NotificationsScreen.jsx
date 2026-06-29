@@ -15,6 +15,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 const NotificationsScreen = () => {
   const navigation = useNavigation();
   const colors = useThemeColors();
+  const styles = React.useMemo(() => getStyles(colors), [colors]);
 
   return (
     <>
@@ -32,7 +33,7 @@ const NotificationsScreen = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        style={{ backgroundColor: '#F8FAFC' }}
+        style={{ backgroundColor: colors.background }}
       >
 
         {/* New Notifications Header */}
@@ -47,7 +48,7 @@ const NotificationsScreen = () => {
         <View style={styles.notifCard}>
           <View style={styles.notifTopRow}>
             <View style={styles.pillIconCircle}>
-              <HugeiconsIcon icon={FirstAidKitIcon} size={22} color="#FFFFFF" />
+              <HugeiconsIcon icon={FirstAidKitIcon} size={22} color={colors.buttonText} />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={styles.notifTitleRow}>
@@ -60,7 +61,7 @@ const NotificationsScreen = () => {
             </View>
           </View>
           <TouchableOpacity style={styles.markTakenButton}>
-            <HugeiconsIcon icon={Tick02Icon} size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <HugeiconsIcon icon={Tick02Icon} size={20} color={colors.buttonText} style={{ marginRight: 8 }} />
             <Text style={styles.markTakenText}>Mark as Taken</Text>
           </TouchableOpacity>
         </View>
@@ -85,7 +86,7 @@ const NotificationsScreen = () => {
             </View>
           </View>
           <View style={styles.inviteBottomRow}>
-            <HugeiconsIcon icon={UserIcon} size={18} color="#94A3B8" />
+            <HugeiconsIcon icon={UserIcon} size={18} color={colors.textSecondary} />
             <View style={styles.inviteButtonsRow}>
               <TouchableOpacity style={styles.acceptButton}>
                 <Text style={styles.acceptButtonText}>Accept</Text>
@@ -107,7 +108,7 @@ const NotificationsScreen = () => {
         <View style={styles.notifCard}>
           <View style={styles.notifTopRow}>
             <View style={styles.warningIconCircle}>
-              <HugeiconsIcon icon={Alert02Icon} size={20} color="#FFFFFF" />
+              <HugeiconsIcon icon={Alert02Icon} size={20} color={colors.buttonText} />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={styles.notifTitleRow}>
@@ -128,7 +129,7 @@ const NotificationsScreen = () => {
         <View style={styles.notifCard}>
           <View style={styles.notifTopRow}>
             <View style={styles.hydrationIconCircle}>
-              <HugeiconsIcon icon={DropletIcon} size={20} color="#FFFFFF" />
+              <HugeiconsIcon icon={DropletIcon} size={20} color={colors.buttonText} />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={styles.notifTitleRow}>
@@ -144,7 +145,7 @@ const NotificationsScreen = () => {
 
         {/* End of notifications */}
         <View style={styles.endSection}>
-          <HugeiconsIcon icon={NotificationOff03Icon} size={28} color="#CBD5E1" style={{ marginBottom: 10 }} />
+          <HugeiconsIcon icon={NotificationOff03Icon} size={28} color={colors.textSecondary} style={{ marginBottom: 10 }} />
           <Text style={styles.endText}>
             You've reached the end of your recent{'\n'}notifications.
           </Text>
@@ -155,14 +156,14 @@ const NotificationsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   headerButton: {
     padding: 8,
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.text,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -189,10 +190,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.text,
   },
   todayPill: {
-    backgroundColor: '#0F766E',
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 12,
@@ -200,17 +201,17 @@ const styles = StyleSheet.create({
   todayPillText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.buttonText,
   },
   earlierText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#94A3B8',
+    color: colors.textSecondary,
   },
 
   /* Notification Card */
   notifCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBackground,
     borderRadius: 16,
     padding: 18,
     marginBottom: 14,
@@ -233,7 +234,7 @@ const styles = StyleSheet.create({
   notifTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.text,
     flex: 1,
     marginRight: 8,
     lineHeight: 20,
@@ -241,12 +242,12 @@ const styles = StyleSheet.create({
   notifTime: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#94A3B8',
+    color: colors.textSecondary,
     textAlign: 'right',
   },
   notifBody: {
     fontSize: 13,
-    color: '#64748B',
+    color: colors.textSecondary,
     lineHeight: 20,
   },
 
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#0F766E',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.info,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -280,12 +281,12 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 23,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
 
   /* Mark as Taken Button */
   markTakenButton: {
-    backgroundColor: '#0F766E',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -296,7 +297,7 @@ const styles = StyleSheet.create({
   markTakenText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.buttonText,
   },
 
   /* Invite Row */
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   acceptButton: {
-    backgroundColor: '#0F766E',
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 20,
@@ -319,11 +320,11 @@ const styles = StyleSheet.create({
   acceptButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.buttonText,
   },
   declineButton: {
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 20,
@@ -331,14 +332,14 @@ const styles = StyleSheet.create({
   declineButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.textSecondary,
   },
 
   /* Reorder */
   reorderText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0F766E',
+    color: colors.primary,
     letterSpacing: 0.3,
   },
 
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   },
   endText: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },

@@ -21,7 +21,7 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(true);
 
   // Styling Constants mapping to the design
-  const TEAL = COLORS.background === '#121212' ? '#4DB6AC' : '#006A6A';
+  const TEAL = COLORS.primary;
   const CARD_BG = COLORS.cardBackground;
   const PAGE_BG = COLORS.background;
 
@@ -198,7 +198,7 @@ const ProfileScreen = () => {
             <TouchableOpacity style={styles.linkCard} onPress={() => { }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={styles.linkIconBox}>
-                  <HugeiconsIcon icon={HelpCircleIcon} size={18} color="#FFFFFF" variant="solid" />
+                  <HugeiconsIcon icon={HelpCircleIcon} size={18} color={COLORS.buttonText} variant="solid" />
                 </View>
                 <Text style={styles.linkText}>Help & Support</Text>
               </View>
@@ -207,10 +207,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity style={styles.linkCard} onPress={() => { }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={[styles.linkIconBox, { backgroundColor: '#DC2626' }]}>
-                  <HugeiconsIcon icon={Delete02Icon} size={18} color="#FFFFFF" />
+                <View style={[styles.linkIconBox, { backgroundColor: COLORS.danger }]}>
+                  <HugeiconsIcon icon={Delete02Icon} size={18} color={COLORS.buttonText} />
                 </View>
-                <Text style={[styles.linkText, { color: '#DC2626' }]}>Delete Account</Text>
+                <Text style={[styles.linkText, { color: COLORS.danger }]}>Delete Account</Text>
               </View>
               <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={COLORS.placeholder} />
             </TouchableOpacity>
@@ -218,7 +218,7 @@ const ProfileScreen = () => {
 
           {/* Logout Button */}
           <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
-            <HugeiconsIcon icon={Logout02Icon} size={20} color="#FFFFFF" strokeWidth={2} />
+            <HugeiconsIcon icon={Logout02Icon} size={20} color={COLORS.buttonText} strokeWidth={2} />
             <Text style={styles.logoutBtnText}>Logout</Text>
           </TouchableOpacity>
 
@@ -297,7 +297,7 @@ const getStyles = (COLORS, TEAL, CARD_BG, PAGE_BG) => StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -320,7 +320,7 @@ const getStyles = (COLORS, TEAL, CARD_BG, PAGE_BG) => StyleSheet.create({
   sectionHeader: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#6B7280', // Gray mapped conceptually
+    color: COLORS.healthCardSubtext, // Gray mapped conceptually
     letterSpacing: 1.5,
     marginBottom: 12,
     marginLeft: 4,
@@ -446,11 +446,11 @@ const getStyles = (COLORS, TEAL, CARD_BG, PAGE_BG) => StyleSheet.create({
     color: COLORS.healthCardSubtext,
   },
   pillActive: {
-    backgroundColor: '#E0F2FE', // Light crisp blue/teal map
-    borderColor: '#E0F2FE',
+    backgroundColor: COLORS.primarySoft, // Light crisp blue/teal map
+    borderColor: COLORS.primarySoft,
   },
   pillTextActive: {
-    color: '#004D40', // Deep teal map
+    color: COLORS.primary, // Deep teal map
   },
   // Links
   linkCard: {
@@ -470,7 +470,7 @@ const getStyles = (COLORS, TEAL, CARD_BG, PAGE_BG) => StyleSheet.create({
     elevation: 1,
   },
   linkIconBox: {
-    backgroundColor: '#374151', // Dark Gray
+    backgroundColor: COLORS.textSecondary, // Dark Gray
     width: 28,
     height: 28,
     borderRadius: 8,
@@ -486,7 +486,7 @@ const getStyles = (COLORS, TEAL, CARD_BG, PAGE_BG) => StyleSheet.create({
   // Logout
   logoutBtn: {
     flexDirection: 'row',
-    backgroundColor: '#111827', // Almost black
+    backgroundColor: COLORS.danger, // Almost black
     paddingVertical: 18,
     borderRadius: 16,
     alignItems: 'center',
@@ -500,7 +500,7 @@ const getStyles = (COLORS, TEAL, CARD_BG, PAGE_BG) => StyleSheet.create({
     elevation: 3,
   },
   logoutBtnText: {
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 10,

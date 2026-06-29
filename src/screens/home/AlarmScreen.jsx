@@ -6,12 +6,15 @@ import { notificationService } from '../../services/notificationService';
 import { dashboardApi } from '../../api/dashboard';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { AlarmClockIcon, Tick02Icon, Moon02Icon } from '@hugeicons/core-free-icons';
+import { useThemeColors } from '../../components/ui/colors';
 
 const { width } = Dimensions.get('window');
 
 const AlarmScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const COLORS = useThemeColors();
+  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const [medication, setMedication] = useState(route.params?.medication || null);
   
   useEffect(() => {
@@ -64,7 +67,7 @@ const AlarmScreen = () => {
       <View style={styles.content}>
         
         <View style={styles.iconContainer}>
-          <HugeiconsIcon icon={AlarmClockIcon} size={64} color="#0F766E" />
+          <HugeiconsIcon icon={AlarmClockIcon} size={64} color={COLORS.primary} />
         </View>
         
         <Text style={styles.timeText}>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit'})}</Text>
@@ -80,12 +83,12 @@ const AlarmScreen = () => {
 
         <View style={styles.actions}>
            <TouchableOpacity style={[styles.button, styles.takenButton]} onPress={handleTaken}>
-             <HugeiconsIcon icon={Tick02Icon} size={24} color="#FFF" style={styles.btnIcon} />
+             <HugeiconsIcon icon={Tick02Icon} size={24} color={COLORS.buttonText} style={styles.btnIcon} />
              <Text style={styles.buttonText}>Take Now</Text>
            </TouchableOpacity>
            
            <TouchableOpacity style={[styles.button, styles.snoozeButton]} onPress={handleSnooze}>
-             <HugeiconsIcon icon={Moon02Icon} size={24} color="#4B5563" style={styles.btnIcon} />
+             <HugeiconsIcon icon={Moon02Icon} size={24} color={COLORS.textSecondary} style={styles.btnIcon} />
              <Text style={[styles.buttonText, styles.snoozeText]}>Snooze (10m)</Text>
            </TouchableOpacity>
         </View>
@@ -95,10 +98,10 @@ const AlarmScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FA',
+    backgroundColor: COLORS.background,
   },
   content: {
     flex: 1,
@@ -110,7 +113,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#CCFBF1',
+    backgroundColor: COLORS.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -118,17 +121,17 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 48,
     fontWeight: '800',
-    color: '#1F2937',
+    color: COLORS.healthCardText,
     marginBottom: 8,
   },
   title: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#4B5563',
+    color: COLORS.textSecondary,
     marginBottom: 40,
   },
   medicationCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.healthCardBackground,
     width: width - 48,
     padding: 24,
     borderRadius: 20,
@@ -143,12 +146,12 @@ const styles = StyleSheet.create({
   medName: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1F2937',
+    color: COLORS.healthCardText,
     marginBottom: 8,
   },
   medDosage: {
     fontSize: 18,
-    color: '#6B7280',
+    color: COLORS.healthCardSubtext,
     fontWeight: '500',
   },
   actions: {
@@ -163,10 +166,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   takenButton: {
-    backgroundColor: '#0F766E',
+    backgroundColor: COLORS.primary,
   },
   snoozeButton: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.border,
   },
   btnIcon: {
     marginRight: 8,
@@ -174,10 +177,10 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.buttonText,
   },
   snoozeText: {
-    color: '#4B5563',
+    color: COLORS.textSecondary,
   }
 });
 

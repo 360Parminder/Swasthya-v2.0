@@ -3,61 +3,69 @@ import { Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Tick02Icon, Alert02Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
+import { useThemeColors } from '../components/ui/colors';
+
 export const toastConfig = {
-  success: ({ text1, props, ...rest }) => (
+  success: ({ text1, props, ...rest }) => {
+    const COLORS = useThemeColors();
+    return (
     <View style={{ 
-      backgroundColor: '#4BB543', 
+      backgroundColor: COLORS.success, 
       padding: 15, 
       borderRadius: 8,
       width: '90%',
       flexDirection: 'row',
       alignItems: 'center'
     }}>
-      <HugeiconsIcon icon={Tick02Icon} size={24} color="white" />
+      <HugeiconsIcon icon={Tick02Icon} size={24} color={COLORS.buttonText} />
       <View style={{ marginLeft: 10 }}>
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>{text1}</Text>
+        <Text style={{ color: COLORS.buttonText, fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
-          <Text style={{ color: 'white', marginTop: 4 }}>{props.text2}</Text>
+          <Text style={{ color: COLORS.buttonText, marginTop: 4 }}>{props.text2}</Text>
         )}
       </View>
     </View>
-  ),
-  error: ({ text1, props, ...rest }) => (
+  )},
+  error: ({ text1, props, ...rest }) => {
+    const COLORS = useThemeColors();
+    return (
     <View style={{ 
-      backgroundColor: '#FF3333', 
+      backgroundColor: COLORS.danger, 
       padding: 15, 
       borderRadius: 8,
       width: '90%',
       flexDirection: 'row',
       alignItems: 'center'
       }}>
-        <HugeiconsIcon icon={Alert02Icon} size={24} color="white" />
+        <HugeiconsIcon icon={Alert02Icon} size={24} color={COLORS.buttonText} />
       <View style={{ marginLeft: 10 }}>
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>{text1}</Text>
+        <Text style={{ color: COLORS.buttonText, fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
-          <Text style={{ color: 'white', marginTop: 4 }}>{props.text2}</Text>
+          <Text style={{ color: COLORS.buttonText, marginTop: 4 }}>{props.text2}</Text>
         )}
       </View>
     </View>
-  ),
-  info: ({ text1, props, ...rest }) => (
+  )},
+  info: ({ text1, props, ...rest }) => {
+    const COLORS = useThemeColors();
+    return (
     <View style={{ 
-      backgroundColor: '#007AFF', 
+      backgroundColor: COLORS.info, 
       padding: 15, 
       borderRadius: 8,
       width: '90%',
       flexDirection: 'row',
       alignItems: 'center'
     }}>
-      <HugeiconsIcon icon={InformationCircleIcon} size={24} color="white" />
+      <HugeiconsIcon icon={InformationCircleIcon} size={24} color={COLORS.buttonText} />
       <View style={{ marginLeft: 10 }}>
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>{text1}</Text>
+        <Text style={{ color: COLORS.buttonText, fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
-          <Text style={{ color: 'white', marginTop: 4 }}>{props.text2}</Text>
+          <Text style={{ color: COLORS.buttonText, marginTop: 4 }}>{props.text2}</Text>
         )}
       </View>
     </View>
-  )
+  )}
 };
 
 export const showToast = (type, message, subMessage = '') => {
