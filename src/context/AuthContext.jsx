@@ -66,6 +66,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (googleData) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.googleAuth(googleData);
+      console.log('Google Auth response:', response?.data);
+
+      const token = response?.data?.token;
+      const user = response?.data?.user;
+
+      if (token) {
+        setAuthState({
+          token,
+          user,
+          authenticated: true,
+        });
+        await Keychain.setGenericPassword('token', token);
+      }
+      setIsLoading(false);
+      return response;
+    } catch (error) {
+      setIsLoading(false);
+      return Promise.reject(error);
+    }
+  };
+
   const logout = async () => {
     try {
       // await authApi.logout();
@@ -87,6 +112,7 @@ export const AuthProvider = ({ children }) => {
         setAuthState,
         login,
         register,
+        googleLogin,
         logout,
         isLoading,
       }}

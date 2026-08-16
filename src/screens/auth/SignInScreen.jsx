@@ -25,6 +25,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { GoogleIcon } from '../../components/common/SocialIcons';
 import { useAuth } from '../../context/AuthContext';
+import { googleAuthService } from '../../services/googleAuthService';
 import Toast from 'react-native-toast-message';
 
 const SignInScreen = ({ navigation }) => {
@@ -33,7 +34,8 @@ const SignInScreen = ({ navigation }) => {
   const isDark = scheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
 
-  const { login, isLoading } = useAuth();
+  const { login, googleLogin, isLoading } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
   const [data, setData] = useState({
     mobile: '',
@@ -50,6 +52,23 @@ const SignInScreen = ({ navigation }) => {
       autoHide: true,
       topOffset: 10,
     });
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const googleUser = await googleAuthService.signIn();
+      if (googleUser && googleUser.email) {
+        await googleLogin(googleUser);
+        showToast('success', 'Signed in with Google 🎉', `Welcome, ${googleUser.name || 'User'}!`);
+      }
+    } catch (error) {
+      if (!error?.message?.includes('cancelled')) {
+        showToast('error', 'Google Sign In Failed', error?.response?.data?.message || error?.message || 'Could not sign in with Google');
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   const onSubmit = async () => {
@@ -210,11 +229,18 @@ const SignInScreen = ({ navigation }) => {
             {/* Google Sign In */}
             <TouchableOpacity 
               activeOpacity={0.88}
-              style={[styles.googleFullButton, theme.googleFullButton]}
-              onPress={() => showToast('info', 'Google Sign In', 'Connecting to Google services...')}
+              style={[styles.googleFullButton, theme.googleFullButton, isGoogleLoading && { opacity: 0.7 }]}
+              onPress={handleGoogleSignIn}
+              disabled={isGoogleLoading}
             >
-              <GoogleIcon size={20} />
-              <Text style={[styles.googleFullButtonText, theme.googleFullButtonText]}>Continue with Google</Text>
+              {isGoogleLoading ? (
+                <ActivityIndicator size="small" color="#4285F4" />
+              ) : (
+                <>
+                  <GoogleIcon size={20} />
+                  <Text style={[styles.googleFullButtonText, theme.googleFullButtonText]}>Continue with Google</Text>
+                </>
+              )}
             </TouchableOpacity>
 
             {/* Footer Sign Up Link */}

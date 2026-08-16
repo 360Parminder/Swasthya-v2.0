@@ -31,6 +31,7 @@ import {
 import { GoogleIcon } from '../../components/common/SocialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import { googleAuthService } from '../../services/googleAuthService';
 import Toast from 'react-native-toast-message';
 import { RulerPickerCard, DateWheelPickerCard } from '../../components/common/HealthPickers';
 
@@ -40,13 +41,39 @@ const SignUpScreen = ({ navigation }) => {
   const isDark = scheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
 
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, googleLogin } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [weightUnit, setWeightUnit] = useState('kg');
   const [heightUnit, setHeightUnit] = useState('cm');
+
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const googleUser = await googleAuthService.signIn();
+      if (googleUser && googleUser.email) {
+        await googleLogin(googleUser);
+        Toast.show({
+          type: 'success',
+          text1: 'Account Created 🎉',
+          text2: `Welcome to Swasthya, ${googleUser.name || 'User'}!`,
+        });
+      }
+    } catch (error) {
+      if (!error?.message?.includes('cancelled')) {
+        Toast.show({
+          type: 'error',
+          text1: 'Google Sign Up Failed',
+          text2: error?.response?.data?.message || error?.message || 'Could not register with Google',
+        });
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -239,11 +266,18 @@ const SignUpScreen = ({ navigation }) => {
           {/* Continue with Google */}
           <TouchableOpacity
             activeOpacity={0.88}
-            style={styles.googleButton}
-            onPress={next}
+            style={[styles.googleButton, isGoogleLoading && { opacity: 0.7 }]}
+            onPress={handleGoogleSignUp}
+            disabled={isGoogleLoading}
           >
-            <GoogleIcon size={20} />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
+            {isGoogleLoading ? (
+              <ActivityIndicator size="small" color="#4285F4" />
+            ) : (
+              <>
+                <GoogleIcon size={20} />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </>
+            )}
           </TouchableOpacity>
 
           {/* Continue with Email */}
