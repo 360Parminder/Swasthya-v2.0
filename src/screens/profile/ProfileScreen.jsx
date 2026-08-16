@@ -13,7 +13,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -33,7 +33,6 @@ import {
   CheckmarkCircle02Icon,
   Clock01Icon,
   RefreshIcon,
-  ShieldSecurityIcon,
 } from '@hugeicons/core-free-icons';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/authApi';
@@ -45,6 +44,7 @@ const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=random'
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const COLORS = useThemeColors();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
@@ -138,14 +138,26 @@ const ProfileScreen = () => {
   const userCode = userData?.userId || '';
 
   return (
-    <SafeAreaView style={[styles.safeArea, theme.safeArea]}>
+    <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['bottom', 'left', 'right']}>
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={isDark ? '#0B0F19' : '#F8FAFC'}
+        translucent={Platform.OS === 'android'}
       />
 
       {/* ── Top Header ── */}
-      <View style={[styles.header, theme.header]}>
+      <View
+        style={[
+          styles.header,
+          theme.header,
+          {
+            paddingTop: Math.max(
+              insets.top,
+              Platform.OS === 'android' ? (StatusBar.currentHeight || 16) + 6 : 14
+            ),
+          },
+        ]}
+      >
         <View>
           <Text style={[styles.headerTitle, theme.headerTitle]}>My Profile</Text>
           <Text style={[styles.headerSubtitle, theme.headerSubtitle]}>

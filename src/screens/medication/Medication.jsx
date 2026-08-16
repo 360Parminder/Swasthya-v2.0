@@ -32,6 +32,7 @@ import Svg, { Circle, G } from 'react-native-svg';
 import AddMedication from '../../components/model/Medication/AddMedication';
 import { medicationApi } from '../../api/medicationApi';
 import { playTickSound } from '../../services/soundService';
+import { notificationService } from '../../services/notificationService';
 
 // Form Icon Helper
 const getIconForForm = (form) => {
@@ -123,6 +124,10 @@ const Medication = () => {
       const rawMeds = response?.data?.medications || response?.data?.data || response?.data || [];
       const parsed = parseMedicationsList(rawMeds);
       setMedications(parsed);
+
+      if (parsed.length > 0) {
+        notificationService.syncMedicationReminders(parsed);
+      }
 
       // Initialize taken doses map from backend logs for today
       const todayStr = new Date().toISOString().split('T')[0];

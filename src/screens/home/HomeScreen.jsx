@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
+import { notificationService } from '../../services/notificationService';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { 
   Notification01Icon, 
@@ -208,7 +209,11 @@ const HomeScreen = () => {
     try {
       const response = await dashboardApi.getDashboardData();
       const meds = response?.data?.data?.medication;
-      setMedications(meds && meds.length > 0 ? meds : []);
+      const validMeds = meds && meds.length > 0 ? meds : [];
+      setMedications(validMeds);
+      if (validMeds.length > 0) {
+        notificationService.syncMedicationReminders(validMeds);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     }

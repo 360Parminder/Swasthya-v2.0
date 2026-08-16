@@ -13,7 +13,7 @@ import {
     StatusBar,
     Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -21,7 +21,7 @@ import {
     Note01Icon,
     HelpCircleIcon,
     Mail01Icon,
-    MessageChat01Icon,
+    Chat01Icon,
     Idea01Icon,
     ArrowRight01Icon,
     ArrowLeft01Icon,
@@ -29,7 +29,6 @@ import {
     StarIcon,
     SentIcon,
     Call02Icon,
-    QuestionCircleIcon,
     BookOpen01Icon,
 } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
@@ -37,6 +36,7 @@ import { showToast } from '../../config/toastConfig';
 
 const HelpSupportScreen = () => {
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const COLORS = useThemeColors();
     const scheme = useColorScheme();
     const isDark = scheme === 'dark';
@@ -161,14 +161,26 @@ const HelpSupportScreen = () => {
     const theme = isDark ? darkStyles : lightStyles;
 
     return (
-        <SafeAreaView style={[styles.safeArea, theme.safeArea]}>
+        <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['bottom', 'left', 'right']}>
             <StatusBar
                 barStyle={isDark ? 'light-content' : 'dark-content'}
                 backgroundColor={isDark ? '#0B0F19' : '#FFFFFF'}
+                translucent={Platform.OS === 'android'}
             />
 
             {/* ── Top Bar with Close Action ── */}
-            <View style={[styles.topBar, theme.topBar]}>
+            <View
+                style={[
+                    styles.topBar,
+                    theme.topBar,
+                    {
+                        paddingTop: Math.max(
+                            insets.top,
+                            Platform.OS === 'android' ? (StatusBar.currentHeight || 16) + 6 : 14
+                        ),
+                    },
+                ]}
+            >
                 <TouchableOpacity
                     style={[styles.closeButton, theme.closeButton]}
                     onPress={() => navigation.goBack()}
@@ -245,7 +257,7 @@ const HelpSupportScreen = () => {
                         activeOpacity={0.7}
                     >
                         <View style={styles.menuItemLeft}>
-                            <HugeiconsIcon icon={MessageChat01Icon} size={20} color={isDark ? '#E2E8F0' : '#1E293B'} />
+                            <HugeiconsIcon icon={Chat01Icon} size={20} color={isDark ? '#E2E8F0' : '#1E293B'} />
                             <Text style={[styles.menuItemText, theme.menuItemText]}>Live chat</Text>
                         </View>
                     </TouchableOpacity>
@@ -280,8 +292,19 @@ const HelpSupportScreen = () => {
                 transparent={false}
                 onRequestClose={() => setFaqModalVisible(false)}
             >
-                <SafeAreaView style={[styles.safeArea, theme.safeArea]}>
-                    <View style={[styles.modalHeader, theme.modalHeader]}>
+                <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['bottom', 'left', 'right']}>
+                    <View
+                        style={[
+                            styles.modalHeader,
+                            theme.modalHeader,
+                            {
+                                paddingTop: Math.max(
+                                    insets.top,
+                                    Platform.OS === 'android' ? (StatusBar.currentHeight || 16) + 6 : 14
+                                ),
+                            },
+                        ]}
+                    >
                         <TouchableOpacity
                             style={[styles.iconBtn, theme.iconBtn]}
                             onPress={() => setFaqModalVisible(false)}
@@ -329,8 +352,19 @@ const HelpSupportScreen = () => {
                 transparent={false}
                 onRequestClose={() => setGuideModalVisible(false)}
             >
-                <SafeAreaView style={[styles.safeArea, theme.safeArea]}>
-                    <View style={[styles.modalHeader, theme.modalHeader]}>
+                <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['bottom', 'left', 'right']}>
+                    <View
+                        style={[
+                            styles.modalHeader,
+                            theme.modalHeader,
+                            {
+                                paddingTop: Math.max(
+                                    insets.top,
+                                    Platform.OS === 'android' ? (StatusBar.currentHeight || 16) + 6 : 14
+                                ),
+                            },
+                        ]}
+                    >
                         <TouchableOpacity
                             style={[styles.iconBtn, theme.iconBtn]}
                             onPress={() => setGuideModalVisible(false)}
@@ -366,8 +400,19 @@ const HelpSupportScreen = () => {
                 transparent={false}
                 onRequestClose={() => setFeedbackModalVisible(false)}
             >
-                <SafeAreaView style={[styles.safeArea, theme.safeArea]}>
-                    <View style={[styles.modalHeader, theme.modalHeader]}>
+                <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['bottom', 'left', 'right']}>
+                    <View
+                        style={[
+                            styles.modalHeader,
+                            theme.modalHeader,
+                            {
+                                paddingTop: Math.max(
+                                    insets.top,
+                                    Platform.OS === 'android' ? (StatusBar.currentHeight || 16) + 6 : 14
+                                ),
+                            },
+                        ]}
+                    >
                         <TouchableOpacity
                             style={[styles.iconBtn, theme.iconBtn]}
                             onPress={() => setFeedbackModalVisible(false)}
@@ -460,8 +505,19 @@ const HelpSupportScreen = () => {
                 transparent={false}
                 onRequestClose={() => setLiveChatModalVisible(false)}
             >
-                <SafeAreaView style={[styles.safeArea, theme.safeArea]}>
-                    <View style={[styles.modalHeader, theme.modalHeader]}>
+                <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['bottom', 'left', 'right']}>
+                    <View
+                        style={[
+                            styles.modalHeader,
+                            theme.modalHeader,
+                            {
+                                paddingTop: Math.max(
+                                    insets.top,
+                                    Platform.OS === 'android' ? (StatusBar.currentHeight || 16) + 6 : 14
+                                ),
+                            },
+                        ]}
+                    >
                         <TouchableOpacity
                             style={[styles.iconBtn, theme.iconBtn]}
                             onPress={() => setLiveChatModalVisible(false)}

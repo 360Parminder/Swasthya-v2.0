@@ -25,6 +25,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { medicationApi } from '../../../api/medicationApi';
+import { notificationService } from '../../../services/notificationService';
 import Toast from 'react-native-toast-message';
 import { 
   DateWheelPickerCard, 
@@ -131,6 +132,7 @@ const AddMedication = ({ isVisible, onClose }) => {
     try {
       const response = await medicationApi.addMedication(payload);
       if (response.status === 201 || response.status === 200) {
+        notificationService.syncMedicationReminders([payload]);
         Toast.show({ type: 'success', text1: 'Medication Added 🎉', text2: 'Schedule updated successfully.' });
         onClose();
       } else {
