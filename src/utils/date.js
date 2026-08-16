@@ -11,3 +11,5 @@ export function getDayAndDate() {
 }
 
 const result = getDayAndDate();
+
+

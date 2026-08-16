@@ -19,6 +19,7 @@ import HydrationSettingsScreen from '../screens/Hydration/HydrationSettingsScree
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import SleepDetailsScreen from '../screens/sleep/SleepDetailsScreen';
 import SleepScheduleScreen from '../screens/sleep/SleepScheduleScreen';
+import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -141,6 +142,15 @@ function HomeStackScreen() {
           animation: 'slide_from_bottom',
         }}
       />
+      <HomeStack.Screen
+        name="HelpSupport"
+        component={HelpSupportScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -162,6 +172,15 @@ function ProfileStackScreen() {
         headerTitle: 'Your Profile',
       }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
+      <ProfileStack.Screen
+        name="HelpSupport"
+        component={HelpSupportScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </ProfileStack.Navigator>
   );
 }
