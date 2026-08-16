@@ -78,3 +78,5 @@ yarn-error.log
 
 upload.keystore.properties
 upload_certificate.pem
+
+/android/gradle.properties

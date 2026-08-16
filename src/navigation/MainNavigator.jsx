@@ -174,6 +174,7 @@ const MainNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
+        lazy: true,
         tabBarItemStyle: {
           margin: 10,
         },
@@ -234,18 +235,10 @@ const MainNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStackScreen} options={{
-        lazy: true,
-      }} />
-      <Tab.Screen name="MedicationTab" component={Medication} options={{
-        lazy: true,
-      }} />
-      <Tab.Screen name="ConnectionsTab" component={Connection} options={{
-        lazy: true,
-      }} />
-      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} options={{
-        lazy: true,
-      }} />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen} />
+      <Tab.Screen name="MedicationTab" component={Medication} />
+      <Tab.Screen name="ConnectionsTab" component={Connection} />
+      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
       {/* <Tab.Screen name="AlarmScreen" component={AlarmScreen} /> */}
     </Tab.Navigator>
   );

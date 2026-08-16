@@ -74,7 +74,26 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 def keystorePropertiesFile = rootProject.file('app/upload.keystore.properties')
 def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def getKeystoreProp = { String key1, String key2 ->
+    if (keystoreProperties.containsKey(key1)) {
+        return keystoreProperties.getProperty(key1)
+    }
+    if (keystoreProperties.containsKey(key2)) {
+        return keystoreProperties.getProperty(key2)
+    }
+    if (project.hasProperty(key2)) {
+        return project.property(key2)
+    }
+    if (project.hasProperty(key1)) {
+        return project.property(key1)
+    }
+    return null
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -96,11 +115,14 @@ android {
             keyPassword 'android'
         }
         release {
-      storeFile file(keystoreProperties['key.store'])
-      storePassword keystoreProperties['key.store.password']
-      keyAlias keystoreProperties['key.alias']
-      keyPassword keystoreProperties['key.alias.password']
-    }
+            def releaseStoreFile = getKeystoreProp('key.store', 'MYAPP_RELEASE_STORE_FILE')
+            if (releaseStoreFile != null && file(releaseStoreFile).exists()) {
+                storeFile file(releaseStoreFile)
+                storePassword getKeystoreProp('key.store.password', 'MYAPP_RELEASE_STORE_PASSWORD')
+                keyAlias getKeystoreProp('key.alias', 'MYAPP_RELEASE_KEY_ALIAS')
+                keyPassword getKeystoreProp('key.alias.password', 'MYAPP_RELEASE_KEY_PASSWORD')
+            }
+        }
     }
     buildTypes {
         debug {
@@ -109,7 +131,12 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-           signingConfig signingConfigs.release
+            def releaseStoreFile = getKeystoreProp('key.store', 'MYAPP_RELEASE_STORE_FILE')
+            if (releaseStoreFile != null && file(releaseStoreFile).exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
@@ -119,11 +146,10 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    implementation "com.facebook.react:react-native:+"
-     implementation 'com.facebook.fresco:fresco:3.6.0'
+    implementation 'com.facebook.fresco:fresco:3.6.0'
     implementation 'com.facebook.fresco:animated-gif:3.6.0'
     implementation 'androidx.core:core:1.13.1'
-implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
