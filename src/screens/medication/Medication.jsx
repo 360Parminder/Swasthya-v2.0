@@ -76,9 +76,11 @@ export const parseMedicationsList = (rawMedications) => {
         if (rec) {
           list.push({
             ...rec,
+            _id: rec._id,
             parentContainerId: group._id,
             forWhom: group.forWhom || 'myself',
             relative_id: group.relative_id,
+            logs: rec.logs || [],
             frequencyText: typeof rec.frequency === 'object' ? rec.frequency?.type || 'Daily' : (rec.frequency || 'Daily'),
             stockCount: typeof rec.stock === 'object' ? rec.stock?.quantity : (typeof rec.stock === 'number' ? rec.stock : 30),
             stockThreshold: typeof rec.stock === 'object' ? rec.stock?.threshold : 5,
@@ -89,6 +91,8 @@ export const parseMedicationsList = (rawMedications) => {
     } else if (group && group.medicine_name) {
       list.push({
         ...group,
+        _id: group._id,
+        logs: group.logs || [],
         frequencyText: typeof group.frequency === 'object' ? group.frequency?.type || 'Daily' : (group.frequency || 'Daily'),
         stockCount: typeof group.stock === 'object' ? group.stock?.quantity : (typeof group.stock === 'number' ? group.stock : 30),
         stockThreshold: typeof group.stock === 'object' ? group.stock?.threshold : 5,
@@ -119,6 +123,31 @@ const Medication = () => {
       const rawMeds = response?.data?.medications || response?.data?.data || response?.data || [];
       const parsed = parseMedicationsList(rawMeds);
       setMedications(parsed);
+
+      // Initialize taken doses map from backend logs for today
+      const todayStr = new Date().toISOString().split('T')[0];
+      const initialTaken = {};
+
+      parsed.forEach((med, medIdx) => {
+        if (Array.isArray(med.logs)) {
+          med.logs.forEach((log) => {
+            const logDateStr = log.time ? new Date(log.time).toISOString().split('T')[0] : null;
+            if (logDateStr === todayStr && log.status === 'taken') {
+              if (log.dose_id) {
+                initialTaken[log.dose_id] = true;
+              } else if (med._id) {
+                initialTaken[med._id.toString()] = true;
+                if (Array.isArray(med.times) && med.times.length > 0) {
+                  med.times.forEach(t => {
+                    if (t._id) initialTaken[t._id.toString()] = true;
+                  });
+                }
+              }
+            }
+          });
+        }
+      });
+      setTakenDoses(initialTaken);
     } catch (error) {
       console.log('Error fetching medications:', error?.message);
     } finally {
@@ -136,12 +165,55 @@ const Medication = () => {
     fetchMedications();
   }, [fetchMedications]);
 
-  const toggleTakeDose = (key) => {
+  const toggleTakeDose = async (item) => {
     playTickSound();
+    const key = item.doseId;
+    const isCurrentlyTaken = !!takenDoses[key];
+    const nextTaken = !isCurrentlyTaken;
+
+    // Optimistically update taken state
     setTakenDoses(prev => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: nextTaken,
     }));
+
+    // Optimistically update stock count
+    setMedications(prevMeds =>
+      prevMeds.map(m => {
+        if (m._id === (item.medicationId || item._id)) {
+          const currentQty = m.stockCount !== undefined ? m.stockCount : 30;
+          const nextQty = nextTaken ? Math.max(0, currentQty - 1) : currentQty + 1;
+          return { ...m, stockCount: nextQty };
+        }
+        return m;
+      })
+    );
+
+    try {
+      await medicationApi.updateMedicationStatus({
+        medication_id: item.medicationId || item._id,
+        dose_id: item.doseId,
+        status: nextTaken ? 'taken' : 'not taken yet',
+        time: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.log('Error updating medication status:', error?.message || error);
+      // Revert optimistic updates on failure
+      setTakenDoses(prev => ({
+        ...prev,
+        [key]: isCurrentlyTaken,
+      }));
+      setMedications(prevMeds =>
+        prevMeds.map(m => {
+          if (m._id === (item.medicationId || item._id)) {
+            const currentQty = m.stockCount !== undefined ? m.stockCount : 30;
+            const prevQty = isCurrentlyTaken ? Math.max(0, currentQty - 1) : currentQty + 1;
+            return { ...m, stockCount: prevQty };
+          }
+          return m;
+        })
+      );
+    }
   };
 
   // Filtered List
@@ -160,7 +232,8 @@ const Medication = () => {
         med.times.forEach((t, tIdx) => {
           items.push({
             ...med,
-            doseId: t._id || `${med._id || medIdx}-time-${tIdx}`,
+            medicationId: med._id,
+            doseId: t._id ? t._id.toString() : `${med._id || medIdx}-time-${tIdx}`,
             doseNumber: tIdx + 1,
             totalDoses: med.times.length,
             doseTime: t.reception_time,
@@ -170,7 +243,8 @@ const Medication = () => {
       } else {
         items.push({
           ...med,
-          doseId: med._id || `med-${medIdx}`,
+          medicationId: med._id,
+          doseId: med._id ? med._id.toString() : `med-${medIdx}`,
           doseNumber: 1,
           totalDoses: 1,
           doseTime: new Date().toISOString(),
@@ -405,7 +479,7 @@ const Medication = () => {
                         styles.takeCheckbox,
                         isTaken ? styles.takeCheckboxChecked : theme.takeCheckboxUnchecked
                       ]}
-                      onPress={() => toggleTakeDose(item.doseId)}
+                      onPress={() => toggleTakeDose(item)}
                       activeOpacity={0.7}
                     >
                       {isTaken ? (

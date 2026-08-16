@@ -99,31 +99,65 @@ const MedicationHistory = () => {
 
     const styles = useMemo(() => getStyles(COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG), [COLORS, TEAL, DARK_TEAL, PAGE_BG, CARD_BG]);
 
+    const transformHistoryData = (medicationsList, selectedDate) => {
+        if (!medicationsList || !Array.isArray(medicationsList) || medicationsList.length === 0) return [];
+
+        const items = [];
+        medicationsList.forEach((med, mIdx) => {
+            const formStr = med.forms ? (med.forms.charAt(0).toUpperCase() + med.forms.slice(1)) : 'Tablet';
+            const doseInfo = `${med.strength || ''} ${med.unit || ''} • ${med.frequency?.type || 'Daily'}`;
+            
+            if (med.logs && med.logs.length > 0) {
+                med.logs.forEach((log, lIdx) => {
+                    const statusUpper = (log.status || 'TAKEN').toUpperCase();
+                    const logTimeStr = log.time ? new Date(log.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+                    items.push({
+                        id: `${med._id || mIdx}-${lIdx}`,
+                        name: med.medicine_name,
+                        status: statusUpper,
+                        doseInfo: doseInfo,
+                        timeInfo: log.status === 'taken' ? `Logged at ${logTimeStr}` : (log.status === 'skipped' ? 'Skipped by user' : `Scheduled for ${logTimeStr}`),
+                        iconType: log.status === 'taken' ? 'taken' : (log.status === 'skipped' ? 'skipped' : 'missed'),
+                    });
+                });
+            } else {
+                items.push({
+                    id: `${med._id || mIdx}-scheduled`,
+                    name: med.medicine_name,
+                    status: 'SCHEDULED',
+                    doseInfo: doseInfo,
+                    timeInfo: med.times && med.times[0] ? `Scheduled for ${new Date(med.times[0].reception_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}` : 'Daily dose',
+                    iconType: 'missed',
+                });
+            }
+        });
+
+        const isToday = selectedDate.isToday;
+        const groupTitle = isToday ? `TODAY, ${selectedDate.day} ${selectedDate.date}` : `${selectedDate.day}, ${selectedDate.monthYear} ${selectedDate.date}`;
+
+        return [{
+            group: groupTitle,
+            items
+        }];
+    };
+
     // Fetch data on date selection
     useEffect(() => {
         const fetchDayHistory = async () => {
             setLoadingHistory(true);
             try {
-                // Call API for the specific date
-                console.log(selectedDateObj);
+                const response = await medicationApi.getHistoryByDate(selectedDateObj.fullDate);
+                const meds = response?.data?.medication;
 
-                const datePayload = new Date(selectedDateObj.fullDate);
-                const response = await medicationApi.getHistoryByDate(datePayload);
-                console.log(response.data);
-
-
-                // If API returns valid data formatted correctly, use it. Otherwise fallback to dummy data for UI demonstration.
-                if (response?.data?.medication && response.data.medication.length > 0) {
-                    setHistoryData(response.data.medication);
+                if (Array.isArray(meds) && meds.length > 0) {
+                    const formatted = transformHistoryData(meds, selectedDateObj);
+                    setHistoryData(formatted);
                 } else {
-                    // Providing dummy state for UI so the design renders even if unlinked 
-                    setHistoryData(HISTORY_TIMELINE.filter(group => selectedDateObj.isToday ? group.group.includes('TODAY') : true));
+                    setHistoryData([]);
                 }
             } catch (error) {
-                console.log(error)
                 console.error("Error fetching history for date:", error);
-                // Fallback to display the static UI representation on error
-                setHistoryData(HISTORY_TIMELINE);
+                setHistoryData([]);
             } finally {
                 setLoadingHistory(false);
             }
@@ -199,10 +233,10 @@ const MedicationHistory = () => {
                     {/* Adherence Header Section */}
                     <View style={styles.adherenceMainCard}>
                         <View style={styles.adherenceLeftCol}>
-                            <Text style={styles.adherenceLabel}>Weekly Adherence</Text>
-                            <Text style={styles.adherencePercent}>92%</Text>
+                            <Text style={styles.adherenceLabel}>Daily Adherence</Text>
+                            <Text style={styles.adherencePercent}>{historyData.length > 0 ? `${Math.round((historyData.reduce((acc, g) => acc + (g.items ? g.items.filter(i => i.status === 'TAKEN').length : 0), 0) / Math.max(1, historyData.reduce((acc, g) => acc + (g.items ? g.items.length : 0), 0))) * 100)}%` : '100%'}</Text>
                             <View style={styles.adherenceBadge}>
-                                <Text style={styles.adherenceBadgeText}>+4% from last week</Text>
+                                <Text style={styles.adherenceBadgeText}>Status Logged</Text>
                             </View>
                         </View>
                         <View style={styles.adherenceRightCol}>
@@ -218,14 +252,18 @@ const MedicationHistory = () => {
                                 <HugeiconsIcon icon={Tick02Icon} size={14} color={COLORS.success} variant="solid" />
                                 <Text style={styles.statMiniLabel}>TAKEN</Text>
                             </View>
-                            <Text style={styles.statMiniValueBlack}>24</Text>
+                            <Text style={styles.statMiniValueBlack}>
+                                {historyData.reduce((acc, g) => acc + (g.items ? g.items.filter(i => i.status === 'TAKEN').length : 0), 0)}
+                            </Text>
                         </View>
                         <View style={styles.statMiniCard}>
                             <View style={styles.statMiniHeader}>
                                 <HugeiconsIcon icon={Cancel01Icon} size={16} color={COLORS.danger} />
-                                <Text style={styles.statMiniLabel}>MISSED</Text>
+                                <Text style={styles.statMiniLabel}>UNLOGGED / MISSED</Text>
                             </View>
-                            <Text style={styles.statMiniValueRed}>2</Text>
+                            <Text style={styles.statMiniValueRed}>
+                                {historyData.reduce((acc, g) => acc + (g.items ? g.items.filter(i => i.status !== 'TAKEN').length : 0), 0)}
+                            </Text>
                         </View>
                     </View>
 

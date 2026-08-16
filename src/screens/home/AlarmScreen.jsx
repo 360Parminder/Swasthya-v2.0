@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { alarmService } from '../../services/alarmService';
 import { notificationService } from '../../services/notificationService';
-import { dashboardApi } from '../../api/dashboard';
+import { medicationApi } from '../../api/medicationApi';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { AlarmClockIcon, Tick02Icon, Moon02Icon } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
@@ -31,19 +31,22 @@ const AlarmScreen = () => {
   const handleTaken = async () => {
     await alarmService.stopAlarm();
 
-    // Optionally mark it taken on backend or in local state
     try {
       if (medication?._id) {
-         // await dashboardApi.markMedicationTaken(medication._id); 
+        await medicationApi.updateMedicationStatus({
+          medication_id: medication._id,
+          dose_id: medication.doseId || medication.dose_id,
+          status: 'taken',
+          time: new Date().toISOString(),
+        });
       }
     } catch(err) {
-      console.log('Error marking taken', err);
+      console.log('Error marking taken in AlarmScreen:', err);
     }
     
-    // Go to home, you might want to configure standard navigation.
     navigation.reset({
       index: 0,
-      routes: [{ name: 'HomeTab' }], // Or whatever the root is
+      routes: [{ name: 'HomeTab' }],
     });
   };
 

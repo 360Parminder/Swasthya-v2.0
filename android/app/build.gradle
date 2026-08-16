@@ -157,4 +157,9 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+tasks.withType(JavaCompile).configureEach {
+    options.incremental = false
+}
+
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")

@@ -1,15 +1,15 @@
 import apiClient from "./apiClient";
 
 export const medicationApi = {
-
     addMedication: (data) => apiClient.post('/medication', data),
-    getMedication: (id) => apiClient.get(`/medication/${id}`),
+    getMedication: (id) => apiClient.get('/medication', { params: { medication_id: id } }),
     getAllMedications: () => apiClient.get('/medication/all'),
-    updateMedication: (id, data) => apiClient.put(`/medication/${id}`, data),
-    deleteMedication: (id) => apiClient.delete(`/medication/${id}`),
+    updateMedication: (data) => apiClient.put('/medication', data),
+    updateMedicationStatus: (data) => apiClient.post('/medication/status', data),
+    deleteMedication: (id) => apiClient.delete('/medication', { params: { medication_id: id } }),
     getHistoryByDate: (date) => apiClient.get(`/medication/bydate`, {
         params: {
             date
         }
     }),
-}
+};
