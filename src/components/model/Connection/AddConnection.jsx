@@ -3,6 +3,7 @@ import {
     View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
     ScrollView, ActivityIndicator, Platform, FlatList, Image
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowLeft01Icon, Search02Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../ui/colors';
@@ -109,7 +110,7 @@ const AddConnection = ({ isVisible, onClose }) => {
 
     return (
         <Modal visible={isVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose} style={styles.backButton}>
@@ -194,7 +195,7 @@ const AddConnection = ({ isVisible, onClose }) => {
 
                     <View style={{ height: 40 }} />
                 </ScrollView>
-            </View>
+            </SafeAreaView>
         </Modal>
     );
 };

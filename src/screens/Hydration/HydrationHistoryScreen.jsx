@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowLeft01Icon, Calendar01Icon, ChartColumnIcon, DropletIcon, Coffee01Icon, Coffee02Icon, StarIcon, Tick02Icon, MoreVerticalIcon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { useNavigation } from '@react-navigation/native';

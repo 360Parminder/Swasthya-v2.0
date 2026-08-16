@@ -4,18 +4,23 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   Dimensions,
   LayoutAnimation,
   Platform,
-  UIManager
+  UIManager,
+  useColorScheme
 } from 'react-native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { 
   Calendar01Icon, 
   WeightScale01Icon, 
   RulerIcon, 
-  Tick02Icon
+  Tick02Icon,
+  Clock01Icon,
+  PillsTabletIcon,
+  Add01Icon
 } from '@hugeicons/core-free-icons';
 import { playTickSound } from '../../services/soundService';
 
@@ -28,7 +33,7 @@ const TICK_WIDTH = 14;
 const RULER_PADDING = (SCREEN_WIDTH - 72) / 2;
 
 /**
- * Modern Expandable Horizontal Ruler Picker with 2-Tone Nested Card Design
+ * Modern Expandable Horizontal Ruler Picker with 2-Tone Light/Dark Theme Support
  */
 export const RulerPickerCard = ({
   title = 'Weight',
@@ -43,6 +48,10 @@ export const RulerPickerCard = ({
   selectedUnit = 'kg',
   defaultExpanded = false
 }) => {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkStyles : lightStyles;
+
   const [expanded, setExpanded] = useState(defaultExpanded);
   const flatListRef = useRef(null);
   const isScrolling = useRef(false);
@@ -118,18 +127,22 @@ export const RulerPickerCard = ({
         <View
           style={[
             styles.tick,
-            isMajor ? styles.tickMajor : isMid ? styles.tickMid : styles.tickMinor
+            isMajor 
+              ? (isDark ? styles.tickMajorDark : styles.tickMajorLight) 
+              : isMid 
+                ? (isDark ? styles.tickMidDark : styles.tickMidLight) 
+                : (isDark ? styles.tickMinorDark : styles.tickMinorLight)
           ]}
         />
         {isMajor && (
-          <Text style={styles.tickLabel}>{item}</Text>
+          <Text style={[styles.tickLabel, theme.tickLabel]}>{item}</Text>
         )}
       </View>
     );
-  }, []);
+  }, [isDark, theme.tickLabel]);
 
   return (
-    <View style={[styles.outerCard, expanded && styles.outerCardExpanded]}>
+    <View style={[styles.outerCard, theme.outerCard, expanded && theme.outerCardExpanded]}>
       {/* Top Header Row in Outer Card Shade */}
       <TouchableOpacity 
         style={styles.cardHeader} 
@@ -140,19 +153,19 @@ export const RulerPickerCard = ({
           <HugeiconsIcon 
             icon={icon || (title.toLowerCase().includes('height') ? RulerIcon : WeightScale01Icon)} 
             size={20} 
-            color="#A1A1AA" 
+            color={isDark ? '#A1A1AA' : '#6B7280'} 
           />
-          <Text style={styles.headerTitle}>{title}</Text>
+          <Text style={[styles.headerTitle, theme.headerTitle]}>{title}</Text>
         </View>
 
-        <Text style={styles.headerValue}>
+        <Text style={[styles.headerValue, theme.headerValue]}>
           {currentVal} {selectedUnit || unit}
         </Text>
       </TouchableOpacity>
 
-      {/* Inner Nested Sub-Card in Deeper Dark Shade */}
+      {/* Inner Nested Sub-Card in Deeper Dark / Softer Light Shade */}
       {expanded && (
-        <View style={styles.innerSubCard}>
+        <View style={[styles.innerSubCard, theme.innerSubCard]}>
           {/* Unit Switcher Chips with Active Dot */}
           {units && units.length > 1 && (
             <View style={styles.unitRow}>
@@ -164,7 +177,8 @@ export const RulerPickerCard = ({
                     onPress={() => onUnitChange && onUnitChange(u)}
                     style={[
                       styles.twoToneChip,
-                      isSelected ? styles.twoToneChipSelected : styles.twoToneChipUnselected
+                      theme.twoToneChip,
+                      isSelected ? theme.twoToneChipSelected : theme.twoToneChipUnselected
                     ]}
                     activeOpacity={0.8}
                   >
@@ -176,10 +190,10 @@ export const RulerPickerCard = ({
                     <Text
                       style={[
                         styles.twoToneChipText,
-                        isSelected ? styles.twoToneChipTextSelected : styles.twoToneChipTextUnselected
+                        isSelected ? theme.twoToneChipTextSelected : theme.twoToneChipTextUnselected
                       ]}
                     >
-                      {u === 'kg' ? 'Kilograms (kg)' : u === 'lbs' ? 'Pounds (lbs)' : u === 'cm' ? 'Centimeters (cm)' : 'Feet & Inches'}
+                      {u === 'kg' ? 'Kilograms (kg)' : u === 'lbs' ? 'Pounds (lbs)' : u === 'cm' ? 'Centimeters (cm)' : u === 'ft' ? 'Feet & Inches' : u}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -188,29 +202,29 @@ export const RulerPickerCard = ({
           )}
 
           {/* Dotted Divider */}
-          <View style={styles.dashedDivider} />
+          <View style={[styles.dashedDivider, theme.dashedDivider]} />
 
           {/* Large Value Display */}
           <View style={styles.valueRow}>
             <TouchableOpacity 
-              style={styles.stepButton} 
+              style={[styles.stepButton, theme.stepButton]} 
               onPress={() => adjustValue(-1)}
               activeOpacity={0.7}
             >
-              <Text style={styles.stepButtonText}>−</Text>
+              <Text style={[styles.stepButtonText, theme.stepButtonText]}>−</Text>
             </TouchableOpacity>
 
             <View style={styles.numberWrapper}>
-              <Text style={styles.largeValueText}>{currentVal}</Text>
-              <Text style={styles.largeValueUnit}>{selectedUnit || unit}</Text>
+              <Text style={[styles.largeValueText, theme.largeValueText]}>{currentVal}</Text>
+              <Text style={[styles.largeValueUnit, theme.largeValueUnit]}>{selectedUnit || unit}</Text>
             </View>
 
             <TouchableOpacity 
-              style={styles.stepButton} 
+              style={[styles.stepButton, theme.stepButton]} 
               onPress={() => adjustValue(1)}
               activeOpacity={0.7}
             >
-              <Text style={styles.stepButtonText}>+</Text>
+              <Text style={[styles.stepButtonText, theme.stepButtonText]}>+</Text>
             </TouchableOpacity>
           </View>
 
@@ -248,8 +262,8 @@ export const RulerPickerCard = ({
 
           {/* Range Min/Max Footers */}
           <View style={styles.rangeFooter}>
-            <Text style={styles.rangeText}>{min} {selectedUnit || unit}</Text>
-            <Text style={styles.rangeText}>{max} {selectedUnit || unit}</Text>
+            <Text style={[styles.rangeText, theme.rangeText]}>{min} {selectedUnit || unit}</Text>
+            <Text style={[styles.rangeText, theme.rangeText]}>{max} {selectedUnit || unit}</Text>
           </View>
         </View>
       )}
@@ -261,7 +275,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const ITEM_HEIGHT = 42;
 
 /**
- * Modern Expandable Date of Birth Card with 2-Tone Nested Card Design
+ * Modern Expandable Date of Birth Card with 2-Tone Light/Dark Theme Support
  */
 export const DateWheelPickerCard = ({
   value = '2000-01-15',
@@ -269,6 +283,10 @@ export const DateWheelPickerCard = ({
   title = 'Date of Birth',
   defaultExpanded = false
 }) => {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkStyles : lightStyles;
+
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const toggleExpand = () => {
@@ -299,19 +317,42 @@ export const DateWheelPickerCard = ({
   const monthListRef = useRef(null);
   const yearListRef = useRef(null);
 
-  // Sync formatted date to parent
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const isMountedRef = useRef(false);
+
+  // Sync formatted date to parent only on actual user change
   useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     const m = String(selectedMonth + 1).padStart(2, '0');
     const d = String(selectedDay).padStart(2, '0');
     const formatted = `${selectedYear}-${m}-${d}`;
-    if (onChange) {
-      onChange(formatted);
+    if (onChangeRef.current) {
+      onChangeRef.current(formatted);
     }
-  }, [selectedDay, selectedMonth, selectedYear, onChange]);
+  }, [selectedDay, selectedMonth, selectedYear]);
 
   const formattedDisplay = useMemo(() => {
     return `${selectedDay} ${MONTHS[selectedMonth]} ${selectedYear}`;
   }, [selectedDay, selectedMonth, selectedYear]);
+
+  // Scroll to initial index on expand
+  useEffect(() => {
+    if (expanded) {
+      const timer = setTimeout(() => {
+        if (dayListRef.current) dayListRef.current.scrollTo({ y: Math.max(0, (selectedDay - 1) * ITEM_HEIGHT), animated: false });
+        if (monthListRef.current) monthListRef.current.scrollTo({ y: Math.max(0, selectedMonth * ITEM_HEIGHT), animated: false });
+        if (yearListRef.current) {
+          const yIdx = years.indexOf(selectedYear);
+          yearListRef.current.scrollTo({ y: Math.max(0, yIdx * ITEM_HEIGHT), animated: false });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [expanded, selectedDay, selectedMonth, selectedYear, years]);
 
   const handleDayScroll = (e) => {
     const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
@@ -338,7 +379,7 @@ export const DateWheelPickerCard = ({
   };
 
   return (
-    <View style={[styles.outerCard, expanded && styles.outerCardExpanded]}>
+    <View style={[styles.outerCard, theme.outerCard, expanded && theme.outerCardExpanded]}>
       {/* Top Header Row in Outer Card Shade */}
       <TouchableOpacity 
         style={styles.cardHeader} 
@@ -346,134 +387,113 @@ export const DateWheelPickerCard = ({
         activeOpacity={0.8}
       >
         <View style={styles.headerLeft}>
-          <HugeiconsIcon icon={Calendar01Icon} size={20} color="#A1A1AA" />
-          <Text style={styles.headerTitle}>{title}</Text>
+          <HugeiconsIcon icon={Calendar01Icon} size={20} color={isDark ? '#A1A1AA' : '#6B7280'} />
+          <Text style={[styles.headerTitle, theme.headerTitle]}>{title}</Text>
         </View>
 
-        <Text style={styles.headerValue}>{formattedDisplay}</Text>
+        <Text style={[styles.headerValue, theme.headerValue]}>{formattedDisplay}</Text>
       </TouchableOpacity>
 
-      {/* Inner Nested Sub-Card in Deeper Dark Shade */}
+      {/* Inner Nested Sub-Card in Deeper Dark / Softer Light Shade */}
       {expanded && (
-        <View style={styles.innerSubCard}>
+        <View style={[styles.innerSubCard, theme.innerSubCard]}>
           {/* 3-Column Wheels Header Labels */}
           <View style={styles.wheelHeaderRow}>
-            <Text style={styles.wheelColHeader}>DAY</Text>
-            <Text style={styles.wheelColHeader}>MONTH</Text>
-            <Text style={styles.wheelColHeader}>YEAR</Text>
+            <Text style={[styles.wheelColHeader, theme.wheelColHeader]}>DAY</Text>
+            <Text style={[styles.wheelColHeader, theme.wheelColHeader]}>MONTH</Text>
+            <Text style={[styles.wheelColHeader, theme.wheelColHeader]}>YEAR</Text>
           </View>
 
           {/* 3-Column Drum Wheels Container */}
           <View style={styles.wheelColumnsContainerFull}>
             {/* Center Active Highlight Band */}
-            <View style={styles.activeSelectionBand} pointerEvents="none" />
+            <View style={[styles.activeSelectionBand, theme.activeSelectionBand]} pointerEvents="none" />
 
             {/* Day Column */}
             <View style={styles.wheelColumn}>
-              <FlatList
+              <ScrollView
                 ref={dayListRef}
-                data={days}
-                keyExtractor={(item) => `day-${item}`}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
                 decelerationRate="fast"
                 bounces={false}
                 contentContainerStyle={styles.wheelListContent}
-                getItemLayout={(_, index) => ({
-                  length: ITEM_HEIGHT,
-                  offset: ITEM_HEIGHT * index,
-                  index
-                })}
-                initialScrollIndex={Math.max(0, selectedDay - 1)}
                 onMomentumScrollEnd={handleDayScroll}
-                renderItem={({ item }) => {
+              >
+                {days.map((item) => {
                   const isSelected = item === selectedDay;
                   return (
-                    <View style={styles.wheelItem}>
+                    <View key={`day-${item}`} style={styles.wheelItem}>
                       <Text
                         style={[
                           styles.wheelItemText,
-                          isSelected ? styles.wheelItemTextActive : styles.wheelItemTextInactive
+                          isSelected ? theme.wheelItemTextActive : theme.wheelItemTextInactive
                         ]}
                       >
                         {String(item).padStart(2, '0')}
                       </Text>
                     </View>
                   );
-                }}
-              />
+                })}
+              </ScrollView>
             </View>
 
             {/* Month Column */}
             <View style={styles.wheelColumn}>
-              <FlatList
+              <ScrollView
                 ref={monthListRef}
-                data={MONTHS}
-                keyExtractor={(item) => `month-${item}`}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
                 decelerationRate="fast"
                 bounces={false}
                 contentContainerStyle={styles.wheelListContent}
-                getItemLayout={(_, index) => ({
-                  length: ITEM_HEIGHT,
-                  offset: ITEM_HEIGHT * index,
-                  index
-                })}
-                initialScrollIndex={selectedMonth}
                 onMomentumScrollEnd={handleMonthScroll}
-                renderItem={({ item, index }) => {
+              >
+                {MONTHS.map((item, index) => {
                   const isSelected = index === selectedMonth;
                   return (
-                    <View style={styles.wheelItem}>
+                    <View key={`month-${item}`} style={styles.wheelItem}>
                       <Text
                         style={[
                           styles.wheelItemText,
-                          isSelected ? styles.wheelItemTextActive : styles.wheelItemTextInactive
+                          isSelected ? theme.wheelItemTextActive : theme.wheelItemTextInactive
                         ]}
                       >
                         {item}
                       </Text>
                     </View>
                   );
-                }}
-              />
+                })}
+              </ScrollView>
             </View>
 
             {/* Year Column */}
             <View style={styles.wheelColumn}>
-              <FlatList
+              <ScrollView
                 ref={yearListRef}
-                data={years}
-                keyExtractor={(item) => `year-${item}`}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
                 decelerationRate="fast"
                 bounces={false}
                 contentContainerStyle={styles.wheelListContent}
-                getItemLayout={(_, index) => ({
-                  length: ITEM_HEIGHT,
-                  offset: ITEM_HEIGHT * index,
-                  index
-                })}
-                initialScrollIndex={Math.max(0, years.indexOf(selectedYear))}
                 onMomentumScrollEnd={handleYearScroll}
-                renderItem={({ item }) => {
+              >
+                {years.map((item) => {
                   const isSelected = item === selectedYear;
                   return (
-                    <View style={styles.wheelItem}>
+                    <View key={`year-${item}`} style={styles.wheelItem}>
                       <Text
                         style={[
                           styles.wheelItemText,
-                          isSelected ? styles.wheelItemTextActive : styles.wheelItemTextInactive
+                          isSelected ? theme.wheelItemTextActive : theme.wheelItemTextInactive
                         ]}
                       >
                         {item}
                       </Text>
                     </View>
                   );
-                }}
-              />
+                })}
+              </ScrollView>
             </View>
           </View>
         </View>
@@ -482,21 +502,392 @@ export const DateWheelPickerCard = ({
   );
 };
 
+/**
+ * Modern Expandable Time Wheel Picker Card with 2-Tone Light/Dark Theme Support
+ */
+export const TimeWheelPickerCard = ({
+  value = new Date(),
+  onChange,
+  title = 'Scheduled Time',
+  defaultExpanded = false
+}) => {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkStyles : lightStyles;
+
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(!expanded);
+  };
+
+  const initialTime = useMemo(() => {
+    let d = new Date();
+    if (value instanceof Date) {
+      d = value;
+    } else if (typeof value === 'string') {
+      const parsed = new Date(value);
+      if (!isNaN(parsed.getTime())) {
+        d = parsed;
+      }
+    }
+    const h24 = d.getHours();
+    const period = h24 >= 12 ? 'PM' : 'AM';
+    let h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    const m = d.getMinutes();
+    return { hour: h12, minute: m, period };
+  }, [value]);
+
+  const [selectedHour, setSelectedHour] = useState(initialTime.hour);
+  const [selectedMinute, setSelectedMinute] = useState(initialTime.minute);
+  const [selectedPeriod, setSelectedPeriod] = useState(initialTime.period);
+
+  const hours = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
+  const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => i), []);
+  const periods = useMemo(() => ['AM', 'PM'], []);
+
+  const hourListRef = useRef(null);
+  const minuteListRef = useRef(null);
+  const periodListRef = useRef(null);
+
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const isMountedRef = useRef(false);
+
+  // Sync formatted time to parent only on actual user change
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+    let h24 = selectedHour % 12;
+    if (selectedPeriod === 'PM') h24 += 12;
+    const normalized = new Date(2000, 0, 1, h24, selectedMinute, 0, 0).toISOString();
+    if (onChangeRef.current) {
+      onChangeRef.current(normalized, { hour: selectedHour, minute: selectedMinute, period: selectedPeriod });
+    }
+  }, [selectedHour, selectedMinute, selectedPeriod]);
+
+  // Scroll to initial index on expand
+  useEffect(() => {
+    if (expanded) {
+      const timer = setTimeout(() => {
+        if (hourListRef.current) hourListRef.current.scrollTo({ y: Math.max(0, (selectedHour - 1) * ITEM_HEIGHT), animated: false });
+        if (minuteListRef.current) minuteListRef.current.scrollTo({ y: Math.max(0, selectedMinute * ITEM_HEIGHT), animated: false });
+        if (periodListRef.current) {
+          const pIdx = periods.indexOf(selectedPeriod);
+          periodListRef.current.scrollTo({ y: Math.max(0, pIdx * ITEM_HEIGHT), animated: false });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [expanded, selectedHour, selectedMinute, selectedPeriod, periods]);
+
+  const formattedDisplay = useMemo(() => {
+    const hStr = String(selectedHour).padStart(2, '0');
+    const mStr = String(selectedMinute).padStart(2, '0');
+    return `${hStr}:${mStr} ${selectedPeriod}`;
+  }, [selectedHour, selectedMinute, selectedPeriod]);
+
+  const handleHourScroll = (e) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
+    if (hours[idx] && hours[idx] !== selectedHour) {
+      setSelectedHour(hours[idx]);
+      playTickSound();
+    }
+  };
+
+  const handleMinuteScroll = (e) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
+    if (minutes[idx] !== undefined && minutes[idx] !== selectedMinute) {
+      setSelectedMinute(minutes[idx]);
+      playTickSound();
+    }
+  };
+
+  const handlePeriodScroll = (e) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
+    if (periods[idx] && periods[idx] !== selectedPeriod) {
+      setSelectedPeriod(periods[idx]);
+      playTickSound();
+    }
+  };
+
+  return (
+    <View style={[styles.outerCard, theme.outerCard, expanded && theme.outerCardExpanded]}>
+      <TouchableOpacity 
+        style={styles.cardHeader} 
+        onPress={toggleExpand}
+        activeOpacity={0.8}
+      >
+        <View style={styles.headerLeft}>
+          <HugeiconsIcon icon={Clock01Icon} size={20} color={isDark ? '#A1A1AA' : '#6B7280'} />
+          <Text style={[styles.headerTitle, theme.headerTitle]}>{title}</Text>
+        </View>
+
+        <Text style={[styles.headerValue, theme.headerValue]}>{formattedDisplay}</Text>
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={[styles.innerSubCard, theme.innerSubCard]}>
+          <View style={styles.wheelHeaderRow}>
+            <Text style={[styles.wheelColHeader, theme.wheelColHeader]}>HOUR</Text>
+            <Text style={[styles.wheelColHeader, theme.wheelColHeader]}>MINUTE</Text>
+            <Text style={[styles.wheelColHeader, theme.wheelColHeader]}>PERIOD</Text>
+          </View>
+
+          <View style={styles.wheelColumnsContainerFull}>
+            <View style={[styles.activeSelectionBand, theme.activeSelectionBand]} pointerEvents="none" />
+
+            {/* Hour Column */}
+            <View style={styles.wheelColumn}>
+              <ScrollView
+                ref={hourListRef}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                bounces={false}
+                contentContainerStyle={styles.wheelListContent}
+                onMomentumScrollEnd={handleHourScroll}
+              >
+                {hours.map((item) => (
+                  <View key={`hour-${item}`} style={styles.wheelItem}>
+                    <Text style={[styles.wheelItemText, item === selectedHour ? theme.wheelItemTextActive : theme.wheelItemTextInactive]}>
+                      {String(item).padStart(2, '0')}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Minute Column */}
+            <View style={styles.wheelColumn}>
+              <ScrollView
+                ref={minuteListRef}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                bounces={false}
+                contentContainerStyle={styles.wheelListContent}
+                onMomentumScrollEnd={handleMinuteScroll}
+              >
+                {minutes.map((item) => (
+                  <View key={`min-${item}`} style={styles.wheelItem}>
+                    <Text style={[styles.wheelItemText, item === selectedMinute ? theme.wheelItemTextActive : theme.wheelItemTextInactive]}>
+                      {String(item).padStart(2, '0')}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Period Column */}
+            <View style={styles.wheelColumn}>
+              <ScrollView
+                ref={periodListRef}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                bounces={false}
+                contentContainerStyle={styles.wheelListContent}
+                onMomentumScrollEnd={handlePeriodScroll}
+              >
+                {periods.map((item) => (
+                  <View key={`period-${item}`} style={styles.wheelItem}>
+                    <Text style={[styles.wheelItemText, item === selectedPeriod ? theme.wheelItemTextActive : theme.wheelItemTextInactive]}>
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
+
+const ARC_ITEM_HEIGHT = 44;
+const ARC_CONTAINER_HEIGHT = 220;
+const ARC_PADDING = (ARC_CONTAINER_HEIGHT - ARC_ITEM_HEIGHT) / 2;
+
+/**
+ * Modern Expandable Single-Sided Semicircle Arc Wheel Option Picker Card
+ */
+export const CircularOptionPickerCard = ({
+  title = 'Medication Form',
+  icon = PillsTabletIcon,
+  options = ['Tablet', 'Capsule', 'Liquid', 'Injection', 'Inhaler', 'Topical', 'Drops', 'Syrup', 'Spray'],
+  value = 'Tablet',
+  onChange,
+  defaultExpanded = false
+}) => {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkStyles : lightStyles;
+
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [selectedItem, setSelectedItem] = useState(value || options[0]);
+  const [scrollY, setScrollY] = useState(0);
+  const scrollRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const isMountedRef = useRef(false);
+
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(!expanded);
+  };
+
+  useEffect(() => {
+    if (value && value !== selectedItem) {
+      setSelectedItem(value);
+    }
+  }, [value, selectedItem]);
+
+  // Initial scroll when expanded
+  useEffect(() => {
+    if (expanded && scrollRef.current) {
+      const idx = options.indexOf(selectedItem);
+      if (idx >= 0) {
+        const timer = setTimeout(() => {
+          scrollRef.current?.scrollTo({ y: idx * ARC_ITEM_HEIGHT, animated: false });
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [expanded, selectedItem, options]);
+
+  const handleScroll = (e) => {
+    const y = e.nativeEvent.contentOffset.y;
+    setScrollY(y);
+    const idx = Math.round(y / ARC_ITEM_HEIGHT);
+    if (options[idx] && options[idx] !== selectedItem) {
+      setSelectedItem(options[idx]);
+      playTickSound();
+      if (isMountedRef.current && onChangeRef.current) {
+        onChangeRef.current(options[idx]);
+      }
+    }
+    isMountedRef.current = true;
+  };
+
+  const selectOption = (opt, index) => {
+    setSelectedItem(opt);
+    playTickSound();
+    scrollRef.current?.scrollTo({ y: index * ARC_ITEM_HEIGHT, animated: true });
+    if (onChangeRef.current) {
+      onChangeRef.current(opt);
+    }
+  };
+
+  return (
+    <View style={[styles.outerCard, theme.outerCard, expanded && theme.outerCardExpanded]}>
+      {/* Top Simple Header Row */}
+      <TouchableOpacity 
+        style={styles.cardHeader} 
+        onPress={toggleExpand}
+        activeOpacity={0.8}
+      >
+        <View style={styles.headerLeft}>
+          <HugeiconsIcon icon={icon || PillsTabletIcon} size={20} color={isDark ? '#A1A1AA' : '#6B7280'} />
+          <Text style={[styles.headerTitle, theme.headerTitle]}>{title}</Text>
+        </View>
+
+        <Text style={[styles.headerValue, theme.headerValue]}>{selectedItem}</Text>
+      </TouchableOpacity>
+
+      {/* Expanded Semicircle Arc Wheel Scroll View */}
+      {expanded && (
+        <View style={[styles.innerSubCard, theme.innerSubCard, styles.semicircleContainer]}>
+          {/* Subtle glowing focus orb near the arc apex */}
+          <View style={[styles.semicircleFocalOrb, isDark ? styles.focalOrbDark : styles.focalOrbLight]} pointerEvents="none" />
+
+          {/* Semicircle Curved Wheel Scroll */}
+          <ScrollView
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            snapToInterval={ARC_ITEM_HEIGHT}
+            decelerationRate="fast"
+            bounces={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{
+              paddingVertical: ARC_PADDING,
+            }}
+          >
+            {options.map((opt, index) => {
+              const itemCenterY = index * ARC_ITEM_HEIGHT;
+              const distFromCenter = itemCenterY - scrollY;
+              const maxDist = ARC_ITEM_HEIGHT * 2.8;
+              const normDist = Math.max(-1, Math.min(1, distFromCenter / maxDist));
+
+              // Semicircle arc curvature
+              const cosVal = Math.cos(normDist * (Math.PI / 2));
+              const curveX = cosVal * 42;
+              const rotateDeg = normDist * 20;
+              const scale = 0.85 + cosVal * 0.25;
+              const opacity = Math.max(0.2, cosVal);
+              const isSelected = opt === selectedItem;
+
+              return (
+                <TouchableOpacity
+                  key={opt}
+                  onPress={() => selectOption(opt, index)}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.semicircleItemRow,
+                    {
+                      opacity,
+                      transform: [
+                        { translateX: curveX },
+                        { rotate: `${rotateDeg}deg` },
+                        { scale }
+                      ]
+                    }
+                  ]}
+                >
+                  <View style={[
+                    styles.radioPlusIconCircle,
+                    isSelected ? styles.radioPlusSelected : (isDark ? styles.radioPlusUnselectedDark : styles.radioPlusUnselectedLight)
+                  ]}>
+                    <HugeiconsIcon 
+                      icon={isSelected ? Tick02Icon : Add01Icon} 
+                      size={11} 
+                      color={isSelected ? '#FFFFFF' : (isDark ? '#60A5FA' : '#2563EB')} 
+                    />
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.semicircleItemText,
+                      isSelected ? (isDark ? styles.textWhite : styles.textBlack) : (isDark ? styles.textMutedDark : styles.textMutedLight),
+                      isSelected && styles.semicircleItemTextBold
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {opt}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
-  // Outer Card — Shade 1 (Lighter Charcoal Background)
+  // Structure
   outerCard: {
-    backgroundColor: '#1D1D21',
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
     marginBottom: 16,
     overflow: 'hidden',
   },
-  outerCardExpanded: {
-    backgroundColor: '#1D1D21',
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  // Top Header Pill
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -510,26 +901,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerTitle: {
-    color: '#D4D4D8',
     fontSize: 16,
     fontWeight: '600',
   },
   headerValue: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
-  // Inner Sub-Card — Shade 2 (Deeper Dark Background matching the screenshot)
   innerSubCard: {
-    backgroundColor: '#121215',
     borderRadius: 18,
     marginHorizontal: 10,
     marginBottom: 10,
     padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
-  // 2-Tone Selection Chips
   unitRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -544,16 +928,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
-  twoToneChipSelected: {
-    backgroundColor: '#1E1E24',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
-  },
-  twoToneChipUnselected: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
   activeDot: {
     width: 16,
     height: 16,
@@ -565,23 +939,12 @@ const styles = StyleSheet.create({
   twoToneChipText: {
     fontSize: 13,
   },
-  twoToneChipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  twoToneChipTextUnselected: {
-    color: '#71717A',
-    fontWeight: '600',
-  },
-  // Dotted / Dashed Divider Line
   dashedDivider: {
     height: 1,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.07)',
     borderStyle: 'dashed',
     marginBottom: 14,
   },
-  // Large Value Display
   valueRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -595,13 +958,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   largeValueText: {
-    color: '#FFFFFF',
     fontSize: 44,
     fontWeight: '800',
     letterSpacing: -1,
   },
   largeValueUnit: {
-    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -609,19 +970,15 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#1B1B22',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   stepButtonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
     lineHeight: 20,
   },
-  // Ruler Scale
   rulerTrackWrapper: {
     height: 64,
     marginTop: 6,
@@ -653,20 +1010,13 @@ const styles = StyleSheet.create({
     width: 1.5,
     borderRadius: 1,
   },
-  tickMajor: {
-    height: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.65)',
-  },
-  tickMid: {
-    height: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
-  },
-  tickMinor: {
-    height: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-  },
+  tickMajorDark: { height: 26, backgroundColor: 'rgba(255, 255, 255, 0.65)' },
+  tickMidDark: { height: 18, backgroundColor: 'rgba(255, 255, 255, 0.35)' },
+  tickMinorDark: { height: 10, backgroundColor: 'rgba(255, 255, 255, 0.18)' },
+  tickMajorLight: { height: 26, backgroundColor: 'rgba(0, 0, 0, 0.65)' },
+  tickMidLight: { height: 18, backgroundColor: 'rgba(0, 0, 0, 0.35)' },
+  tickMinorLight: { height: 10, backgroundColor: 'rgba(0, 0, 0, 0.18)' },
   tickLabel: {
-    color: '#71717A',
     fontSize: 10,
     fontWeight: '600',
     marginTop: 4,
@@ -678,11 +1028,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   rangeText: {
-    color: '#52525B',
     fontSize: 11,
     fontWeight: '600',
   },
-  // Full-Width Wheel Column Container & Headers
   wheelHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -690,7 +1038,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   wheelColHeader: {
-    color: '#71717A',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -706,10 +1053,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: ITEM_HEIGHT,
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   wheelColumn: {
     flex: 1,
@@ -727,12 +1072,184 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  wheelItemTextActive: {
-    color: '#FFFFFF',
+  semicircleContainer: {
+    height: ARC_CONTAINER_HEIGHT,
+    position: 'relative',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  semicircleFocalOrb: {
+    position: 'absolute',
+    top: '50%',
+    left: 24,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginTop: -16,
+    zIndex: 1,
+  },
+  focalOrbDark: {
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.9,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  focalOrbLight: {
+    backgroundColor: 'rgba(37, 99, 235, 0.35)',
+    shadowColor: '#2563EB',
+    shadowOpacity: 0.7,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  semicircleItemRow: {
+    height: ARC_ITEM_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  radioPlusIconCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
+  radioPlusSelected: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  radioPlusUnselectedDark: {
+    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+    borderColor: 'rgba(96, 165, 250, 0.5)',
+  },
+  radioPlusUnselectedLight: {
+    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+    borderColor: 'rgba(37, 99, 235, 0.4)',
+  },
+  semicircleItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: -0.2,
+  },
+  semicircleItemTextBold: {
+    fontSize: 18,
     fontWeight: '800',
-    fontSize: 17,
   },
-  wheelItemTextInactive: {
-    color: 'rgba(255, 255, 255, 0.28)',
+  textWhite: { color: '#FFFFFF' },
+  textBlack: { color: '#111827' },
+  textMutedDark: { color: '#71717A' },
+  textMutedLight: { color: '#9CA3AF' },
+});
+
+// Dark Theme Variants
+const darkStyles = StyleSheet.create({
+  outerCard: {
+    backgroundColor: '#1D1D21',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
   },
+  outerCardExpanded: {
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  headerTitle: { color: '#D4D4D8' },
+  headerValue: { color: '#FFFFFF' },
+  innerSubCard: {
+    backgroundColor: '#121215',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  twoToneChip: {},
+  twoToneChipSelected: {
+    backgroundColor: '#1E1E24',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  twoToneChipUnselected: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  twoToneChipTextSelected: { color: '#FFFFFF', fontWeight: '700' },
+  twoToneChipTextUnselected: { color: '#71717A', fontWeight: '600' },
+  dashedDivider: { borderBottomColor: 'rgba(255, 255, 255, 0.07)' },
+  largeValueText: { color: '#FFFFFF' },
+  largeValueUnit: { color: 'rgba(255, 255, 255, 0.6)' },
+  stepButton: {
+    backgroundColor: '#1B1B22',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  stepButtonText: { color: '#FFFFFF' },
+  tickLabel: { color: '#71717A' },
+  rangeText: { color: '#52525B' },
+  wheelColHeader: { color: '#71717A' },
+  activeSelectionBand: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  wheelItemTextActive: { color: '#FFFFFF', fontWeight: '800', fontSize: 17 },
+  wheelItemTextInactive: { color: 'rgba(255, 255, 255, 0.28)' },
+});
+
+// Light Theme Variants
+const lightStyles = StyleSheet.create({
+  outerCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  outerCardExpanded: {
+    borderColor: '#D1D5DB',
+  },
+  headerTitle: { color: '#374151' },
+  headerValue: { color: '#111827' },
+  innerSubCard: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  twoToneChip: {},
+  twoToneChipSelected: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  twoToneChipUnselected: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  twoToneChipTextSelected: { color: '#111827', fontWeight: '700' },
+  twoToneChipTextUnselected: { color: '#6B7280', fontWeight: '600' },
+  dashedDivider: { borderBottomColor: '#E5E7EB' },
+  largeValueText: { color: '#111827' },
+  largeValueUnit: { color: '#6B7280' },
+  stepButton: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+  },
+  stepButtonText: { color: '#111827' },
+  tickLabel: { color: '#6B7280' },
+  rangeText: { color: '#9CA3AF' },
+  wheelColHeader: { color: '#6B7280' },
+  activeSelectionBand: {
+    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+    borderColor: 'rgba(37, 99, 235, 0.25)',
+  },
+  wheelItemTextActive: { color: '#111827', fontWeight: '800', fontSize: 17 },
+  wheelItemTextInactive: { color: 'rgba(0, 0, 0, 0.28)' },
 });

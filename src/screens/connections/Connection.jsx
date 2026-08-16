@@ -5,9 +5,9 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import GeneralModal from '../../components/common/GeneralModal';
 import Toast from 'react-native-toast-message';
 import { connectionApi } from '../../api/connectionApi';
@@ -58,14 +58,23 @@ const Connection = () => {
     });
   };
 
-  const fetchRequests = async () => {
+  const fetchRequests = React.useCallback(async () => {
     try {
       const response = await connectionApi.viewPending();
       setRequests((response.data.connections || []).filter(Boolean));
     } catch (error) {
       showToast('error', error.response?.data?.message || 'Failed to fetch requests');
     }
-  };
+  }, []);
+
+  const fetchConnections = React.useCallback(async () => {
+    try {
+      const response = await connectionApi.viewAll();
+      setConnections(response?.data?.connections || []);
+    } catch (error) {
+      // ignore silently if 404 or empty
+    }
+  }, []);
 
   const updateConnection = async (senderId, status) => {
     try {
@@ -78,31 +87,16 @@ const Connection = () => {
     }
   };
 
-  const fetchConnections = async () => {
-    try {
-      const response = await connectionApi.viewAll();
-      setConnections(response?.data?.connections || []);
-    } catch (error) {
-      // ignore silently if 404 or empty
-    }
-  };
-
   // On mount
   useEffect(() => {
     fetchConnections();
     fetchRequests();
-  }, [addModalVisible]); // Re-fetch when add modal might have closed
-
-  // Modal logic
-  const openModal = (modalName) => {
-    if (!activeModal) setActiveModal(modalName);
-  };
-  const closeModal = () => setActiveModal(null);
+  }, [addModalVisible, fetchConnections, fetchRequests]); // Re-fetch when add modal might have closed
 
   useEffect(() => {
     if (activeModal === 'request') fetchRequests();
     else if (activeModal === 'view') fetchConnections();
-  }, [activeModal]);
+  }, [activeModal, fetchConnections, fetchRequests]);
 
 
   const ViewRequestModalContent = () => {

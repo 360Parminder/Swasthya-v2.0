@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlusSignCircleIcon, Coffee01Icon, Coffee02Icon } from '@hugeicons/core-free-icons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G, Defs, LinearGradient, Stop } from 'react-native-svg';
@@ -32,7 +32,7 @@ const WaterOption = ({ title, amount, iconName, COLORS, styles }) => (
 );
 
 // Helper component for Timeline Log
-const LogItem = ({ title, time, amount, isLast }) => (
+const LogItem = ({ title, time, amount, isLast, styles }) => (
   <View style={styles.logItemContainer}>
     {/* Timeline Track */}
     <View style={styles.timelineTrack}>
@@ -157,10 +157,10 @@ const HydrationScreen = () => {
         {/* Today's Logs */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Today's Logs</Text>
-          <LogItem title="Large Bottle" time="10:45 AM" amount="+500ml" />
-          <LogItem title="Medium Mug" time="09:15 AM" amount="+350ml" />
-          <LogItem title="Small Glass" time="08:30 AM" amount="+200ml" />
-          <LogItem title="Large Bottle" time="06:45 AM" amount="+500ml" isLast />
+          <LogItem title="Large Bottle" time="10:45 AM" amount="+500ml" styles={styles} />
+          <LogItem title="Medium Mug" time="09:15 AM" amount="+350ml" styles={styles} />
+          <LogItem title="Small Glass" time="08:30 AM" amount="+200ml" styles={styles} />
+          <LogItem title="Large Bottle" time="06:45 AM" amount="+500ml" isLast styles={styles} />
         </View>
 
         {/* Pro Tip */}

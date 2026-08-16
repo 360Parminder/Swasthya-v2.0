@@ -8,9 +8,10 @@ import {
   TextInput,
   Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, useThemeColors } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { ArrowLeft01Icon, DropletIcon, Settings02Icon, Calendar01Icon, Notification03Icon, ArrowDown01Icon, Sun02Icon, Clock01Icon, Moon02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 
@@ -28,7 +29,7 @@ const HydrationSettingsScreen = () => {
   const [endTime, setEndTime] = useState('10:00 PM');
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
@@ -226,7 +227,7 @@ const HydrationSettingsScreen = () => {
         </TouchableOpacity>
 
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ScrollView, SafeAreaView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AddMedication from '../../components/model/Medication/AddMedication';
 import { useThemeColors } from '../../components/ui/colors';
 import GeneralModal from '../../components/common/GeneralModal';

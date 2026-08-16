@@ -9,7 +9,7 @@ import { toastConfig } from './src/config/toastConfig';
 import { ConnectionProvider } from './src/context/ConnectionContext';
 import notifee, { EventType } from '@notifee/react-native';
 
-notifee.onBackgroundEvent(async ({ type, detail }) => {
+notifee.onBackgroundEvent(async ({ type, detail: _detail }) => {
   if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
     // Handle background notification press if needed
   }
@@ -37,12 +37,14 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={isDarkMode ? "#0a0a0a" : "#fafafa"} />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={isDarkMode ? "#000000" : "#F9FAFB"} 
+        translucent={false}
+      />
       <AuthProvider>
         <ConnectionProvider>
-          <SafeAreaProvider>
-            <AppNavigator />
-          </SafeAreaProvider>
+          <AppNavigator />
         </ConnectionProvider>
       </AuthProvider>
       <Toast

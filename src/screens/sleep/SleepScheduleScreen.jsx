@@ -6,17 +6,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
-  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G } from 'react-native-svg';
-import { COLORS, useThemeColors } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowLeft01Icon, Moon02Icon, Sun02Icon, Clock01Icon } from '@hugeicons/core-free-icons';
 
 // Duration Pill
-const DurationPill = ({ value, label, selected, onPress }) => (
+const DurationPill = ({ value, label, selected, onPress, styles }) => (
   <TouchableOpacity
     onPress={onPress}
     style={[styles.durationPill, selected && styles.durationPillSelected]}
@@ -27,14 +27,14 @@ const DurationPill = ({ value, label, selected, onPress }) => (
 );
 
 // Day Circle
-const DayCircle = ({ day, active }) => (
+const DayCircle = ({ day, active, styles }) => (
   <TouchableOpacity style={[styles.dayCircle, active && styles.dayCircleActive]}>
     <Text style={[styles.dayText, active && styles.dayTextActive]}>{day}</Text>
   </TouchableOpacity>
 );
 
 // Time Display with circular ring
-const TimeRing = ({ time, progress, color }) => {
+const TimeRing = ({ time, progress, color, styles, borderColor }) => {
   const radius = 52;
   const strokeWidth = 4;
   const circumference = 2 * Math.PI * radius;
@@ -48,7 +48,7 @@ const TimeRing = ({ time, progress, color }) => {
             cx={radius + strokeWidth}
             cy={radius + strokeWidth}
             r={radius}
-            stroke={COLORS.border}
+            stroke={borderColor || '#E2E8F0'}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -79,7 +79,7 @@ const SleepScheduleScreen = () => {
   const [activeDays, setActiveDays] = useState(['M', 'T', 'W', 'T2', 'F']);
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
@@ -125,7 +125,7 @@ const SleepScheduleScreen = () => {
           </View>
 
           <View style={styles.timeCardBody}>
-            <TimeRing time="22:30" progress={0.75} color={COLORS.primary} />
+            <TimeRing time="22:30" progress={0.75} color={COLORS.primary} styles={styles} borderColor={COLORS.border} />
           </View>
 
           <View style={styles.timeAdjustRow}>
@@ -150,7 +150,7 @@ const SleepScheduleScreen = () => {
           </View>
 
           <View style={styles.timeCardBody}>
-            <TimeRing time="06:45" progress={0.45} color={COLORS.textMuted} />
+            <TimeRing time="06:45" progress={0.45} color={COLORS.textMuted} styles={styles} borderColor={COLORS.border} />
           </View>
 
           <View style={styles.timeAdjustRow}>
@@ -174,51 +174,59 @@ const SleepScheduleScreen = () => {
             <Switch
               value={windDownEnabled}
               onValueChange={setWindDownEnabled}
-              trackColor={{ false: COLORS.border, true: COLORS.primary }}
-              thumbColor={COLORS.buttonText}
+              trackColor={{ false: '#E2E8F0', true: COLORS.primary }}
+              thumbColor="#FFFFFF"
             />
           </View>
 
-          {windDownEnabled && (
-            <>
-              <View style={styles.durationRow}>
-                <DurationPill
-                  value="30"
-                  label="MINS"
-                  selected={selectedDuration === 30}
-                  onPress={() => setSelectedDuration(30)}
-                />
-                <DurationPill
-                  value="45"
-                  label="MINS"
-                  selected={selectedDuration === 45}
-                  onPress={() => setSelectedDuration(45)}
-                />
-                <DurationPill
-                  value="60"
-                  label="MINS"
-                  selected={selectedDuration === 60}
-                  onPress={() => setSelectedDuration(60)}
-                />
-              </View>
-              <Text style={styles.helperText}>
-                This reminder will trigger your phone's "Do Not Disturb" mode and dim your smart lights.
-              </Text>
-            </>
-          )}
+          {/* Time Picker Pill List */}
+          <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Duration before bedtime</Text>
+          <View style={styles.durationPillsRow}>
+            <DurationPill
+              value="15m"
+              label="Quick"
+              selected={selectedDuration === 15}
+              onPress={() => setSelectedDuration(15)}
+              styles={styles}
+            />
+            <DurationPill
+              value="30m"
+              label="Standard"
+              selected={selectedDuration === 30}
+              onPress={() => setSelectedDuration(30)}
+              styles={styles}
+            />
+            <DurationPill
+              value="45m"
+              label="Deep"
+              selected={selectedDuration === 45}
+              onPress={() => setSelectedDuration(45)}
+              styles={styles}
+            />
+            <DurationPill
+              value="60m"
+              label="Extended"
+              selected={selectedDuration === 60}
+              onPress={() => setSelectedDuration(60)}
+              styles={styles}
+            />
+          </View>
         </View>
 
-        {/* Repeat Schedule */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.repeatTitle}>Repeat Schedule</Text>
+        {/* Days Active Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardSectionTitle}>Active Days</Text>
+          <Text style={styles.cardSectionSub}>
+            Apply this schedule on selected days of the week.
+          </Text>
           <View style={styles.daysRow}>
-            <DayCircle day="S" active={false} />
-            <DayCircle day="M" active={true} />
-            <DayCircle day="T" active={true} />
-            <DayCircle day="W" active={true} />
-            <DayCircle day="T" active={true} />
-            <DayCircle day="F" active={true} />
-            <DayCircle day="S" active={false} />
+            <DayCircle day="S" active={false} styles={styles} />
+            <DayCircle day="M" active={true} styles={styles} />
+            <DayCircle day="T" active={true} styles={styles} />
+            <DayCircle day="W" active={true} styles={styles} />
+            <DayCircle day="T" active={true} styles={styles} />
+            <DayCircle day="F" active={true} styles={styles} />
+            <DayCircle day="S" active={false} styles={styles} />
           </View>
         </View>
 
@@ -228,7 +236,7 @@ const SleepScheduleScreen = () => {
         </TouchableOpacity>
 
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 };
 

@@ -11,7 +11,8 @@ import {
   KeyboardAvoidingView, 
   Platform,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  useColorScheme
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import LinearGradient from 'react-native-linear-gradient';
@@ -35,6 +36,10 @@ import { RulerPickerCard, DateWheelPickerCard } from '../../components/common/He
 
 const SignUpScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
+
   const { register: registerUser } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,18 +115,26 @@ const SignUpScreen = ({ navigation }) => {
   const submit = async (formData) => {
     setIsSubmitting(true);
     try {
+      const normalizedGender = formData.gender?.toLowerCase();
+      const normalizedFood = formData.food?.toLowerCase() === 'non-vegetarian' 
+        ? 'nonvegetarian' 
+        : formData.food?.toLowerCase();
+
       const payload = {
-        name: formData.name,
-        gender: formData.gender,
+        name: formData.name?.trim(),
+        username: formData.email?.split('@')[0]?.toLowerCase(),
+        countryCode: 'IN',
+        mobile: formData.mobile?.trim(),
+        email: formData.email?.trim()?.toLowerCase(),
+        password: formData.password,
         dob: formData.dob,
-        food: formData.food,
+        gender: normalizedGender,
+        food_preference: normalizedFood,
+        food: formData.food, // fallback
         weight: Number(formData.weight) || formData.weight,
         height: Number(formData.height) || formData.height,
-        mobile: formData.mobile,
-        email: formData.email,
-        password: formData.password,
-        weightUnit,
-        heightUnit,
+        weightUnit: weightUnit === 'lbs' ? 'lb' : weightUnit?.toLowerCase(),
+        heightUnit: heightUnit?.toLowerCase(),
       };
 
       if (registerUser) {
@@ -150,7 +163,7 @@ const SignUpScreen = ({ navigation }) => {
   // Chip Selector Component
   const ChipGroup = ({ label, options, value, onSelect, error }) => (
     <View style={styles.fieldContainer}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, theme.label]}>{label}</Text>}
       <View style={styles.chipRow}>
         {options.map((option) => {
           const isSelected = value === option;
@@ -161,13 +174,14 @@ const SignUpScreen = ({ navigation }) => {
               onPress={() => onSelect(option)}
               style={[
                 styles.chip,
-                isSelected ? styles.chipSelected : styles.chipUnselected
+                theme.chip,
+                isSelected ? theme.chipSelected : theme.chipUnselected
               ]}
             >
               <Text
                 style={[
                   styles.chipText,
-                  isSelected ? styles.chipTextSelected : styles.chipTextUnselected
+                  isSelected ? theme.chipTextSelected : theme.chipTextUnselected
                 ]}
               >
                 {option}
@@ -180,10 +194,10 @@ const SignUpScreen = ({ navigation }) => {
     </View>
   );
 
-  // STEP 1: Full-Bleed Onboarding matching reference image
+  // STEP 1: Full-Bleed Hero Onboarding
   if (step === 1) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#000000' }}>
+      <View style={styles.onboardingContainer}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         
         {/* Fullscreen Background */}
@@ -205,16 +219,10 @@ const SignUpScreen = ({ navigation }) => {
 
         {/* Foreground Content */}
         <View 
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            paddingHorizontal: 24,
-            paddingBottom: Math.max(insets.bottom, 24),
-            zIndex: 10,
-            elevation: 10,
-          }}
+          style={[
+            styles.onboardingForeground,
+            { paddingBottom: Math.max(insets.bottom, 24) }
+          ]}
         >
           {/* Carousel Indicator */}
           <View style={styles.carouselIndicators}>
@@ -260,16 +268,19 @@ const SignUpScreen = ({ navigation }) => {
     );
   }
 
-  // STEPS 2 to 5: High-End Dark Registration Wizard
+  // STEPS 2 to 5: High-End Registration Wizard with Light/Dark Theme
   const currentFormStep = step - 1; // 1 to 4
 
   return (
-    <View style={styles.mainContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+    <View style={[styles.mainContainer, theme.mainContainer]}>
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'dark-content'} 
+        backgroundColor={isDark ? '#000000' : '#F9FAFB'} 
+      />
       
       {/* Subtle top ambient glow */}
       <LinearGradient
-        colors={['rgba(59, 130, 246, 0.12)', 'transparent']}
+        colors={isDark ? ['rgba(59, 130, 246, 0.12)', 'transparent'] : ['rgba(59, 130, 246, 0.06)', 'transparent']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.ambientTopGlow}
@@ -278,17 +289,21 @@ const SignUpScreen = ({ navigation }) => {
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
+        style={styles.flexOne}
       >
-        <View style={{ flex: 1 }}>
+        <View style={styles.flexOne}>
           {/* Top Navigation Bar */}
           <View style={[styles.navBar, { paddingTop: Math.max(insets.top, 12) }]}>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={prev}
-              style={styles.navBackButton}
+              style={[styles.navBackButton, theme.navBackButton]}
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="#FFFFFF" />
+              <HugeiconsIcon 
+                icon={ArrowLeft01Icon} 
+                size={22} 
+                color={isDark ? '#FFFFFF' : '#111827'} 
+              />
             </TouchableOpacity>
 
             {/* Segmented Progress Bar */}
@@ -298,7 +313,7 @@ const SignUpScreen = ({ navigation }) => {
                   key={seg}
                   style={[
                     styles.progressSegment,
-                    seg <= currentFormStep ? styles.progressSegmentActive : styles.progressSegmentInactive
+                    seg <= currentFormStep ? theme.progressSegmentActive : theme.progressSegmentInactive
                   ]}
                 />
               ))}
@@ -308,7 +323,7 @@ const SignUpScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('SignIn')}
               style={styles.navLoginLink}
             >
-              <Text style={styles.navLoginText}>Log In</Text>
+              <Text style={[styles.navLoginText, theme.navLoginText]}>Log In</Text>
             </TouchableOpacity>
           </View>
 
@@ -323,11 +338,11 @@ const SignUpScreen = ({ navigation }) => {
               {/* Step 2: Personal Details */}
               {step === 2 && (
                 <View>
-                  <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>STEP 1 OF 4</Text>
+                  <View style={[styles.stepBadge, theme.stepBadge]}>
+                    <Text style={[styles.stepBadgeText, theme.stepBadgeText]}>STEP 1 OF 4</Text>
                   </View>
-                  <Text style={styles.stepTitle}>Personal Details</Text>
-                  <Text style={styles.stepSubtitle}>Tell us a bit about yourself to personalize your health metrics.</Text>
+                  <Text style={[styles.stepTitle, theme.stepTitle]}>Personal Details</Text>
+                  <Text style={[styles.stepSubtitle, theme.stepSubtitle]}>Tell us a bit about yourself to personalize your health metrics.</Text>
 
                   {/* Full Name */}
                   <Controller
@@ -336,13 +351,18 @@ const SignUpScreen = ({ navigation }) => {
                     rules={{ required: 'Full name is required' }}
                     render={({ field: { onChange, value } }) => (
                       <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Full Name</Text>
-                        <View style={[styles.inputWrapper, errors.name && styles.errorBorder]}>
-                          <HugeiconsIcon icon={UserIcon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                        <Text style={[styles.label, theme.label]}>Full Name</Text>
+                        <View style={[styles.inputWrapper, theme.inputWrapper, errors.name && styles.errorBorder]}>
+                          <HugeiconsIcon 
+                            icon={UserIcon} 
+                            size={20} 
+                            color={isDark ? '#A1A1AA' : '#6B7280'} 
+                            style={styles.fieldIcon} 
+                          />
                           <TextInput
-                            style={styles.textInput}
+                            style={[styles.textInput, theme.textInput]}
                             placeholder="Enter your full name"
-                            placeholderTextColor="#71717A"
+                            placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                             onChangeText={onChange}
                             value={value}
                           />
@@ -388,11 +408,11 @@ const SignUpScreen = ({ navigation }) => {
               {/* Step 3: Body & Food Details */}
               {step === 3 && (
                 <View>
-                  <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>STEP 2 OF 4</Text>
+                  <View style={[styles.stepBadge, theme.stepBadge]}>
+                    <Text style={[styles.stepBadgeText, theme.stepBadgeText]}>STEP 2 OF 4</Text>
                   </View>
-                  <Text style={styles.stepTitle}>Body & Nutrition</Text>
-                  <Text style={styles.stepSubtitle}>Enter your physical stats to calculate calories and hydration targets.</Text>
+                  <Text style={[styles.stepTitle, theme.stepTitle]}>Body & Nutrition</Text>
+                  <Text style={[styles.stepSubtitle, theme.stepSubtitle]}>Enter your physical stats to calculate calories and hydration targets.</Text>
 
                   {/* Food Preference Chips */}
                   <Controller
@@ -457,11 +477,11 @@ const SignUpScreen = ({ navigation }) => {
               {/* Step 4: Contact Information */}
               {step === 4 && (
                 <View>
-                  <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>STEP 3 OF 4</Text>
+                  <View style={[styles.stepBadge, theme.stepBadge]}>
+                    <Text style={[styles.stepBadgeText, theme.stepBadgeText]}>STEP 3 OF 4</Text>
                   </View>
-                  <Text style={styles.stepTitle}>Contact Details</Text>
-                  <Text style={styles.stepSubtitle}>We will use this information to verify and protect your account.</Text>
+                  <Text style={[styles.stepTitle, theme.stepTitle]}>Contact Details</Text>
+                  <Text style={[styles.stepSubtitle, theme.stepSubtitle]}>We will use this information to verify and protect your account.</Text>
 
                   {/* Mobile Number */}
                   <Controller
@@ -473,13 +493,18 @@ const SignUpScreen = ({ navigation }) => {
                     }}
                     render={({ field: { onChange, value } }) => (
                       <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Mobile Number</Text>
-                        <View style={[styles.inputWrapper, errors.mobile && styles.errorBorder]}>
-                          <HugeiconsIcon icon={SmartPhone01Icon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                        <Text style={[styles.label, theme.label]}>Mobile Number</Text>
+                        <View style={[styles.inputWrapper, theme.inputWrapper, errors.mobile && styles.errorBorder]}>
+                          <HugeiconsIcon 
+                            icon={SmartPhone01Icon} 
+                            size={20} 
+                            color={isDark ? '#A1A1AA' : '#6B7280'} 
+                            style={styles.fieldIcon} 
+                          />
                           <TextInput
-                            style={styles.textInput}
+                            style={[styles.textInput, theme.textInput]}
                             placeholder="10-digit mobile number"
-                            placeholderTextColor="#71717A"
+                            placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                             keyboardType="phone-pad"
                             onChangeText={onChange}
                             value={value}
@@ -504,13 +529,18 @@ const SignUpScreen = ({ navigation }) => {
                     }}
                     render={({ field: { onChange, value } }) => (
                       <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Email Address</Text>
-                        <View style={[styles.inputWrapper, errors.email && styles.errorBorder]}>
-                          <HugeiconsIcon icon={Mail01Icon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                        <Text style={[styles.label, theme.label]}>Email Address</Text>
+                        <View style={[styles.inputWrapper, theme.inputWrapper, errors.email && styles.errorBorder]}>
+                          <HugeiconsIcon 
+                            icon={Mail01Icon} 
+                            size={20} 
+                            color={isDark ? '#A1A1AA' : '#6B7280'} 
+                            style={styles.fieldIcon} 
+                          />
                           <TextInput
-                            style={styles.textInput}
+                            style={[styles.textInput, theme.textInput]}
                             placeholder="name@example.com"
-                            placeholderTextColor="#71717A"
+                            placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                             keyboardType="email-address"
                             autoCapitalize="none"
                             onChangeText={onChange}
@@ -527,11 +557,11 @@ const SignUpScreen = ({ navigation }) => {
               {/* Step 5: Set Password */}
               {step === 5 && (
                 <View>
-                  <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>STEP 4 OF 4</Text>
+                  <View style={[styles.stepBadge, theme.stepBadge]}>
+                    <Text style={[styles.stepBadgeText, theme.stepBadgeText]}>STEP 4 OF 4</Text>
                   </View>
-                  <Text style={styles.stepTitle}>Set Password</Text>
-                  <Text style={styles.stepSubtitle}>Create a secure password to keep your health data private.</Text>
+                  <Text style={[styles.stepTitle, theme.stepTitle]}>Set Password</Text>
+                  <Text style={[styles.stepSubtitle, theme.stepSubtitle]}>Create a secure password to keep your health data private.</Text>
 
                   {/* Password */}
                   <Controller
@@ -543,13 +573,18 @@ const SignUpScreen = ({ navigation }) => {
                     }}
                     render={({ field: { onChange, value } }) => (
                       <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Password</Text>
-                        <View style={[styles.inputWrapper, errors.password && styles.errorBorder]}>
-                          <HugeiconsIcon icon={LockKeyIcon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                        <Text style={[styles.label, theme.label]}>Password</Text>
+                        <View style={[styles.inputWrapper, theme.inputWrapper, errors.password && styles.errorBorder]}>
+                          <HugeiconsIcon 
+                            icon={LockKeyIcon} 
+                            size={20} 
+                            color={isDark ? '#A1A1AA' : '#6B7280'} 
+                            style={styles.fieldIcon} 
+                          />
                           <TextInput
-                            style={styles.textInput}
+                            style={[styles.textInput, theme.textInput]}
                             placeholder="At least 6 characters"
-                            placeholderTextColor="#71717A"
+                            placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                             secureTextEntry={!showPassword}
                             onChangeText={onChange}
                             value={value}
@@ -561,7 +596,7 @@ const SignUpScreen = ({ navigation }) => {
                             <HugeiconsIcon 
                               icon={showPassword ? ViewOffSlashIcon : ViewIcon} 
                               size={20} 
-                              color="#A1A1AA" 
+                              color={isDark ? '#A1A1AA' : '#6B7280'} 
                             />
                           </TouchableOpacity>
                         </View>
@@ -580,18 +615,18 @@ const SignUpScreen = ({ navigation }) => {
                     }}
                     render={({ field: { onChange, value } }) => (
                       <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Confirm Password</Text>
-                        <View style={[styles.inputWrapper, errors.confirmPassword && styles.errorBorder]}>
+                        <Text style={[styles.label, theme.label]}>Confirm Password</Text>
+                        <View style={[styles.inputWrapper, theme.inputWrapper, errors.confirmPassword && styles.errorBorder]}>
                           <HugeiconsIcon 
                             icon={Tick02Icon} 
                             size={20} 
-                            color={passwordVal && value && passwordVal === value ? '#10B981' : '#A1A1AA'} 
+                            color={passwordVal && value && passwordVal === value ? '#10B981' : (isDark ? '#A1A1AA' : '#6B7280')} 
                             style={styles.fieldIcon} 
                           />
                           <TextInput
-                            style={styles.textInput}
+                            style={[styles.textInput, theme.textInput]}
                             placeholder="Re-enter your password"
-                            placeholderTextColor="#71717A"
+                            placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                             secureTextEntry={!showConfirmPassword}
                             onChangeText={onChange}
                             value={value}
@@ -603,7 +638,7 @@ const SignUpScreen = ({ navigation }) => {
                             <HugeiconsIcon 
                               icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon} 
                               size={20} 
-                              color="#A1A1AA" 
+                              color={isDark ? '#A1A1AA' : '#6B7280'} 
                             />
                           </TouchableOpacity>
                         </View>
@@ -617,29 +652,29 @@ const SignUpScreen = ({ navigation }) => {
           </ScrollView>
 
           {/* Bottom Action Footer */}
-          <View style={[styles.bottomActionBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+          <View style={[styles.bottomActionBar, theme.bottomActionBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
             {step < 5 ? (
               <TouchableOpacity
                 activeOpacity={0.88}
-                style={styles.primaryActionButton}
+                style={[styles.primaryActionButton, theme.primaryActionButton]}
                 onPress={next}
               >
-                <Text style={styles.primaryActionText}>Continue</Text>
-                <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#000000" />
+                <Text style={[styles.primaryActionText, theme.primaryActionText]}>Continue</Text>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={isDark ? '#000000' : '#FFFFFF'} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 activeOpacity={0.88}
-                style={styles.primaryActionButton}
+                style={[styles.primaryActionButton, theme.primaryActionButton]}
                 onPress={handleSubmit(submit)}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator size="small" color="#000000" />
+                  <ActivityIndicator size="small" color={isDark ? '#000000' : '#FFFFFF'} />
                 ) : (
                   <>
-                    <Text style={styles.primaryActionText}>Create Account</Text>
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#000000" />
+                    <Text style={[styles.primaryActionText, theme.primaryActionText]}>Create Account</Text>
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={isDark ? '#000000' : '#FFFFFF'} />
                   </>
                 )}
               </TouchableOpacity>
@@ -654,7 +689,13 @@ const SignUpScreen = ({ navigation }) => {
 export default SignUpScreen;
 
 const styles = StyleSheet.create({
+  flexOne: {
+    flex: 1,
+  },
   mainContainer: {
+    flex: 1,
+  },
+  onboardingContainer: {
     flex: 1,
     backgroundColor: '#000000',
   },
@@ -665,7 +706,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: 180,
   },
-  // Top Navigation
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -677,9 +717,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#121217',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -693,22 +730,14 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
   },
-  progressSegmentActive: {
-    backgroundColor: '#FFFFFF',
-  },
-  progressSegmentInactive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-  },
   navLoginLink: {
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
   navLoginText: {
-    color: '#A1A1AA',
     fontSize: 14,
     fontWeight: '600',
   },
-  // Form Content
   scrollContent: {
     flex: 1,
   },
@@ -719,29 +748,24 @@ const styles = StyleSheet.create({
   },
   stepBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   stepBadgeText: {
-    color: '#93C5FD',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   stepTitle: {
-    color: '#FFFFFF',
     fontSize: 32,
     fontWeight: '800',
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   stepSubtitle: {
-    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 28,
@@ -750,7 +774,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    color: '#E4E4E7',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
@@ -758,49 +781,24 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#121217',
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     height: 56,
     paddingHorizontal: 16,
   },
   fieldIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   textInput: {
     flex: 1,
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
     height: '100%',
-  },
-  dateText: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  placeholderText: {
-    color: '#71717A',
-  },
-  unitBadge: {
-    color: '#A1A1AA',
-    fontSize: 14,
-    fontWeight: '600',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    paddingLeft: 6,
   },
   passwordToggle: {
     padding: 6,
   },
-  twoColumnRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  // Chip Selectors
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -813,24 +811,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipSelected: {
-    backgroundColor: '#FFFFFF',
-  },
-  chipUnselected: {
-    backgroundColor: '#121217',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
   chipText: {
     fontSize: 15,
-  },
-  chipTextSelected: {
-    color: '#000000',
-    fontWeight: '700',
-  },
-  chipTextUnselected: {
-    color: '#A1A1AA',
-    fontWeight: '500',
   },
   errorBorder: {
     borderColor: '#EF4444',
@@ -842,34 +824,36 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: '500',
   },
-  // Bottom Action Bar
   bottomActionBar: {
     paddingHorizontal: 24,
     paddingTop: 12,
-    backgroundColor: '#000000',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
   },
   primaryActionButton: {
-    backgroundColor: '#FFFFFF',
     height: 56,
     borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 6,
   },
   primaryActionText: {
-    color: '#000000',
     fontSize: 16,
     fontWeight: '700',
   },
   // Onboarding Step 1 Styles
+  onboardingForeground: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    zIndex: 10,
+    elevation: 10,
+  },
   carouselIndicators: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -949,5 +933,161 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
+  },
+});
+
+// Dark Theme Variants
+const darkTheme = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: '#000000',
+  },
+  navBackButton: {
+    backgroundColor: '#121217',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  progressSegmentActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  progressSegmentInactive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+  navLoginText: {
+    color: '#A1A1AA',
+  },
+  stepBadge: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  stepBadgeText: {
+    color: '#93C5FD',
+  },
+  stepTitle: {
+    color: '#FFFFFF',
+  },
+  stepSubtitle: {
+    color: 'rgba(255, 255, 255, 0.65)',
+  },
+  label: {
+    color: '#E4E4E7',
+  },
+  inputWrapper: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  textInput: {
+    color: '#FFFFFF',
+  },
+  chip: {},
+  chipSelected: {
+    backgroundColor: '#FFFFFF',
+  },
+  chipUnselected: {
+    backgroundColor: '#121217',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  chipTextSelected: {
+    color: '#000000',
+    fontWeight: '700',
+  },
+  chipTextUnselected: {
+    color: '#A1A1AA',
+    fontWeight: '500',
+  },
+  bottomActionBar: {
+    backgroundColor: '#000000',
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  primaryActionButton: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.15,
+  },
+  primaryActionText: {
+    color: '#000000',
+  },
+});
+
+// Light Theme Variants
+const lightTheme = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: '#F9FAFB',
+  },
+  navBackButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  progressSegmentActive: {
+    backgroundColor: '#111827',
+  },
+  progressSegmentInactive: {
+    backgroundColor: '#E5E7EB',
+  },
+  navLoginText: {
+    color: '#4B5563',
+  },
+  stepBadge: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  stepBadgeText: {
+    color: '#2563EB',
+  },
+  stepTitle: {
+    color: '#111827',
+  },
+  stepSubtitle: {
+    color: '#4B5563',
+  },
+  label: {
+    color: '#374151',
+  },
+  inputWrapper: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  textInput: {
+    color: '#111827',
+  },
+  chip: {},
+  chipSelected: {
+    backgroundColor: '#111827',
+  },
+  chipUnselected: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  chipTextUnselected: {
+    color: '#4B5563',
+    fontWeight: '500',
+  },
+  bottomActionBar: {
+    backgroundColor: '#FFFFFF',
+    borderTopColor: '#E5E7EB',
+  },
+  primaryActionButton: {
+    backgroundColor: '#111827',
+    shadowColor: '#000000',
+    shadowOpacity: 0.12,
+  },
+  primaryActionText: {
+    color: '#FFFFFF',
   },
 });

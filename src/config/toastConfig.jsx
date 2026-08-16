@@ -1,14 +1,13 @@
-// src/config/toastConfig.js
+import React from 'react';
 import { Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Tick02Icon, Alert02Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../components/ui/colors';
 
-export const toastConfig = {
-  success: ({ text1, props, ...rest }) => {
-    const COLORS = useThemeColors();
-    return (
+const SuccessToast = ({ text1, props }) => {
+  const COLORS = useThemeColors();
+  return (
     <View style={{ 
       backgroundColor: COLORS.success, 
       padding: 15, 
@@ -25,10 +24,12 @@ export const toastConfig = {
         )}
       </View>
     </View>
-  )},
-  error: ({ text1, props, ...rest }) => {
-    const COLORS = useThemeColors();
-    return (
+  );
+};
+
+const ErrorToast = ({ text1, props }) => {
+  const COLORS = useThemeColors();
+  return (
     <View style={{ 
       backgroundColor: COLORS.danger, 
       padding: 15, 
@@ -36,8 +37,8 @@ export const toastConfig = {
       width: '90%',
       flexDirection: 'row',
       alignItems: 'center'
-      }}>
-        <HugeiconsIcon icon={Alert02Icon} size={24} color={COLORS.buttonText} />
+    }}>
+      <HugeiconsIcon icon={Alert02Icon} size={24} color={COLORS.buttonText} />
       <View style={{ marginLeft: 10 }}>
         <Text style={{ color: COLORS.buttonText, fontWeight: 'bold' }}>{text1}</Text>
         {props?.text2 && (
@@ -45,10 +46,12 @@ export const toastConfig = {
         )}
       </View>
     </View>
-  )},
-  info: ({ text1, props, ...rest }) => {
-    const COLORS = useThemeColors();
-    return (
+  );
+};
+
+const InfoToast = ({ text1, props }) => {
+  const COLORS = useThemeColors();
+  return (
     <View style={{ 
       backgroundColor: COLORS.info, 
       padding: 15, 
@@ -65,7 +68,13 @@ export const toastConfig = {
         )}
       </View>
     </View>
-  )}
+  );
+};
+
+export const toastConfig = {
+  success: (props) => <SuccessToast {...props} />,
+  error: (props) => <ErrorToast {...props} />,
+  info: (props) => <InfoToast {...props} />,
 };
 
 export const showToast = (type, message, subMessage = '') => {

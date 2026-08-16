@@ -5,17 +5,17 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Dimensions,
   ImageBackground,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G } from 'react-native-svg';
-import { COLORS, useThemeColors } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, Notification01Icon, Moon02Icon, Tick02Icon, ThermometerIcon, DropletIcon, Leaf01Icon, SlidersHorizontalIcon } from '@hugeicons/core-free-icons';
+import { ArrowLeft01Icon, Moon02Icon, Tick02Icon, ThermometerIcon, DropletIcon, Leaf01Icon, SlidersHorizontalIcon } from '@hugeicons/core-free-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -49,7 +49,7 @@ const EnvRow = ({ iconName, iconColor, label, value, badge, badgeColor, COLORS, 
 );
 
 // Sleep Efficiency Day Card
-const EfficiencyCard = ({ day, barHeights, isHighlight }) => (
+const EfficiencyCard = ({ day, barHeights, isHighlight, styles }) => (
   <View style={styles.effCard}>
     <View style={styles.effBarContainer}>
       {barHeights.map((h, i) => (

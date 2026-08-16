@@ -1,10 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useThemeColors } from '../ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { PillIcon, MedicineBottle01Icon, InjectionIcon, HappyIcon } from '@hugeicons/core-free-icons';
-import { useColorScheme } from 'react-native';
+import { PillIcon, MedicineBottle01Icon, InjectionIcon } from '@hugeicons/core-free-icons';
 
 // ─── Medication Type Icons & Map ────────────────────────────────────
 const getIconForForm = (form) => {
@@ -23,7 +21,6 @@ const getIconForForm = (form) => {
 };
 
 const MedicationScheduleCard = ({ medications }) => {
-  const COLORS = useThemeColors();
   const navigation = useNavigation();
   const scheme = useColorScheme();
   const isDarkMode = scheme === 'dark';
@@ -54,95 +51,88 @@ const MedicationScheduleCard = ({ medications }) => {
     return flatList;
   }, [medications]);
 
-  // Distinct icon themes for each medication subcard, with neutral backgrounds
   return (
     <TouchableOpacity
-      style={[styles.container, { backgroundColor: COLORS.cardBackground }]}
+      style={[
+        styles.outerContainer,
+        {
+          backgroundColor: isDarkMode ? '#121217' : '#FFFFFF',
+          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+        }
+      ]}
       onPress={() => navigation.navigate('Medication')}
       activeOpacity={0.9}
     >
       <View style={styles.headerRow}>
-        <Text style={[styles.headerSubtitle, { color: COLORS.primary }]}>MEDICATION SCHEDULE</Text>
-        <View style={[styles.badgeContainer, { backgroundColor: isDarkMode ? COLORS.surfaceAlt : COLORS.primarySoft }]}>
-          <Text style={[styles.badgeText, { color: isDarkMode ? COLORS.primarySoftText : COLORS.primary }]}>ACTIVE</Text>
+        <Text style={[styles.headerSubtitle, { color: isDarkMode ? '#93C5FD' : '#2563EB' }]}>
+          MEDICATION SCHEDULE
+        </Text>
+        <View style={[styles.badgeContainer, { backgroundColor: isDarkMode ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
+          <Text style={[styles.badgeText, { color: isDarkMode ? '#93C5FD' : '#2563EB' }]}>
+            {activeCount} ACTIVE
+          </Text>
         </View>
       </View>
 
-      <Text style={[styles.mainTitle, { color: COLORS.text || '#1F2937' }]}>
-        {activeCount} Active Prescriptions
+      <Text style={[styles.mainTitle, { color: isDarkMode ? '#FFFFFF' : '#111827' }]}>
+        {activeCount > 0 ? `${activeCount} Prescriptions Today` : 'No Scheduled Meds'}
       </Text>
 
       <View style={styles.listContainer}>
-        {scheduledDoses.length > 0 ? scheduledDoses.map((med, index) => {
+        {scheduledDoses.length > 0 ? scheduledDoses.slice(0, 3).map((med, index) => {
           const iconShape = getIconForForm(med?.forms?.toLowerCase() || '');
-          const cardBg = COLORS.surfaceAlt;
-          const iconColor = COLORS.primary;
+          const cardBg = isDarkMode ? '#1A1A22' : '#F3F4F6';
 
           let timeDisplay = index === 0 ? '08:00 AM' : '10:00 PM';
           let doseStr = null;
 
           if (med.doseInstance && med.doseInstance.reception_time) {
             const d = new Date(med.doseInstance.reception_time);
-
-
             timeDisplay = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-            console.log(timeDisplay);
-
             const doseValue = med.doseInstance.dose || '1';
             const formStr = med?.forms ? med.forms.toLowerCase() : 'unit';
-            const pluralForm = parseInt(doseValue) > 1 && !formStr.endsWith('s') ? `${formStr}s` : formStr;
+            const pluralForm = parseInt(doseValue, 10) > 1 && !formStr.endsWith('s') ? `${formStr}s` : formStr;
             doseStr = `${doseValue} ${pluralForm}`;
           }
 
           return (
-            <View key={med._id ? `${med._id}-${index}` : index} style={[styles.medCard, { backgroundColor: cardBg }]}>
-              <View style={styles.iconBox}>
-                <HugeiconsIcon icon={iconShape} size={22} color={isDarkMode ? COLORS.primarySoftText : iconColor} />
+            <View 
+              key={med._id ? `${med._id}-${index}` : index} 
+              style={[
+                styles.medCard, 
+                { 
+                  backgroundColor: cardBg,
+                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E7EB'
+                }
+              ]}
+            >
+              <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#22222D' : '#E5E7EB' }]}>
+                <HugeiconsIcon icon={iconShape} size={20} color={isDarkMode ? '#93C5FD' : '#2563EB'} />
               </View>
 
               <View style={styles.medInfo}>
-                <Text style={[styles.medName, { color: COLORS.textPrimary }]}>
+                <Text style={[styles.medName, { color: isDarkMode ? '#FFFFFF' : '#111827' }]}>
                   {med?.medicine_name || (index === 0 ? 'Lisinopril' : 'Atorvastatin')}
                 </Text>
-                <Text style={[styles.medInstruction, { color: COLORS.textSecondary }]}>
-                  {(med?.strength && med?.unit) ? `${med.strength} ${med.unit} • ${med.description || 'Daily'}` : (index === 0 ? '10mg • Daily with breakfast' : '20mg • Before sleep')}
+                <Text style={[styles.medInstruction, { color: isDarkMode ? '#A1A1AA' : '#6B7280' }]}>
+                  {(med?.strength && med?.unit) 
+                    ? `${med.strength} ${med.unit} • ${doseStr || med.description || 'Daily'}` 
+                    : (index === 0 ? '10mg • Daily with breakfast' : '20mg • Before sleep')}
                 </Text>
               </View>
 
               <View style={styles.timeBox}>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[
-                    styles.timeText,
-                    {
-                      color: isDarkMode ? COLORS.textSecondary : iconColor,
-                      textAlign: 'right'
-                    }
-                  ]}>
-                    {timeDisplay}
-                  </Text>
-
-                  {doseStr && (
-                    <View style={{ backgroundColor: isDarkMode ? COLORS.border : (iconColor + '1A'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
-                      <Text style={{
-                        fontSize: 10,
-                        color: isDarkMode ? COLORS.textSecondary : iconColor,
-                        fontWeight: '600'
-                      }}>
-                        {doseStr}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                <Text style={[styles.timeText, { color: isDarkMode ? '#FFFFFF' : '#111827' }]}>
+                  {timeDisplay}
+                </Text>
               </View>
             </View>
           );
         }) : (
-          <View style={[styles.emptyStateContainer, { backgroundColor: COLORS.surfaceAlt }]}>
-            <View style={[styles.emptyStateIconWrapper, { backgroundColor: COLORS.border }]}>
-              <HugeiconsIcon icon={HappyIcon} size={36} color={isDarkMode ? COLORS.textSecondary : COLORS.primary} />
-            </View>
-            <Text style={[styles.emptyStateTitle, { color: COLORS.textPrimary }]}>All done for today!</Text>
-            <Text style={[styles.emptyStateSub, { color: COLORS.textSecondary }]}>You have no medications left to take.</Text>
+          <View style={[styles.emptyContainer, { backgroundColor: isDarkMode ? '#1A1A22' : '#F3F4F6' }]}>
+            <Text style={[styles.emptyText, { color: isDarkMode ? '#A1A1AA' : '#6B7280' }]}>
+              All medications are up to date.
+            </Text>
           </View>
         )}
       </View>
@@ -151,26 +141,26 @@ const MedicationScheduleCard = ({ medications }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     borderRadius: 24,
     padding: 20,
-    marginBottom: 0,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 10,
     elevation: 3,
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   badgeContainer: {
     paddingHorizontal: 10,
@@ -178,79 +168,63 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   mainTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
-    lineHeight: 30,
-    marginBottom: 20,
+    letterSpacing: -0.3,
+    marginBottom: 16,
   },
   listContainer: {
-    gap: 12,
+    gap: 10,
   },
   medCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
     borderRadius: 16,
-    padding: 16,
+    borderWidth: 1,
   },
   iconBox: {
-    width: 38,
-    height: 38,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    marginRight: 12,
   },
   medInfo: {
     flex: 1,
-    paddingRight: 8,
   },
   medName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     marginBottom: 2,
   },
   medInstruction: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '400',
+    fontSize: 12,
+    fontWeight: '500',
   },
   timeBox: {
-    minWidth: 90,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    marginLeft: 8,
   },
   timeText: {
     fontSize: 13,
-    fontWeight: '600',
-  },
-  emptyStateContainer: {
-    padding: 24,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  emptyStateIconWrapper: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 8,
   },
-  emptyStateSub: {
-    fontSize: 14,
-    fontWeight: '400',
-    textAlign: 'center',
-  }
+  emptyContainer: {
+    padding: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
 });
 
 export default MedicationScheduleCard;

@@ -7,95 +7,191 @@ import {
   Image,
   ScrollView,
   RefreshControl,
+  StatusBar,
+  useColorScheme
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../../components/ui/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from 'react-native';
 import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { Notification01Icon, Pulse01Icon, DropletIcon } from '@hugeicons/core-free-icons';
+import { 
+  Notification01Icon, 
+  Pulse01Icon, 
+  DropletIcon, 
+  Moon02Icon, 
+  FavouriteIcon,
+  UserGroupIcon
+} from '@hugeicons/core-free-icons';
 
-const HeartRateCard = ({ colors, isDarkMode }) => (
-  <View style={[cardStyles.card, { backgroundColor: isDarkMode ? colors.surfaceAlt : colors.primary }]}>
-    <Text style={[cardStyles.cardTitle, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>HEART RATE</Text>
-    <View style={cardStyles.heartValueRow}>
-      <Text style={[cardStyles.heartValue, { color: isDarkMode ? colors.textPrimary : colors.buttonText }]}>72</Text>
-      <Text style={[cardStyles.heartUnit, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}> bpm</Text>
+// ─── Heart Rate Card ────────────────────────────────────────────────
+const HeartRateCard = ({ isDarkMode }) => (
+  <View style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}>
+    <View style={cardStyles.cardHeaderRow}>
+      <View style={cardStyles.titleWithIcon}>
+        <HugeiconsIcon icon={FavouriteIcon} size={16} color="#EF4444" />
+        <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+          HEART RATE
+        </Text>
+      </View>
+      <View style={cardStyles.liveBadge}>
+        <View style={cardStyles.liveDot} />
+        <Text style={cardStyles.liveText}>LIVE</Text>
+      </View>
     </View>
-    <View style={cardStyles.heartFooterRow}>
-      <HugeiconsIcon icon={Pulse01Icon} size={14} color={isDarkMode ? colors.textSecondary : colors.primarySoft} />
-      <Text style={[cardStyles.heartFooterText, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>Resting stable</Text>
+
+    <View style={cardStyles.valueRow}>
+      <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>72</Text>
+      <Text style={[cardStyles.unitText, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}> bpm</Text>
+    </View>
+
+    <View style={[cardStyles.statusFooterPill, isDarkMode ? cardStyles.subCardDark : cardStyles.subCardLight]}>
+      <HugeiconsIcon icon={Pulse01Icon} size={15} color="#10B981" />
+      <Text style={cardStyles.statusSuccessText}>Resting rate stable • Normal</Text>
     </View>
   </View>
 );
 
-const SleepQualityCard = ({ navigation, colors, isDarkMode }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('SleepDetails')} style={[cardStyles.card, { backgroundColor: colors.surface }]}>
-    <Text style={[cardStyles.cardTitle, { color: colors.textSecondary }]}>SLEEP QUALITY</Text>
-    <Text style={[cardStyles.sleepValue, { color: colors.textPrimary }]}>7h 30m</Text>
-    <Text style={[cardStyles.sleepSubtitle, { color: colors.textMuted }]}>Deep Sleep: 2h 15m</Text>
+// ─── Sleep Quality Card ──────────────────────────────────────────────
+const SleepQualityCard = ({ navigation, isDarkMode }) => (
+  <TouchableOpacity 
+    onPress={() => navigation.navigate('SleepDetails')} 
+    style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
+    activeOpacity={0.88}
+  >
+    <View style={cardStyles.cardHeaderRow}>
+      <View style={cardStyles.titleWithIcon}>
+        <HugeiconsIcon icon={Moon02Icon} size={16} color={isDarkMode ? '#93C5FD' : '#2563EB'} />
+        <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+          SLEEP QUALITY
+        </Text>
+      </View>
+      <Text style={cardStyles.scorePill}>88% OPTIMAL</Text>
+    </View>
+
+    <View style={cardStyles.valueRow}>
+      <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>7h 30m</Text>
+    </View>
+    <Text style={[cardStyles.subDescription, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+      Deep Sleep: 2h 15m • REM: 1h 45m
+    </Text>
+
     <View style={cardStyles.sleepBars}>
-      {[14, 20, 38, 24, 20, 18].map((h, i) => (
-        <View key={i} style={[cardStyles.sleepBar, { height: h, backgroundColor: i === 2 ? colors.primary : colors.borderStrong }]} />
+      {[16, 22, 42, 28, 24, 20, 36].map((h, i) => (
+        <View 
+          key={i} 
+          style={[
+            cardStyles.sleepBar, 
+            { 
+              height: h, 
+              backgroundColor: i === 2 
+                ? (isDarkMode ? '#3B82F6' : '#2563EB') 
+                : (isDarkMode ? '#272730' : '#E5E7EB') 
+            }
+          ]} 
+        />
       ))}
     </View>
   </TouchableOpacity>
 );
 
-const HydrationCard = ({ navigation, colors, isDarkMode }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('Hydration')} style={[cardStyles.card, { backgroundColor: colors.surface }]}>
-    <View style={cardStyles.rowBetween}>
-      <Text style={[cardStyles.cardTitle, { color: colors.textSecondary, marginBottom: 0 }]}>HYDRATION</Text>
-      <HugeiconsIcon icon={DropletIcon} size={18} color={colors.primary} />
-    </View>
-    <View style={cardStyles.hydrationValueRow}>
-      <Text style={[cardStyles.hydrationValue, { color: colors.textPrimary }]}>1.5 </Text>
-      <Text style={[cardStyles.hydrationUnit, { color: colors.textSecondary }]}>/ 2L</Text>
-    </View>
-    <View style={[cardStyles.hydrationProgressBg, { backgroundColor: colors.border }]}>
-      <View style={[cardStyles.hydrationProgressFill, { backgroundColor: colors.primary }]} />
-    </View>
-    <Text style={[cardStyles.hydrationGoal, { color: colors.primary }]}>75% OF GOAL</Text>
-  </TouchableOpacity>
-);
-
-const CareNetworkCard = ({ navigation, colors, isDarkMode }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('Connections')} style={[cardStyles.card, { backgroundColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]}>
-    <Text style={[cardStyles.cardTitle, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>CARE NETWORK</Text>
-    <View style={cardStyles.avatarRow}>
-      <Image source={{ uri: 'https://i.pravatar.cc/100?img=5' }} style={[cardStyles.careAvatar, { zIndex: 3, borderColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]} />
-      <Image source={{ uri: 'https://i.pravatar.cc/100?img=3' }} style={[cardStyles.careAvatar, { zIndex: 2, marginLeft: -12, borderColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]} />
-      <View style={[cardStyles.careMoreAvatar, { zIndex: 1, marginLeft: -12, backgroundColor: isDarkMode ? colors.surface : colors.primarySoft, borderColor: isDarkMode ? colors.surfaceAlt : colors.primaryHover }]}>
-        <Text style={[cardStyles.careMoreText, { color: isDarkMode ? colors.textPrimary : colors.primary }]}>+3</Text>
+// ─── Hydration Card ──────────────────────────────────────────────────
+const HydrationCard = ({ navigation, isDarkMode }) => (
+  <TouchableOpacity 
+    onPress={() => navigation.navigate('Hydration')} 
+    style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
+    activeOpacity={0.88}
+  >
+    <View style={cardStyles.cardHeaderRow}>
+      <View style={cardStyles.titleWithIcon}>
+        <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
+        <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+          HYDRATION
+        </Text>
+      </View>
+      <View style={[cardStyles.pillBadge, { backgroundColor: isDarkMode ? 'rgba(2, 132, 199, 0.15)' : '#E0F2FE' }]}>
+        <Text style={[cardStyles.pillBadgeText, { color: '#0284C7' }]}>75% OF GOAL</Text>
       </View>
     </View>
-    <Text style={[cardStyles.careName, { color: isDarkMode ? colors.textPrimary : colors.buttonText }]}>Dr. Sarah Miller</Text>
-    <Text style={[cardStyles.careRole, { color: isDarkMode ? colors.textSecondary : colors.primarySoft }]}>Primary Physician - Online</Text>
+
+    <View style={cardStyles.valueRow}>
+      <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>1.5 </Text>
+      <Text style={[cardStyles.unitText, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>/ 2.0 L</Text>
+    </View>
+
+    {/* Progress Bar */}
+    <View style={[cardStyles.progressTrack, { backgroundColor: isDarkMode ? '#272730' : '#E5E7EB' }]}>
+      <View style={[cardStyles.progressFill, { backgroundColor: isDarkMode ? '#38BDF8' : '#0284C7', width: '75%' }]} />
+    </View>
   </TouchableOpacity>
 );
 
-const BloodPressureCard = ({ colors, isDarkMode }) => (
-  <View style={[cardStyles.card, { backgroundColor: colors.surface, marginBottom: 30 }]}>
-    <Text style={[cardStyles.cardTitle, { textAlign: 'center', marginBottom: 6, color: colors.textSecondary }]}>BLOOD PRESSURE</Text>
-    <Text style={[cardStyles.bpValue, { textAlign: 'center', color: colors.textPrimary }]}>120/80 <Text style={[cardStyles.bpUnit, { color: colors.textSecondary }]}>mmHg</Text></Text>
-
-    <View style={cardStyles.rowBetweenBP}>
-      <Text style={[cardStyles.bpFooterText, { color: colors.textSecondary }]}>Normal Range</Text>
-      <Text style={[cardStyles.bpFooterBold, { color: colors.primary }]}>Optimal</Text>
+// ─── Care Network Card ───────────────────────────────────────────────
+const CareNetworkCard = ({ navigation, isDarkMode }) => (
+  <TouchableOpacity 
+    onPress={() => navigation.navigate('Connections')} 
+    style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
+    activeOpacity={0.88}
+  >
+    <View style={cardStyles.cardHeaderRow}>
+      <View style={cardStyles.titleWithIcon}>
+        <HugeiconsIcon icon={UserGroupIcon} size={16} color={isDarkMode ? '#93C5FD' : '#2563EB'} />
+        <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+          CARE NETWORK
+        </Text>
+      </View>
+      <View style={[cardStyles.pillBadge, { backgroundColor: isDarkMode ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
+        <Text style={[cardStyles.pillBadgeText, { color: isDarkMode ? '#93C5FD' : '#2563EB' }]}>3 CONNECTED</Text>
+      </View>
     </View>
-    <View style={[cardStyles.bpSliderBg, { backgroundColor: colors.border }]}>
-      <View style={[cardStyles.bpSliderThumb, { backgroundColor: colors.primary, borderColor: colors.surface }]} />
+
+    <View style={cardStyles.careNetworkContent}>
+      <View style={cardStyles.avatarRow}>
+        <Image source={{ uri: 'https://i.pravatar.cc/100?img=5' }} style={cardStyles.careAvatar} />
+        <Image source={{ uri: 'https://i.pravatar.cc/100?img=3' }} style={[cardStyles.careAvatar, { marginLeft: -10 }]} />
+        <View style={[cardStyles.careMoreAvatar, { marginLeft: -10, backgroundColor: isDarkMode ? '#272730' : '#E5E7EB' }]}>
+          <Text style={[cardStyles.careMoreText, { color: isDarkMode ? '#FFFFFF' : '#111827' }]}>+1</Text>
+        </View>
+      </View>
+
+      <View style={cardStyles.careInfo}>
+        <Text style={[cardStyles.careName, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>Dr. Sarah Miller</Text>
+        <Text style={[cardStyles.careRole, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>Primary Physician • Online</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
+
+// ─── Blood Pressure Card ─────────────────────────────────────────────
+const BloodPressureCard = ({ isDarkMode }) => (
+  <View style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight, { marginBottom: 32 }]}>
+    <View style={cardStyles.cardHeaderRow}>
+      <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+        BLOOD PRESSURE
+      </Text>
+      <View style={[cardStyles.pillBadge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
+        <Text style={[cardStyles.pillBadgeText, { color: '#10B981' }]}>OPTIMAL</Text>
+      </View>
+    </View>
+
+    <View style={cardStyles.valueRow}>
+      <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>120/80</Text>
+      <Text style={[cardStyles.unitText, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}> mmHg</Text>
+    </View>
+
+    <View style={cardStyles.bpFooterRow}>
+      <Text style={[cardStyles.bpRangeText, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+        Normal systolic & diastolic range
+      </Text>
     </View>
   </View>
 );
 
+// ─── Main HomeScreen Component ──────────────────────────────────────
 const HomeScreen = () => {
-  const COLORS = useThemeColors();
-  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
   const navigation = useNavigation();
   const { authState } = useAuth();
   const [medications, setMedications] = useState([]);
@@ -114,7 +210,7 @@ const HomeScreen = () => {
       const meds = response?.data?.data?.medication;
       setMedications(meds && meds.length > 0 ? meds : []);
     } catch (error) {
-      console.error('Error fetching medications:', error);
+      console.error('Error fetching dashboard data:', error);
     }
   };
 
@@ -124,132 +220,171 @@ const HomeScreen = () => {
     setRefreshing(false);
   }, []);
 
-  console.log(medications);
-
+  const { day, date } = getDayAndDate();
+  const displayName = authState?.user?.name || authState?.user?.username || 'Member';
 
   return (
-    <View style={styles.container}>
-      {/* Profile Header */}
-      <View style={styles.headerContainer}>
-        <View style={[styles.headerTop, { paddingTop: insets.top + 13 }]}>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#000000' : '#F9FAFB' }]}>
+      <StatusBar 
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
+        backgroundColor={isDarkMode ? '#000000' : '#F9FAFB'} 
+      />
+
+      {/* Modern Clean Header */}
+      <View style={[styles.headerWrapper, { paddingTop: Math.max(insets.top, 14) }]}>
+        <View style={styles.headerTopRow}>
           <View style={styles.profileSection}>
             <Image
-              source={{ uri: authState?.user?.avatar || 'https://via.placeholder.com/150' }}
-              style={styles.profilePicture}
+              source={{ uri: authState?.user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' }}
+              style={[styles.profileAvatar, { borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : '#E5E7EB' }]}
             />
             <View style={styles.profileInfo}>
-              <Text style={styles.greeting}>Hello</Text>
-              <Text style={styles.userName}>
-                {authState?.user?.username || 'User name '}
+              <Text style={[styles.greetingText, { color: isDarkMode ? '#A1A1AA' : '#6B7280' }]}>
+                Welcome back,
+              </Text>
+              <Text style={[styles.userNameText, { color: isDarkMode ? '#FFFFFF' : '#111827' }]} numberOfLines={1}>
+                {displayName}
               </Text>
             </View>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <HugeiconsIcon icon={Notification01Icon} size={24} color={COLORS.primary} />
+
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Notifications')}
+            style={[
+              styles.notificationButton, 
+              { 
+                backgroundColor: isDarkMode ? '#121217' : '#FFFFFF',
+                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB'
+              }
+            ]}
+            activeOpacity={0.8}
+          >
+            <HugeiconsIcon icon={Notification01Icon} size={20} color={isDarkMode ? '#FFFFFF' : '#111827'} />
           </TouchableOpacity>
         </View>
 
-        {/* Date Display */}
-        <View style={styles.dateContainer}>
-          <Text style={styles.fullDateText}>{getDayAndDate().day}, {getDayAndDate().date}</Text>
+        {/* Date Badge Row */}
+        <View style={styles.datePillRow}>
+          <View style={[styles.datePill, { backgroundColor: isDarkMode ? '#121217' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB' }]}>
+            <Text style={[styles.datePillText, { color: isDarkMode ? '#FFFFFF' : '#111827' }]}>
+              📅 {day}, {date}
+            </Text>
+          </View>
         </View>
       </View>
 
+      {/* Main Dashboard Scrollable Content */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            tintColor={isDarkMode ? '#3B82F6' : '#2563EB'} 
+          />
         }
       >
+        {/* Medication Schedule Card */}
         <MedicationScheduleCard medications={medications} />
 
-        <HeartRateCard colors={COLORS} isDarkMode={isDarkMode} />
+        {/* Vital Health Metrics Cards */}
+        <HeartRateCard isDarkMode={isDarkMode} />
 
-        <SleepQualityCard navigation={navigation} colors={COLORS} isDarkMode={isDarkMode} />
+        <SleepQualityCard navigation={navigation} isDarkMode={isDarkMode} />
 
-        <HydrationCard navigation={navigation} colors={COLORS} isDarkMode={isDarkMode} />
+        <HydrationCard navigation={navigation} isDarkMode={isDarkMode} />
 
-        <CareNetworkCard navigation={navigation} colors={COLORS} isDarkMode={isDarkMode} />
+        <CareNetworkCard navigation={navigation} isDarkMode={isDarkMode} />
 
-        <BloodPressureCard colors={COLORS} isDarkMode={isDarkMode} />
+        <BloodPressureCard isDarkMode={isDarkMode} />
       </ScrollView>
     </View>
   );
 };
 
-const getStyles = (COLORS) => StyleSheet.create({
+export default HomeScreen;
+
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background, // Adaptive background color
   },
-  headerContainer: {
-    width: '100%',
-    // marginBottom: 10,
-    backgroundColor: COLORS.headerBottomBackground,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  headerTop: {
-    backgroundColor: COLORS.headerTopBackground,
-    paddingTop: 13,
+  headerWrapper: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    paddingBottom: 12,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 12,
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  profilePicture: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  profileAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1.5,
     marginRight: 12,
   },
   profileInfo: {
     flex: 1,
-    justifyContent: 'center',
   },
-  greeting: {
-    fontSize: 14,
+  greetingText: {
+    fontSize: 13,
     fontWeight: '500',
-    color: COLORS.headerText,
     marginBottom: 2,
   },
-  userName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.headerText,
+  userNameText: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    textTransform: 'capitalize',
   },
-  dateContainer: {
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  datePillRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    backgroundColor: COLORS.headerBottomBackground,
   },
-  fullDateText: {
-    color: COLORS.headerText,
-    fontWeight: '600',
-    fontSize: 17,
+  datePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 14,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  datePillText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 60,
-    paddingTop: 10,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
     gap: 16,
   },
 });
@@ -258,221 +393,183 @@ const cardStyles = StyleSheet.create({
   card: {
     borderRadius: 24,
     padding: 20,
-    marginBottom: 0,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 3,
   },
-  heartCard: {
-    backgroundColor: '#115E59', // Dark Teal
+  cardDark: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  whiteCard: {
+  cardLight: {
     backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
   },
-  careCard: {
-    backgroundColor: '#0369A1', // Dark blue
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   cardTitle: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#6B7280',
-    letterSpacing: 1.2,
-    marginBottom: 10,
-  },
-
-  /* Heart Rate */
-  heartTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#A7F3D0',
-    letterSpacing: 1.2,
-    marginBottom: 8,
-  },
-  heartValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 20,
-  },
-  heartValue: {
-    fontSize: 48,
     fontWeight: '800',
-    color: '#FFFFFF',
-    lineHeight: 52,
+    letterSpacing: 1,
   },
-  heartUnit: {
-    fontSize: 16,
-    color: '#D1FAE5',
-    marginLeft: 4,
-    fontWeight: '500',
-  },
-  heartFooterRow: {
+  liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
-  heartFooterText: {
-    color: '#A7F3D0',
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
+  },
+  liveText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  pillBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  pillBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  scorePill: {
+    color: '#10B981',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 6,
+  },
+  largeValue: {
+    fontSize: 38,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  unitText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  subDescription: {
     fontSize: 13,
     fontWeight: '500',
-    marginLeft: 6,
+    marginBottom: 16,
   },
-
-  /* Sleep Quality */
-  sleepValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 4,
+  subCardDark: {
+    backgroundColor: '#1A1A22',
   },
-  sleepSubtitle: {
+  subCardLight: {
+    backgroundColor: '#F3F4F6',
+  },
+  statusFooterPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  statusSuccessText: {
+    color: '#10B981',
     fontSize: 13,
-    color: '#4B5563',
-    marginBottom: 20,
+    fontWeight: '600',
   },
   sleepBars: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 6,
-    height: 45,
+    height: 48,
+    marginTop: 4,
   },
   sleepBar: {
     flex: 1,
-    borderRadius: 4,
+    borderRadius: 6,
   },
-
-  /* Hydration */
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  hydrationValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 16,
-  },
-  hydrationValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  hydrationUnit: {
-    fontSize: 16,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  hydrationProgressBg: {
+  progressTrack: {
     height: 8,
-    backgroundColor: '#E5E7EB',
     borderRadius: 4,
-    marginBottom: 12,
+    overflow: 'hidden',
+    marginTop: 8,
   },
-  hydrationProgressFill: {
+  progressFill: {
     height: '100%',
-    width: '75%',
-    backgroundColor: '#0F766E',
     borderRadius: 4,
   },
-  hydrationGoal: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0F766E',
-    textAlign: 'center',
-    letterSpacing: 1,
-  },
-
-  /* Care Network */
-  careTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#BAE6FD',
-    letterSpacing: 1.2,
-    marginBottom: 16,
+  careNetworkContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginRight: 14,
   },
   careAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 2,
-    borderColor: '#0369A1',
+    borderColor: '#2563EB',
   },
   careMoreAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E0F2FE',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 2,
-    borderColor: '#0369A1',
-    justifyContent: 'center',
+    borderColor: '#2563EB',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   careMoreText: {
-    color: '#0284C7',
-    fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  careInfo: {
+    flex: 1,
   },
   careName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   careRole: {
     fontSize: 13,
-    color: '#E0F2FE',
-    fontWeight: '400',
-  },
-
-  /* Blood Pressure */
-  bpValue: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: '#1F2937',
-    marginBottom: 20,
-  },
-  bpUnit: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  rowBetweenBP: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  bpFooterText: {
-    fontSize: 12,
-    color: '#6B7280',
     fontWeight: '500',
   },
-  bpFooterBold: {
-    fontSize: 12,
-    color: '#0F766E',
-    fontWeight: '700',
+  bpFooterRow: {
+    marginTop: 4,
   },
-  bpSliderBg: {
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    justifyContent: 'center',
+  bpRangeText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
-  bpSliderThumb: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#0F766E',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    position: 'absolute',
-    left: '80%',
-  }
+  textWhite: { color: '#FFFFFF' },
+  textBlack: { color: '#111827' },
+  textMutedDark: { color: '#A1A1AA' },
+  textMutedLight: { color: '#6B7280' },
 });
-
-export default HomeScreen;

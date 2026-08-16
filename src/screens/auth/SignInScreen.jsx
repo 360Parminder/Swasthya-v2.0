@@ -9,7 +9,8 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   StatusBar,
-  ScrollView
+  ScrollView,
+  useColorScheme
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +29,10 @@ import Toast from 'react-native-toast-message';
 
 const SignInScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
+
   const { login, isLoading } = useAuth();
   
   const [data, setData] = useState({
@@ -54,20 +59,23 @@ const SignInScreen = ({ navigation }) => {
     }
 
     try {
-      await login(data.mobile, data.password);
+      await login(data.mobile.trim(), data.password);
       showToast('success', 'Welcome back! 👋');
     } catch (error) {
-      showToast('error', error.response?.data?.message || 'Invalid credentials. Please try again.');
+      showToast('error', error.response?.data?.message || error.message || 'Invalid credentials. Please try again.');
     }
   };
 
   return (
-    <View style={styles.mainContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+    <View style={[styles.mainContainer, theme.mainContainer]}>
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'dark-content'} 
+        backgroundColor={isDark ? '#000000' : '#F9FAFB'} 
+      />
 
       {/* Subtle top ambient glow */}
       <LinearGradient
-        colors={['rgba(59, 130, 246, 0.12)', 'transparent']}
+        colors={isDark ? ['rgba(59, 130, 246, 0.12)', 'transparent'] : ['rgba(59, 130, 246, 0.06)', 'transparent']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.ambientTopGlow}
@@ -76,24 +84,28 @@ const SignInScreen = ({ navigation }) => {
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
+        style={styles.flexOne}
       >
-        <View style={{ flex: 1 }}>
+        <View style={styles.flexOne}>
           {/* Top Bar */}
           <View style={[styles.navBar, { paddingTop: Math.max(insets.top, 12) }]}>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => navigation.navigate('SignUp')}
-              style={styles.navBackButton}
+              style={[styles.navBackButton, theme.navBackButton]}
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="#FFFFFF" />
+              <HugeiconsIcon 
+                icon={ArrowLeft01Icon} 
+                size={22} 
+                color={isDark ? '#FFFFFF' : '#111827'} 
+              />
             </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={() => navigation.navigate('SignUp')}
               style={styles.navLink}
             >
-              <Text style={styles.navLinkText}>Sign Up</Text>
+              <Text style={[styles.navLinkText, theme.navLinkText]}>Sign Up</Text>
             </TouchableOpacity>
           </View>
 
@@ -105,23 +117,28 @@ const SignInScreen = ({ navigation }) => {
             keyboardShouldPersistTaps="handled"
           >
             {/* Header Badge & Title */}
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>WELCOME BACK</Text>
+            <View style={[styles.badge, theme.badge]}>
+              <Text style={[styles.badgeText, theme.badgeText]}>WELCOME BACK</Text>
             </View>
-            <Text style={styles.title}>{'Sign In to\nSwasthya'}</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, theme.title]}>{'Sign In to\nSwasthya'}</Text>
+            <Text style={[styles.subtitle, theme.subtitle]}>
               Enter your registered mobile number and password to access your dashboard.
             </Text>
 
             {/* Mobile Input */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Mobile Number</Text>
-              <View style={styles.inputWrapper}>
-                <HugeiconsIcon icon={SmartPhone01Icon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+              <Text style={[styles.label, theme.label]}>Mobile Number</Text>
+              <View style={[styles.inputWrapper, theme.inputWrapper]}>
+                <HugeiconsIcon 
+                  icon={SmartPhone01Icon} 
+                  size={20} 
+                  color={isDark ? '#A1A1AA' : '#6B7280'} 
+                  style={styles.fieldIcon} 
+                />
                 <TextInput
-                  style={styles.textInput}
+                  style={[styles.textInput, theme.textInput]}
                   placeholder="Enter 10-digit number"
-                  placeholderTextColor="#71717A"
+                  placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                   keyboardType="phone-pad"
                   value={data.mobile}
                   onChangeText={(text) => setData({ ...data, mobile: text })}
@@ -132,13 +149,18 @@ const SignInScreen = ({ navigation }) => {
 
             {/* Password Input */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrapper}>
-                <HugeiconsIcon icon={LockKeyIcon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+              <Text style={[styles.label, theme.label]}>Password</Text>
+              <View style={[styles.inputWrapper, theme.inputWrapper]}>
+                <HugeiconsIcon 
+                  icon={LockKeyIcon} 
+                  size={20} 
+                  color={isDark ? '#A1A1AA' : '#6B7280'} 
+                  style={styles.fieldIcon} 
+                />
                 <TextInput
-                  style={styles.textInput}
+                  style={[styles.textInput, theme.textInput]}
                   placeholder="Enter your password"
-                  placeholderTextColor="#71717A"
+                  placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
                   secureTextEntry={!showPassword}
                   value={data.password}
                   onChangeText={(text) => setData({ ...data, password: text })}
@@ -150,7 +172,7 @@ const SignInScreen = ({ navigation }) => {
                   <HugeiconsIcon 
                     icon={showPassword ? ViewOffSlashIcon : ViewIcon} 
                     size={20} 
-                    color="#A1A1AA" 
+                    color={isDark ? '#A1A1AA' : '#6B7280'} 
                   />
                 </TouchableOpacity>
               </View>
@@ -158,7 +180,7 @@ const SignInScreen = ({ navigation }) => {
 
             {/* Forgot Password Link */}
             <TouchableOpacity style={styles.forgotPasswordButton}>
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              <Text style={[styles.forgotPasswordText, theme.forgotPasswordText]}>Forgot Password?</Text>
             </TouchableOpacity>
 
             {/* Primary Login Button */}
@@ -166,40 +188,40 @@ const SignInScreen = ({ navigation }) => {
               activeOpacity={0.88}
               onPress={onSubmit}
               disabled={isLoading}
-              style={[styles.primaryButton, isLoading && { opacity: 0.8 }]}
+              style={[styles.primaryButton, theme.primaryButton, isLoading && { opacity: 0.8 }]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#000000" />
+                <ActivityIndicator size="small" color={isDark ? '#000000' : '#FFFFFF'} />
               ) : (
                 <>
-                  <Text style={styles.primaryButtonText}>Sign In</Text>
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#000000" />
+                  <Text style={[styles.primaryButtonText, theme.primaryButtonText]}>Sign In</Text>
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={isDark ? '#000000' : '#FFFFFF'} />
                 </>
               )}
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, theme.dividerLine]} />
+              <Text style={[styles.dividerText, theme.dividerText]}>OR CONTINUE WITH</Text>
+              <View style={[styles.dividerLine, theme.dividerLine]} />
             </View>
 
             {/* Google Sign In */}
             <TouchableOpacity 
               activeOpacity={0.88}
-              style={styles.googleFullButton}
+              style={[styles.googleFullButton, theme.googleFullButton]}
               onPress={() => showToast('info', 'Google Sign In', 'Connecting to Google services...')}
             >
               <GoogleIcon size={20} />
-              <Text style={styles.googleFullButtonText}>Continue with Google</Text>
+              <Text style={[styles.googleFullButtonText, theme.googleFullButtonText]}>Continue with Google</Text>
             </TouchableOpacity>
 
             {/* Footer Sign Up Link */}
             <View style={styles.footerRow}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
+              <Text style={[styles.footerText, theme.footerText]}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                <Text style={styles.footerLink}>Sign Up</Text>
+                <Text style={[styles.footerLink, theme.footerLink]}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -212,9 +234,11 @@ const SignInScreen = ({ navigation }) => {
 export default SignInScreen;
 
 const styles = StyleSheet.create({
+  flexOne: {
+    flex: 1,
+  },
   mainContainer: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   ambientTopGlow: {
     position: 'absolute',
@@ -234,9 +258,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#121217',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -245,7 +266,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   navLinkText: {
-    color: '#A1A1AA',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -259,22 +279,18 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   badgeText: {
-    color: '#93C5FD',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   title: {
-    color: '#FFFFFF',
     fontSize: 34,
     fontWeight: '800',
     lineHeight: 40,
@@ -282,7 +298,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 32,
@@ -291,7 +306,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    color: '#E4E4E7',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
@@ -299,22 +313,20 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#121217',
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     height: 56,
     paddingHorizontal: 16,
   },
   fieldIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   textInput: {
     flex: 1,
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
     height: '100%',
+    paddingLeft: 6,
   },
   passwordToggle: {
     padding: 6,
@@ -325,27 +337,22 @@ const styles = StyleSheet.create({
     marginTop: -6,
   },
   forgotPasswordText: {
-    color: '#93C5FD',
     fontSize: 14,
     fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: '#FFFFFF',
     height: 56,
     borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 6,
     marginBottom: 24,
   },
   primaryButtonText: {
-    color: '#000000',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -357,21 +364,17 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   dividerText: {
-    color: '#71717A',
     fontSize: 12,
     fontWeight: '600',
     marginHorizontal: 16,
     letterSpacing: 0.5,
   },
   googleFullButton: {
-    backgroundColor: '#121217',
     height: 54,
     borderRadius: 27,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -379,7 +382,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   googleFullButtonText: {
-    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -389,13 +391,162 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footerText: {
-    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 14,
     fontWeight: '500',
   },
   footerLink: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
+  },
+});
+
+// Dark Theme Variants
+const darkTheme = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: '#000000',
+  },
+  navBackButton: {
+    backgroundColor: '#121217',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  navLinkText: {
+    color: '#A1A1AA',
+  },
+  badge: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  badgeText: {
+    color: '#93C5FD',
+  },
+  title: {
+    color: '#FFFFFF',
+  },
+  subtitle: {
+    color: 'rgba(255, 255, 255, 0.65)',
+  },
+  label: {
+    color: '#E4E4E7',
+  },
+  inputWrapper: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  textInput: {
+    color: '#FFFFFF',
+  },
+  forgotPasswordText: {
+    color: '#93C5FD',
+  },
+  primaryButton: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.15,
+  },
+  primaryButtonText: {
+    color: '#000000',
+  },
+  dividerLine: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  dividerText: {
+    color: '#71717A',
+  },
+  googleFullButton: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+  },
+  googleFullButtonText: {
+    color: '#FFFFFF',
+  },
+  footerText: {
+    color: 'rgba(255, 255, 255, 0.65)',
+  },
+  footerLink: {
+    color: '#FFFFFF',
+  },
+});
+
+// Light Theme Variants
+const lightTheme = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: '#F9FAFB',
+  },
+  navBackButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  navLinkText: {
+    color: '#4B5563',
+  },
+  badge: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  badgeText: {
+    color: '#2563EB',
+  },
+  title: {
+    color: '#111827',
+  },
+  subtitle: {
+    color: '#4B5563',
+  },
+  label: {
+    color: '#374151',
+  },
+  inputWrapper: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  textInput: {
+    color: '#111827',
+  },
+  forgotPasswordText: {
+    color: '#2563EB',
+  },
+  primaryButton: {
+    backgroundColor: '#111827',
+    shadowColor: '#000000',
+    shadowOpacity: 0.12,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+  },
+  dividerLine: {
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    color: '#9CA3AF',
+  },
+  googleFullButton: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  googleFullButtonText: {
+    color: '#111827',
+  },
+  footerText: {
+    color: '#6B7280',
+  },
+  footerLink: {
+    color: '#111827',
   },
 });

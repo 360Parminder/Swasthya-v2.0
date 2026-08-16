@@ -3,6 +3,7 @@ import {
     View, Text, StyleSheet, Modal, TouchableOpacity, Image,
     ScrollView, Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowLeft01Icon, MoreVerticalIcon, LockKeyIcon } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../ui/colors';
@@ -40,7 +41,7 @@ const PendingRequests = ({
 
     return (
         <Modal visible={isVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose} style={styles.iconBtn}>
@@ -141,7 +142,7 @@ const PendingRequests = ({
 
                     <View style={{ height: 40 }} />
                 </ScrollView>
-            </View>
+            </SafeAreaView>
         </Modal>
     );
 };

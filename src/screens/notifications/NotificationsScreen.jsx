@@ -7,9 +7,10 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft01Icon, Settings02Icon, FirstAidKitIcon, Tick02Icon, UserIcon, Alert02Icon, DropletIcon, NotificationOff03Icon } from '@hugeicons/core-free-icons';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, useThemeColors } from '../../components/ui/colors';
+import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 
 const NotificationsScreen = () => {
@@ -18,7 +19,7 @@ const NotificationsScreen = () => {
   const styles = React.useMemo(() => getStyles(colors), [colors]);
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
@@ -152,7 +153,7 @@ const NotificationsScreen = () => {
         </View>
 
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 };
 
