@@ -564,7 +564,9 @@ export const TimeWheelPickerCard = ({
     }
     let h24 = selectedHour % 12;
     if (selectedPeriod === 'PM') h24 += 12;
-    const normalized = new Date(2000, 0, 1, h24, selectedMinute, 0, 0).toISOString();
+    const now = new Date();
+    now.setHours(h24, selectedMinute, 0, 0);
+    const normalized = now.toISOString();
     if (onChangeRef.current) {
       onChangeRef.current(normalized, { hour: selectedHour, minute: selectedMinute, period: selectedPeriod });
     }

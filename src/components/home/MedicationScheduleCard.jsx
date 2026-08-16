@@ -20,19 +20,42 @@ const getIconForForm = (form) => {
   }
 };
 
+// Helper to flatten nested backend medication groups ({ record: [...] })
+const unwrapMedications = (rawMedications) => {
+  if (!rawMedications || !Array.isArray(rawMedications)) return [];
+  const list = [];
+  rawMedications.forEach(group => {
+    if (group && Array.isArray(group.record) && group.record.length > 0) {
+      group.record.forEach(rec => {
+        if (rec) {
+          list.push({
+            ...rec,
+            parentContainerId: group._id,
+            forWhom: group.forWhom || 'myself',
+          });
+        }
+      });
+    } else if (group && group.medicine_name) {
+      list.push(group);
+    }
+  });
+  return list;
+};
+
 const MedicationScheduleCard = ({ medications }) => {
   const navigation = useNavigation();
   const scheme = useColorScheme();
   const isDarkMode = scheme === 'dark';
 
-  const activeCount = medications?.length || 0;
+  const flatMeds = useMemo(() => unwrapMedications(medications), [medications]);
+  const activeCount = flatMeds.length;
 
   // Flatten medications into individual doses
   const scheduledDoses = useMemo(() => {
-    if (!medications || medications.length === 0) return [];
+    if (!flatMeds || flatMeds.length === 0) return [];
 
     let flatList = [];
-    medications.forEach((med, originalIndex) => {
+    flatMeds.forEach((med, originalIndex) => {
       if (med.times && med.times.length > 0) {
         med.times.forEach((t) => {
           flatList.push({ ...med, doseInstance: t, originalIndex });
@@ -49,7 +72,7 @@ const MedicationScheduleCard = ({ medications }) => {
     });
 
     return flatList;
-  }, [medications]);
+  }, [flatMeds]);
 
   return (
     <TouchableOpacity

@@ -39,12 +39,13 @@ const AddMedication = ({ isVisible, onClose }) => {
   const theme = isDark ? darkTheme : lightTheme;
 
   const getNormalizedTime = (hour = 8, minute = 0) => {
-    return new Date(2000, 0, 1, hour, minute, 0, 0).toISOString();
+    const d = new Date();
+    d.setHours(hour, minute, 0, 0);
+    return d.toISOString();
   };
 
   const formatDateString = (dateObj) => {
-    if (!dateObj) return '2026-08-16';
-    const d = new Date(dateObj);
+    const d = dateObj ? new Date(dateObj) : new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');

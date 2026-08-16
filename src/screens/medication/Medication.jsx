@@ -1,507 +1,1197 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  useColorScheme
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddMedication from '../../components/model/Medication/AddMedication';
-import { useThemeColors } from '../../components/ui/colors';
-import GeneralModal from '../../components/common/GeneralModal';
-import ViewMedications from '../../components/model/Medication/ViewMedications';
-import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, ArrowRight01Icon, Add01Icon, Medicine01Icon, BandageIcon, PillsTabletIcon, UserAdd01Icon, Time02Icon, Notification01Icon } from '@hugeicons/core-free-icons';
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Add01Icon,
+  Medicine01Icon,
+  PillIcon,
+  MedicineBottle01Icon,
+  InjectionIcon,
+  UserGroupIcon,
+  Calendar01Icon,
+  Notification03Icon,
+  Tick02Icon,
+  Clock01Icon,
+  AlertCircleIcon,
+  SparklesIcon
+} from '@hugeicons/core-free-icons';
+import Svg, { Circle, G } from 'react-native-svg';
+import AddMedication from '../../components/model/Medication/AddMedication';
+import { medicationApi } from '../../api/medicationApi';
+import { playTickSound } from '../../services/soundService';
+
+// Form Icon Helper
+const getIconForForm = (form) => {
+  switch (form?.toLowerCase()) {
+    case 'capsule':
+    case 'tablet':
+      return PillIcon;
+    case 'liquid':
+    case 'syrup':
+    case 'drops':
+      return MedicineBottle01Icon;
+    case 'injection':
+      return InjectionIcon;
+    default:
+      return Medicine01Icon;
+  }
+};
+
+// Robust Local Time Formatter using exact system time
+export const formatDoseTime = (timeInput) => {
+  if (!timeInput) return '08:00 AM';
+  try {
+    const d = new Date(timeInput);
+    if (isNaN(d.getTime())) return String(timeInput);
+    return d.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return '08:00 AM';
+  }
+};
+
+// Helper to flatten nested backend medication groups ({ record: [...] })
+export const parseMedicationsList = (rawMedications) => {
+  if (!rawMedications || !Array.isArray(rawMedications)) return [];
+  const list = [];
+  rawMedications.forEach(group => {
+    if (group && Array.isArray(group.record) && group.record.length > 0) {
+      group.record.forEach(rec => {
+        if (rec) {
+          list.push({
+            ...rec,
+            parentContainerId: group._id,
+            forWhom: group.forWhom || 'myself',
+            relative_id: group.relative_id,
+            frequencyText: typeof rec.frequency === 'object' ? rec.frequency?.type || 'Daily' : (rec.frequency || 'Daily'),
+            stockCount: typeof rec.stock === 'object' ? rec.stock?.quantity : (typeof rec.stock === 'number' ? rec.stock : 30),
+            stockThreshold: typeof rec.stock === 'object' ? rec.stock?.threshold : 5,
+            stockRemind: typeof rec.stock === 'object' ? rec.stock?.remind : true,
+          });
+        }
+      });
+    } else if (group && group.medicine_name) {
+      list.push({
+        ...group,
+        frequencyText: typeof group.frequency === 'object' ? group.frequency?.type || 'Daily' : (group.frequency || 'Daily'),
+        stockCount: typeof group.stock === 'object' ? group.stock?.quantity : (typeof group.stock === 'number' ? group.stock : 30),
+        stockThreshold: typeof group.stock === 'object' ? group.stock?.threshold : 5,
+        stockRemind: typeof group.stock === 'object' ? group.stock?.remind : true,
+      });
+    }
+  });
+  return list;
+};
+
 const Medication = () => {
-  const COLORS = useThemeColors();
-  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
-  const [modalType, setModalType] = useState(null);
   const navigation = useNavigation();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
 
-  const closeModal = () => setModalType(null);
+  const [medications, setMedications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('all'); // 'all' | 'today' | 'circle'
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [takenDoses, setTakenDoses] = useState({});
 
-  // Adaptive primary color for the design
-  const TEAL = COLORS.primary;
+  // Fetch all medications from API
+  const fetchMedications = useCallback(async () => {
+    try {
+      const response = await medicationApi.getAllMedications();
+      const rawMeds = response?.data?.medications || response?.data?.data || response?.data || [];
+      const parsed = parseMedicationsList(rawMeds);
+      setMedications(parsed);
+    } catch (error) {
+      console.log('Error fetching medications:', error?.message);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMedications();
+  }, [fetchMedications]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchMedications();
+  }, [fetchMedications]);
+
+  const toggleTakeDose = (key) => {
+    playTickSound();
+    setTakenDoses(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  // Filtered List
+  const filteredMeds = useMemo(() => {
+    return medications.filter(item => {
+      if (selectedFilter === 'circle') return item.forWhom === 'connection';
+      return true;
+    });
+  }, [medications, selectedFilter]);
+
+  // Flatten medications into individual scheduled dose items for each scheduled timing
+  const displayItems = useMemo(() => {
+    let items = [];
+    filteredMeds.forEach((med, medIdx) => {
+      if (Array.isArray(med.times) && med.times.length > 0) {
+        med.times.forEach((t, tIdx) => {
+          items.push({
+            ...med,
+            doseId: t._id || `${med._id || medIdx}-time-${tIdx}`,
+            doseNumber: tIdx + 1,
+            totalDoses: med.times.length,
+            doseTime: t.reception_time,
+            doseQuantity: t.dose || '1',
+          });
+        });
+      } else {
+        items.push({
+          ...med,
+          doseId: med._id || `med-${medIdx}`,
+          doseNumber: 1,
+          totalDoses: 1,
+          doseTime: new Date().toISOString(),
+          doseQuantity: '1',
+        });
+      }
+    });
+
+    // Sort chronologically by scheduled time
+    items.sort((a, b) => {
+      return new Date(a.doseTime) - new Date(b.doseTime);
+    });
+
+    return items;
+  }, [filteredMeds]);
+
+  // Calculate adherence stats based on individual doses
+  const totalDosesCount = displayItems.length;
+  const takenCount = Object.values(takenDoses).filter(Boolean).length;
+  const adherencePercent = totalDosesCount > 0 ? Math.min(100, Math.round((takenCount / totalDosesCount) * 100)) : 100;
+
+  // Next upcoming dose calculation
+  const nextDoseStr = useMemo(() => {
+    if (!displayItems || displayItems.length === 0) return '08:00 PM';
+    const now = new Date();
+    const upcoming = displayItems.filter(item => new Date(item.doseTime) >= now);
+    const target = upcoming.length > 0 ? upcoming[0] : displayItems[0];
+    return formatDoseTime(target.doseTime);
+  }, [displayItems]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Custom Header */}
-        <View style={styles.headerContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={TEAL} strokeWidth={2.5} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: TEAL }]}>Medications</Text>
-          <View style={{ width: 24 }} />
+    <SafeAreaView style={[styles.safeArea, theme.safeArea]} edges={['top', 'bottom']}>
+      {/* ── Top Navigation Bar ── */}
+      <View style={[styles.navBar, theme.navBar]}>
+        <TouchableOpacity
+          style={[styles.navIconBtn, theme.navIconBtn]}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={isDark ? '#FFFFFF' : '#111827'} />
+        </TouchableOpacity>
+
+        <View style={styles.navTitleContainer}>
+          <Text style={[styles.navTitle, theme.navTitle]}>Medications</Text>
+          <Text style={[styles.navSubtitle, theme.navSubtitle]}>Daily Regimen & Circle</Text>
         </View>
+
+        <TouchableOpacity
+          style={[styles.addPillBtn, theme.addPillBtn]}
+          onPress={() => setIsAddModalVisible(true)}
+          activeOpacity={0.85}
+        >
+          <HugeiconsIcon icon={Add01Icon} size={16} color="#FFFFFF" strokeWidth={2.5} />
+          <Text style={styles.addPillBtnText}>Add</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? '#3B82F6' : '#2563EB'}
+            colors={['#2563EB']}
+          />
+        }
       >
-        {/* ── Page Header ── */}
-        <View style={styles.pageHeader}>
-          <Text style={styles.pageTitle}>Medication</Text>
-          <Text style={styles.pageSubtitle}>
-            Manage your daily intake and oversee your circle's wellness.
+        {/* ── Hero Adherence Metric Card ── */}
+        <View style={[styles.heroCard, theme.heroCard]}>
+          <View style={styles.heroLeft}>
+            {/* SVG Radial Progress */}
+            <View style={styles.radialWrapper}>
+              <Svg width={72} height={72}>
+                <G rotation="-90" origin="36, 36">
+                  <Circle
+                    cx="36"
+                    cy="36"
+                    r="28"
+                    stroke={isDark ? '#272730' : '#E5E7EB'}
+                    strokeWidth="6"
+                    fill="none"
+                  />
+                  <Circle
+                    cx="36"
+                    cy="36"
+                    r="28"
+                    stroke="#3B82F6"
+                    strokeWidth="6"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(adherencePercent / 100) * 175.9} 175.9`}
+                  />
+                </G>
+              </Svg>
+              <View style={styles.radialCenter}>
+                <Text style={[styles.radialPercent, theme.radialPercent]}>{adherencePercent}%</Text>
+              </View>
+            </View>
+
+            {/* Adherence Context */}
+            <View style={styles.heroTextCol}>
+              <View style={styles.heroBadgeRow}>
+                <View style={styles.activeDot} />
+                <Text style={styles.heroBadgeText}>TODAY'S SCHEDULE</Text>
+              </View>
+              <Text style={[styles.heroMainHeading, theme.heroMainHeading]}>
+                {takenCount > 0 ? `${takenCount} of ${totalDosesCount} Taken` : `${totalDosesCount} Doses Scheduled`}
+              </Text>
+              <Text style={[styles.heroSubText, theme.heroSubText]}>
+                {totalDosesCount > 0 ? `${filteredMeds.length} active prescriptions tracked` : 'No active prescriptions'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Next Dose Banner Footer */}
+          <View style={[styles.nextDoseBanner, theme.nextDoseBanner]}>
+            <View style={styles.nextDoseLeft}>
+              <HugeiconsIcon icon={Clock01Icon} size={15} color="#3B82F6" />
+              <Text style={[styles.nextDoseLabel, theme.nextDoseLabel]}>Next dose scheduled for </Text>
+              <Text style={[styles.nextDoseHighlight, theme.nextDoseHighlight]}>{nextDoseStr}</Text>
+            </View>
+            <HugeiconsIcon icon={SparklesIcon} size={14} color="#F59E0B" />
+          </View>
+        </View>
+
+        {/* ── Segmented Category Filter ── */}
+        <View style={[styles.filterSegmentContainer, theme.filterSegmentContainer]}>
+          {[
+            { key: 'all', label: 'All Doses' },
+            { key: 'today', label: "Today's Plan" },
+            { key: 'circle', label: 'Care Circle' },
+          ].map((tab) => {
+            const isSelected = selectedFilter === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[
+                  styles.filterTab,
+                  isSelected ? theme.filterTabActive : theme.filterTabInactive
+                ]}
+                onPress={() => setSelectedFilter(tab.key)}
+                activeOpacity={0.8}
+              >
+                <Text style={[
+                  styles.filterTabText,
+                  isSelected ? theme.filterTabTextActive : theme.filterTabTextInactive
+                ]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* ── Active Medications Section ── */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionTitle, theme.sectionTitle]}>
+            {selectedFilter === 'circle' ? 'Care Circle Prescriptions' : 'Scheduled Doses'}
           </Text>
-        </View>
-
-        {/* ── Personal Medications Section ── */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: TEAL }]}>Personal Medications</Text>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: TEAL }]}
-            onPress={() => setModalType('add')}
-            activeOpacity={0.7}
-          >
-            <HugeiconsIcon icon={Add01Icon} size={18} color={COLORS.buttonText} strokeWidth={2.5} />
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.cardsList}>
-          {/* Card 1: Lisinopril */}
-          <View style={styles.medCard}>
-            <View style={[styles.medIconWrapper, { backgroundColor: COLORS.success + '33' }]}>
-              <HugeiconsIcon icon={Medicine01Icon} size={24} color={COLORS.success} />
-            </View>
-            <View style={styles.medInfo}>
-              <Text style={styles.medTitle}>Lisinopril</Text>
-              <Text style={styles.medSubtitle}>10MG  •  TABLET</Text>
-            </View>
-            <View style={styles.medRight}>
-              <Text style={styles.medTime}>08:00 AM</Text>
-              <View style={[styles.badge, { backgroundColor: COLORS.success + '33' }]}>
-                <Text style={[styles.badgeText, { color: COLORS.success }]}>ACTIVE</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Card 2: Vitamin D3 */}
-          <View style={styles.medCard}>
-            <View style={[styles.medIconWrapper, { backgroundColor: COLORS.info + '33' }]}>
-              <HugeiconsIcon icon={BandageIcon} size={24} color={COLORS.info} />
-            </View>
-            <View style={styles.medInfo}>
-              <Text style={styles.medTitle}>Vitamin D3</Text>
-              <Text style={styles.medSubtitle}>2000 IU  •  CAPSULE</Text>
-            </View>
-            <View style={styles.medRight}>
-              <Text style={styles.medTime}>12:30 PM</Text>
-              <View style={[styles.badge, { backgroundColor: COLORS.info + '33' }]}>
-                <Text style={[styles.badgeText, { color: COLORS.info }]}>UPCOMING</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Card 3: Metformin */}
-          <View style={styles.medCard}>
-            <View style={[styles.medIconWrapper, { backgroundColor: COLORS.danger + '33' }]}>
-              <HugeiconsIcon icon={PillsTabletIcon} size={24} color={COLORS.danger} />
-            </View>
-            <View style={styles.medInfo}>
-              <Text style={styles.medTitle}>Metformin</Text>
-              <Text style={styles.medSubtitle}>500MG  •  DELAYED-RELEASE</Text>
-            </View>
-            <View style={styles.medRight}>
-              <Text style={styles.medTime}>07:00 PM</Text>
-              <View style={[styles.badge, { backgroundColor: COLORS.danger + '33' }]}>
-                <Text style={[styles.badgeText, { color: COLORS.danger }]}>MISSED</Text>
-              </View>
-            </View>
+          <View style={[styles.countBadge, theme.countBadge]}>
+            <Text style={[styles.countBadgeText, theme.countBadgeText]}>
+              {`${displayItems.length} Doses`}
+            </Text>
           </View>
         </View>
 
-        {/* ── Connections Section ── */}
-        <View style={styles.connectionsContainer}>
-          <View style={styles.connectionsHeaderRow}>
-            <View>
-              <Text style={styles.connectionsTitle}>Connections</Text>
-              <Text style={styles.connectionsSubtitle}>Overseeing Sarah's Plan</Text>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text style={[styles.loadingText, theme.loadingText]}>Loading your medications...</Text>
+          </View>
+        ) : displayItems.length === 0 ? (
+          <View style={[styles.emptyCard, theme.emptyCard]}>
+            <View style={[styles.emptyIconBox, theme.emptyIconBox]}>
+              <HugeiconsIcon icon={Medicine01Icon} size={30} color="#3B82F6" />
             </View>
-            <View style={styles.connectionsIconWrapper}>
-              <HugeiconsIcon icon={UserAdd01Icon} size={20} color={TEAL} />
+            <Text style={[styles.emptyTitle, theme.emptyTitle]}>No Medications Added Yet</Text>
+            <Text style={[styles.emptySub, theme.emptySub]}>
+              {selectedFilter === 'circle' 
+                ? 'No care circle prescriptions found.' 
+                : 'Track your daily intake by adding your prescribed medications.'}
+            </Text>
+            {selectedFilter !== 'circle' && (
+              <TouchableOpacity
+                style={styles.emptyAddBtn}
+                onPress={() => setIsAddModalVisible(true)}
+                activeOpacity={0.85}
+              >
+                <HugeiconsIcon icon={Add01Icon} size={16} color="#FFFFFF" strokeWidth={2.5} />
+                <Text style={styles.emptyAddBtnText}>Add Medication</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <View style={styles.cardsContainer}>
+            {displayItems.map((item) => {
+              const FormIcon = getIconForForm(item.forms || 'tablet');
+              const isTaken = takenDoses[item.doseId];
+              const timeDisplay = formatDoseTime(item.doseTime);
+              const stockQty = item.stockCount !== undefined ? item.stockCount : 30;
+              const isLowStock = stockQty <= (item.stockThreshold || 5);
+              const formName = item.forms ? (item.forms.charAt(0).toUpperCase() + item.forms.slice(1)) : 'Tablet';
+
+              return (
+                <View key={item.doseId} style={[styles.medCard, theme.medCard]}>
+                  {/* Top Row: Icon + Name + Action Check */}
+                  <View style={styles.medCardTopRow}>
+                    <View style={[styles.medIconBox, theme.medIconBox]}>
+                      <HugeiconsIcon icon={FormIcon} size={22} color="#3B82F6" />
+                    </View>
+
+                    <View style={styles.medCardInfo}>
+                      <View style={styles.medNameRow}>
+                        <Text style={[styles.medNameText, theme.medNameText]}>{item.medicine_name}</Text>
+                        <View style={[styles.formPill, theme.formPill]}>
+                          <Text style={[styles.formPillText, theme.formPillText]}>
+                            {item.strength ? `${item.strength} ${item.unit || 'mg'}` : ''} • {formName}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.medFrequencyText, theme.medFrequencyText]}>
+                        {item.totalDoses > 1 ? `Dose ${item.doseNumber} of ${item.totalDoses}` : 'Daily Dose'} • {item.doseQuantity} {formName.toLowerCase()}{parseInt(item.doseQuantity, 10) > 1 ? 's' : ''}
+                      </Text>
+                    </View>
+
+                    {/* Quick Dose Take Checkbox */}
+                    <TouchableOpacity
+                      style={[
+                        styles.takeCheckbox,
+                        isTaken ? styles.takeCheckboxChecked : theme.takeCheckboxUnchecked
+                      ]}
+                      onPress={() => toggleTakeDose(item.doseId)}
+                      activeOpacity={0.7}
+                    >
+                      {isTaken ? (
+                        <HugeiconsIcon icon={Tick02Icon} size={14} color="#FFFFFF" strokeWidth={3} />
+                      ) : (
+                        <View style={styles.checkboxEmptyDot} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Inner Sub-Card for Time & Status */}
+                  <View style={[styles.medSubCard, theme.medSubCard]}>
+                    <View style={styles.medTimeGroup}>
+                      <HugeiconsIcon icon={Clock01Icon} size={14} color={isDark ? '#A1A1AA' : '#6B7280'} />
+                      <Text style={[styles.medTimeValue, theme.medTimeValue]}>{timeDisplay}</Text>
+                    </View>
+
+                    <View style={styles.medStatusPillRow}>
+                      {isTaken ? (
+                        <View style={[styles.statusBadge, styles.statusBadgeTaken]}>
+                          <Text style={styles.statusBadgeTextTaken}>TAKEN</Text>
+                        </View>
+                      ) : (
+                        <View style={[styles.statusBadge, isDark ? styles.statusBadgeUpcomingDark : styles.statusBadgeUpcomingLight]}>
+                          <Text style={styles.statusBadgeTextUpcoming}>SCHEDULED</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Low Stock Warning if applicable */}
+                  {isLowStock && (
+                    <View style={styles.stockAlertRow}>
+                      <HugeiconsIcon icon={AlertCircleIcon} size={14} color="#F59E0B" />
+                      <Text style={styles.stockAlertText}>
+                        Low Stock Alert: Only {stockQty} doses left. Refill recommended.
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* ── Care Circle Section ── */}
+        <View style={[styles.circleCard, theme.circleCard]}>
+          <View style={styles.circleHeaderRow}>
+            <View style={styles.circleHeaderLeft}>
+              <View style={[styles.circleIconCircle, theme.circleIconCircle]}>
+                <HugeiconsIcon icon={UserGroupIcon} size={18} color="#3B82F6" />
+              </View>
+              <View>
+                <Text style={[styles.circleTitle, theme.circleTitle]}>Care Network Oversight</Text>
+                <Text style={[styles.circleSubtitle, theme.circleSubtitle]}>Sarah M. • 100% adherence this week</Text>
+              </View>
             </View>
+            <TouchableOpacity
+              style={[styles.viewCircleBtn, theme.viewCircleBtn]}
+              onPress={() => navigation.navigate('Connections')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.viewCircleBtnText}>View</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.connectionsList}>
-            {/* Connection Card 1: Atorvastatin */}
-            <View style={styles.connCard}>
-              <View style={styles.connTopRow}>
-                <Text style={[styles.connName, { color: TEAL }]}>SARAH M.</Text>
-                <Text style={styles.connTime}>09:00 PM</Text>
-              </View>
-              <View style={styles.connBottomRow}>
-                <View style={styles.connInfo}>
-                  <Text style={styles.connMedTitle}>Atorvastatin</Text>
-                  <Text style={styles.connMedSubtitle}>20mg Oral</Text>
-                </View>
-                <View style={[styles.badge, styles.connBadge, { backgroundColor: COLORS.info + '33' }]}>
-                  <Text style={[styles.badgeText, { color: COLORS.info }]}>UPCOMING</Text>
-                </View>
-              </View>
+          {/* Connected Member Mini Pill */}
+          <View style={[styles.circleDoseRow, theme.circleDoseRow]}>
+            <View style={styles.circleDoseInfo}>
+              <Text style={[styles.circleDoseName, theme.circleDoseName]}>Atorvastatin 20mg</Text>
+              <Text style={[styles.circleDoseTime, theme.circleDoseTime]}>Scheduled for 09:00 PM tonight</Text>
             </View>
-
-            {/* Connection Card 2: Amoxicillin */}
-            <View style={styles.connCard}>
-              <View style={styles.connTopRow}>
-                <Text style={[styles.connName, { color: TEAL }]}>SARAH M.</Text>
-                <Text style={styles.connTime}>02:00 PM</Text>
-              </View>
-              <View style={styles.connBottomRow}>
-                <View style={styles.connInfo}>
-                  <Text style={styles.connMedTitle}>Amoxicillin</Text>
-                  <Text style={styles.connMedSubtitle}>500mg Liquid</Text>
-                </View>
-                <View style={[styles.badge, styles.connBadge, { backgroundColor: COLORS.success + '33' }]}>
-                  <Text style={[styles.badgeText, { color: COLORS.success }]}>ACTIVE</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.adherenceContainer}>
-            <View style={styles.adherenceRow}>
-              <Text style={styles.adherenceLabel}>ADHERENCE</Text>
-              <Text style={[styles.adherenceValue, { color: TEAL }]}>85%</Text>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: '85%', backgroundColor: TEAL }]} />
+            <View style={[styles.statusBadge, styles.statusBadgeTaken]}>
+              <Text style={styles.statusBadgeTextTaken}>CONFIRMED</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.actionCardsContainer}>
+        {/* ── Bottom Quick Action Cards ── */}
+        <View style={styles.actionGridRow}>
           {/* History Card */}
-          <TouchableOpacity style={styles.actionCard} activeOpacity={0.8} onPress={() => navigation.navigate('MedicationHistory')}>
-            <View style={[styles.actionIconBox, { backgroundColor: COLORS.primarySoft }]}>
-              <HugeiconsIcon icon={Time02Icon} size={26} color={TEAL} />
+          <TouchableOpacity
+            style={[styles.actionCard, theme.actionCard]}
+            onPress={() => navigation.navigate('MedicationHistory')}
+            activeOpacity={0.88}
+          >
+            <View style={[styles.actionIconBox, theme.historyIconBox]}>
+              <HugeiconsIcon icon={Calendar01Icon} size={22} color="#3B82F6" />
             </View>
-            <Text style={styles.actionTitle}>Medication History</Text>
-            <Text style={styles.actionSubtitle}>View your past adherence</Text>
-            <View style={styles.actionLinkRow}>
-              <Text style={[styles.actionLinkText, { color: TEAL }]}>VIEW HISTORY</Text>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={TEAL} strokeWidth={2.5} />
+            <Text style={[styles.actionCardTitle, theme.actionCardTitle]}>History Log</Text>
+            <Text style={[styles.actionCardSub, theme.actionCardSub]}>30-Day Trends</Text>
+            <View style={styles.actionArrowRow}>
+              <Text style={styles.actionArrowLabel}>OPEN</Text>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="#3B82F6" />
             </View>
           </TouchableOpacity>
 
-          {/* Refill Card */}
-          <TouchableOpacity style={styles.actionCard} activeOpacity={0.8}>
-            <View style={[styles.actionIconBox, { backgroundColor: COLORS.danger + '33' }]}>
-              <HugeiconsIcon icon={Notification01Icon} size={24} color={COLORS.danger} />
+          {/* Refill Alerts Card */}
+          <TouchableOpacity
+            style={[styles.actionCard, theme.actionCard]}
+            onPress={() => setIsAddModalVisible(true)}
+            activeOpacity={0.88}
+          >
+            <View style={[styles.actionIconBox, theme.refillIconBox]}>
+              <HugeiconsIcon icon={Notification03Icon} size={22} color="#F59E0B" />
             </View>
-            <Text style={styles.actionTitle}>Refill Status</Text>
-            <Text style={styles.actionSubtitle}>Check low stock alerts</Text>
-            <View style={styles.actionLinkRow}>
-              <Text style={[styles.actionLinkText, { color: COLORS.danger }]}>CHECK STOCK</Text>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={COLORS.danger} strokeWidth={2.5} />
+            <Text style={[styles.actionCardTitle, theme.actionCardTitle]}>Refill Alerts</Text>
+            <Text style={[styles.actionCardSub, theme.actionCardSub]}>Stock Tracking</Text>
+            <View style={styles.actionArrowRow}>
+              <Text style={[styles.actionArrowLabel, styles.actionArrowLabelRefill]}>MANAGE</Text>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="#F59E0B" />
             </View>
           </TouchableOpacity>
         </View>
 
+        <View style={styles.spacerBottom} />
       </ScrollView>
 
-      {/* Modals */}
-      <GeneralModal
-        visible={modalType === 'view'}
-        onClose={closeModal}
-        title="Medications"
-      >
-        <ViewMedications medications={[]} />
-      </GeneralModal>
-      <AddMedication isVisible={modalType === 'add'} onClose={closeModal} />
-      </View>
+      {/* ── Add Medication Modal ── */}
+      <AddMedication
+        isVisible={isAddModalVisible}
+        onClose={() => {
+          setIsAddModalVisible(false);
+          fetchMedications();
+        }}
+      />
     </SafeAreaView>
   );
 };
 
-const getStyles = (COLORS) => StyleSheet.create({
+export default Medication;
+
+// ─── Base Styles ─────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
-  headerContainer: {
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: COLORS.background,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+  navIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
-  container: {
+  navTitleContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    marginHorizontal: 12,
+  },
+  navTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  navSubtitle: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  addPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addPillBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    // paddingTop: 16,
-    paddingBottom: 65,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
-  pageHeader: {
-    marginBottom: 10,
-    // marginTop: 8,
-  },
-  pageTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.healthCardText,
-    marginBottom: 8,
-  },
-  pageSubtitle: {
-    fontSize: 15,
-    color: COLORS.healthCardSubtext,
-    lineHeight: 22,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 10,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 4,
-  },
-  addButtonText: {
-    color: COLORS.buttonText,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  cardsList: {
-    gap: 12,
-    marginBottom: 32,
-  },
-  medCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.healthCardBackground,
-    borderRadius: 20,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  medIconWrapper: {
-    width: 48,
-    height: 48,
+  heroCard: {
     borderRadius: 24,
-    justifyContent: 'center',
+    borderWidth: 1,
+    padding: 18,
+    marginBottom: 18,
+  },
+  heroLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    gap: 16,
   },
-  medInfo: {
-    flex: 1,
+  radialWrapper: {
+    position: 'relative',
+    width: 72,
+    height: 72,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  medTitle: {
+  radialCenter: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radialPercent: {
     fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.healthCardText,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  heroTextCol: {
+    flex: 1,
+  },
+  heroBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: 4,
   },
-  medSubtitle: {
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#3B82F6',
+  },
+  heroBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.healthCardSubtext,
-    letterSpacing: 0.5,
-  },
-  medRight: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  medTime: {
-    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.healthCardText,
-    marginBottom: 8,
+    letterSpacing: 0.6,
+    color: '#3B82F6',
   },
-  badge: {
+  heroMainHeading: {
+    fontSize: 19,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+  },
+  heroSubText: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  nextDoseBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  nextDoseLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  nextDoseLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  nextDoseHighlight: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  filterSegmentContainer: {
+    flexDirection: 'row',
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  filterTab: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  filterTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 2,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  countBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  connectionsContainer: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 20,
-  },
-  connectionsHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 20,
-  },
-  connectionsTitle: {
-    fontSize: 18,
+  countBadgeText: {
+    fontSize: 11,
     fontWeight: '700',
-    color: COLORS.healthCardText,
-    marginBottom: 4,
   },
-  connectionsSubtitle: {
-    fontSize: 13,
-    color: COLORS.healthCardSubtext,
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
     fontWeight: '500',
   },
-  connectionsIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.iconBackground,
+  emptyCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 28,
+    alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 20,
+  },
+  emptyIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
   },
-  connectionsList: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  connCard: {
-    backgroundColor: COLORS.healthCardBackground,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  connTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  connName: {
-    fontSize: 11,
+  emptyTitle: {
+    fontSize: 17,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    marginBottom: 6,
   },
-  connTime: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.healthCardText,
+  emptySub: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
+    paddingHorizontal: 20,
   },
-  connBottomRow: {
+  emptyAddBtn: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
-  connInfo: {
+  emptyAddBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  cardsContainer: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  medCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 16,
+  },
+  medCardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  medIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  medCardInfo: {
     flex: 1,
   },
-  connMedTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.healthCardText,
-    marginBottom: 4,
-  },
-  connMedSubtitle: {
-    fontSize: 12,
-    color: COLORS.healthCardSubtext,
-    fontStyle: 'italic',
-  },
-  connBadge: {
-    minWidth: 70,
-    alignItems: 'center',
-  },
-  adherenceContainer: {
-    marginTop: 4,
-  },
-  adherenceRow: {
+  medNameRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 3,
   },
-  adherenceLabel: {
+  medNameText: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  formPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  formPillText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.healthCardSubtext,
-    letterSpacing: 1,
+    fontWeight: '600',
   },
-  adherenceValue: {
-    fontSize: 18,
+  medFrequencyText: {
+    fontSize: 12,
+  },
+  takeCheckbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  takeCheckboxChecked: {
+    backgroundColor: '#10B981',
+  },
+  checkboxEmptyDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  medSubCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginTop: 12,
+  },
+  medTimeGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  medTimeValue: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  medStatusPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statusBadgeTaken: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+  },
+  statusBadgeTextTaken: {
+    color: '#10B981',
+    fontSize: 10,
     fontWeight: '800',
   },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: COLORS.iconBackground,
-    borderRadius: 3,
-    width: '100%',
-    overflow: 'hidden',
+  statusBadgeUpcomingDark: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
   },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
+  statusBadgeUpcomingLight: {
+    backgroundColor: '#EFF6FF',
   },
-  actionCardsContainer: {
-    gap: 16,
-    marginBottom: 20,
+  statusBadgeTextUpcoming: {
+    color: '#3B82F6',
+    fontSize: 10,
+    fontWeight: '800',
   },
-  actionCard: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  actionIconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  actionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.healthCardText,
-    marginBottom: 4,
-  },
-  actionSubtitle: {
-    fontSize: 14,
-    color: COLORS.healthCardSubtext,
-    marginBottom: 20,
-  },
-  actionLinkRow: {
+  stockAlertRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(245, 158, 11, 0.2)',
   },
-  actionLinkText: {
+  stockAlertText: {
+    fontSize: 11,
+    color: '#F59E0B',
+    fontWeight: '600',
+    flex: 1,
+  },
+  circleCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 20,
+  },
+  circleHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  circleHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  circleIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circleTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  circleSubtitle: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  viewCircleBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  viewCircleBtnText: {
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 1,
-    marginRight: 6,
+  },
+  circleDoseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 14,
+    padding: 12,
+  },
+  circleDoseInfo: {
+    flex: 1,
+  },
+  circleDoseName: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  circleDoseTime: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  actionGridRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionCard: {
+    flex: 1,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 14,
+  },
+  actionIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  actionCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  actionCardSub: {
+    fontSize: 11,
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  actionArrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionArrowLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#3B82F6',
+  },
+  actionArrowLabelRefill: {
+    color: '#F59E0B',
+  },
+  spacerBottom: {
+    height: 40,
   },
 });
 
-export default Medication;
+// ─── Dark Theme Styles ───────────────────────────────────────────────────────
+const darkTheme = StyleSheet.create({
+  safeArea: { backgroundColor: '#000000' },
+  navBar: {
+    backgroundColor: '#000000',
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  navIconBtn: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  navTitle: { color: '#FFFFFF' },
+  navSubtitle: { color: '#71717A' },
+  addPillBtn: { backgroundColor: '#2563EB' },
+  heroCard: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  radialPercent: { color: '#FFFFFF' },
+  heroMainHeading: { color: '#FFFFFF' },
+  heroSubText: { color: '#A1A1AA' },
+  nextDoseBanner: {
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  nextDoseLabel: { color: '#A1A1AA' },
+  nextDoseHighlight: { color: '#FFFFFF' },
+  filterSegmentContainer: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  filterTabActive: { backgroundColor: '#1E1E28' },
+  filterTabInactive: { backgroundColor: 'transparent' },
+  filterTabTextActive: { color: '#FFFFFF' },
+  filterTabTextInactive: { color: '#71717A' },
+  sectionTitle: { color: '#FFFFFF' },
+  countBadge: { backgroundColor: 'rgba(59, 130, 246, 0.15)' },
+  countBadgeText: { color: '#93C5FD' },
+  loadingText: { color: '#A1A1AA' },
+  emptyCard: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  emptyIconBox: {
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+  },
+  emptyTitle: { color: '#FFFFFF' },
+  emptySub: { color: '#71717A' },
+  medCard: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  medIconBox: { backgroundColor: '#1A1A24' },
+  medNameText: { color: '#FFFFFF' },
+  formPill: { backgroundColor: '#1E1E28' },
+  formPillText: { color: '#A1A1AA' },
+  medFrequencyText: { color: '#71717A' },
+  takeCheckboxUnchecked: {
+    backgroundColor: '#1E1E28',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  medSubCard: { backgroundColor: '#1A1A22' },
+  medTimeValue: { color: '#FFFFFF' },
+  circleCard: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  circleIconCircle: { backgroundColor: '#1A1A24' },
+  circleTitle: { color: '#FFFFFF' },
+  circleSubtitle: { color: '#A1A1AA' },
+  viewCircleBtn: { backgroundColor: '#2563EB' },
+  circleDoseRow: { backgroundColor: '#1A1A22' },
+  circleDoseName: { color: '#FFFFFF' },
+  circleDoseTime: { color: '#71717A' },
+  actionCard: {
+    backgroundColor: '#121217',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  historyIconBox: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+  },
+  refillIconBox: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+  },
+  actionCardTitle: { color: '#FFFFFF' },
+  actionCardSub: { color: '#71717A' },
+});
 
-
+// ─── Light Theme Styles ──────────────────────────────────────────────────────
+const lightTheme = StyleSheet.create({
+  safeArea: { backgroundColor: '#F9FAFB' },
+  navBar: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: '#E5E7EB',
+  },
+  navIconBtn: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+  },
+  navTitle: { color: '#111827' },
+  navSubtitle: { color: '#6B7280' },
+  addPillBtn: { backgroundColor: '#2563EB' },
+  heroCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  radialPercent: { color: '#111827' },
+  heroMainHeading: { color: '#111827' },
+  heroSubText: { color: '#4B5563' },
+  nextDoseBanner: {
+    borderTopColor: '#F3F4F6',
+  },
+  nextDoseLabel: { color: '#6B7280' },
+  nextDoseHighlight: { color: '#111827' },
+  filterSegmentContainer: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+  },
+  filterTabActive: { backgroundColor: '#F3F4F6' },
+  filterTabInactive: { backgroundColor: 'transparent' },
+  filterTabTextActive: { color: '#111827' },
+  filterTabTextInactive: { color: '#6B7280' },
+  sectionTitle: { color: '#111827' },
+  countBadge: { backgroundColor: '#EFF6FF' },
+  countBadgeText: { color: '#2563EB' },
+  loadingText: { color: '#6B7280' },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  emptyIconBox: {
+    backgroundColor: '#EFF6FF',
+  },
+  emptyTitle: { color: '#111827' },
+  emptySub: { color: '#6B7280' },
+  medCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  medIconBox: { backgroundColor: '#EFF6FF' },
+  medNameText: { color: '#111827' },
+  formPill: { backgroundColor: '#F3F4F6' },
+  formPillText: { color: '#4B5563' },
+  medFrequencyText: { color: '#6B7280' },
+  takeCheckboxUnchecked: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+  },
+  medSubCard: { backgroundColor: '#F9FAFB' },
+  medTimeValue: { color: '#111827' },
+  circleCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  circleIconCircle: { backgroundColor: '#EFF6FF' },
+  circleTitle: { color: '#111827' },
+  circleSubtitle: { color: '#6B7280' },
+  viewCircleBtn: { backgroundColor: '#2563EB' },
+  circleDoseRow: { backgroundColor: '#F9FAFB' },
+  circleDoseName: { color: '#111827' },
+  circleDoseTime: { color: '#6B7280' },
+  actionCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  historyIconBox: {
+    backgroundColor: '#EFF6FF',
+  },
+  refillIconBox: {
+    backgroundColor: '#FEF3C7',
+  },
+  actionCardTitle: { color: '#111827' },
+  actionCardSub: { color: '#6B7280' },
+});

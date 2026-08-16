@@ -5,6 +5,18 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Tick02Icon, Alert02Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../components/ui/colors';
 
+// Wrap Toast.show globally to log every toast trigger
+const originalToastShow = Toast.show;
+Toast.show = (options) => {
+  const type = options?.type || 'info';
+  const text1 = options?.text1 || '';
+  const text2 = options?.text2 || options?.props?.text2 || '';
+  console.log(`🔔 [TOAST ${type.toUpperCase()}]: ${text1}${text2 ? ` | ${text2}` : ''}`, options);
+  if (typeof originalToastShow === 'function') {
+    return originalToastShow.call(Toast, options);
+  }
+};
+
 const SuccessToast = ({ text1, props }) => {
   const COLORS = useThemeColors();
   return (
@@ -78,6 +90,7 @@ export const toastConfig = {
 };
 
 export const showToast = (type, message, subMessage = '') => {
+  console.log(`🔔 [showToast ${type?.toUpperCase()}]: ${message}${subMessage ? ` | ${subMessage}` : ''}`);
   Toast.show({
     type,
     text1: message,
