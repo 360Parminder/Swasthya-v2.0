@@ -12,7 +12,7 @@ class NotificationService {
         importance: AndroidImportance.HIGH,
         sound: 'alarm', // Matches android/app/src/main/res/raw/alarm.mp3
         vibration: true,
-        vibrationPattern: [0, 500, 200, 500],
+        vibrationPattern: [300, 500, 300, 500],
       });
     }
   }

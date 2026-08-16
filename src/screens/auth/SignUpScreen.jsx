@@ -6,874 +6,948 @@ import {
   TouchableOpacity, 
   Animated, 
   Image, 
-  Dimensions, 
-  TextInput,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform
+  TextInput, 
+  ScrollView, 
+  KeyboardAvoidingView, 
+  Platform,
+  StatusBar,
+  ActivityIndicator
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import LinearGradient from 'react-native-linear-gradient';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowDown01Icon, Calendar01Icon, UserIcon, WeightScale01Icon, RulerIcon, SmartPhone01Icon, Mail01Icon, LockKeyIcon, Tick02Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
-import Input from '../../components/common/Input';
-import { useThemeColors } from '../../components/ui/colors';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const SCREEN_WIDTH = Dimensions.get('window').width;
+import { 
+  UserIcon, 
+  SmartPhone01Icon, 
+  Mail01Icon, 
+  LockKeyIcon, 
+  Tick02Icon, 
+  ArrowLeft01Icon, 
+  ArrowRight01Icon,
+  ViewIcon,
+  ViewOffSlashIcon
+} from '@hugeicons/core-free-icons';
+import { GoogleIcon } from '../../components/common/SocialIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../../context/AuthContext';
+import Toast from 'react-native-toast-message';
+import { RulerPickerCard, DateWheelPickerCard } from '../../components/common/HealthPickers';
 
 const SignUpScreen = ({ navigation }) => {
-  const COLORS = useThemeColors();
-  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
+  const insets = useSafeAreaInsets();
+  const { register: registerUser } = useAuth();
   const [step, setStep] = useState(1);
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const [dropdownOpen, setDropdownOpen] = useState({
-    gender: false,
-    food: false
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [weightUnit, setWeightUnit] = useState('kg');
+  const [heightUnit, setHeightUnit] = useState('cm');
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
   const {
     control,
     handleSubmit,
     getValues,
+    trigger,
     formState: { errors },
-    setValue
-  } = useForm({ mode: 'onChange' });
-  
-  // Animate in on step change
+    watch
+  } = useForm({ 
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      gender: 'Male',
+      dob: '2000-01-15',
+      food: 'Vegetarian',
+      weight: '70',
+      height: '175',
+      mobile: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
+  });
+
+  const passwordVal = watch('password');
+
+  // Smooth transition on step change
   useEffect(() => {
-    slideAnim.setValue(SCREEN_HEIGHT);
-    opacityAnim.setValue(0);
+    slideAnim.setValue(20);
+    fadeAnim.setValue(0);
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 350,
         useNativeDriver: true,
       }),
-      Animated.timing(opacityAnim, {
+      Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 350,
         useNativeDriver: true,
       })
     ]).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, fadeAnim, slideAnim]);
 
-  const next = () => setStep((s) => s + 1);
-  const prev = () => setStep((s) => s - 1);
-  const submit = (data) => {
-    // Handle signup logic
-    // navigation.navigate('SignIn');
-    console.log('Form submitted:', data);
+  const next = async () => {
+    if (step === 2) {
+      const isValid = await trigger(['name', 'gender', 'dob']);
+      if (!isValid) return;
+    } else if (step === 3) {
+      const isValid = await trigger(['food', 'weight', 'height']);
+      if (!isValid) return;
+    } else if (step === 4) {
+      const isValid = await trigger(['mobile', 'email']);
+      if (!isValid) return;
+    }
+    setStep((s) => s + 1);
+  };
+
+  const prev = () => {
+    setStep((s) => s - 1);
+  };
+
+  const submit = async (formData) => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        name: formData.name,
+        gender: formData.gender,
+        dob: formData.dob,
+        food: formData.food,
+        weight: Number(formData.weight) || formData.weight,
+        height: Number(formData.height) || formData.height,
+        mobile: formData.mobile,
+        email: formData.email,
+        password: formData.password,
+        weightUnit,
+        heightUnit,
+      };
+
+      if (registerUser) {
+        await registerUser(payload);
+      }
+      Toast.show({
+        type: 'success',
+        text1: 'Welcome to Swasthya! 🎉',
+        text2: 'Your account has been created successfully.',
+      });
+      navigation.navigate('SignIn');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Registration Failed',
+        text2: error.response?.data?.message || error.message || 'Something went wrong. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const genderOptions = ['Male', 'Female', 'Other'];
   const foodOptions = ['Vegetarian', 'Non-Vegetarian', 'Vegan'];
 
-  // Dropdown Component
-  const DropdownField = ({ label, options, value, onSelect, error }) => (
+  // Chip Selector Component
+  const ChipGroup = ({ label, options, value, onSelect, error }) => (
     <View style={styles.fieldContainer}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TouchableOpacity 
-        style={[styles.dropdownButton, error && styles.errorInput]}
-        onPress={() => setDropdownOpen(prev => ({ ...prev, [label.toLowerCase()]: !prev[label.toLowerCase()] }))}
-      >
-        <Text style={[styles.dropdownButtonText, !value && styles.placeholderText]}>
-          {value || `Select ${label}`}
-        </Text>
-        <HugeiconsIcon icon={ArrowDown01Icon} size={20} color={COLORS.text} />
-      </TouchableOpacity>
-      {dropdownOpen[label.toLowerCase()] && (
-        <View style={styles.dropdownOptionsContainer}>
-          {options.map((option, idx) => (
-            <TouchableOpacity 
-              key={idx} 
-              style={styles.dropdownOption}
-              onPress={() => {
-                onSelect(option);
-                setDropdownOpen(prev => ({ ...prev, [label.toLowerCase()]: false }));
-              }}
+      <View style={styles.chipRow}>
+        {options.map((option) => {
+          const isSelected = value === option;
+          return (
+            <TouchableOpacity
+              key={option}
+              activeOpacity={0.8}
+              onPress={() => onSelect(option)}
+              style={[
+                styles.chip,
+                isSelected ? styles.chipSelected : styles.chipUnselected
+              ]}
             >
-              <Text style={[styles.dropdownOptionText, value === option && styles.selectedOption]}>
+              <Text
+                style={[
+                  styles.chipText,
+                  isSelected ? styles.chipTextSelected : styles.chipTextUnselected
+                ]}
+              >
                 {option}
               </Text>
             </TouchableOpacity>
-          ))}
-        </View>
-      )}
+          );
+        })}
+      </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 
-  // Date Picker Component (Simple)
-  const DatePickerField = ({ label, value, onDateSelect, error }) => {
-    const [showPicker, setShowPicker] = useState(false);
-    const [tempDate, setTempDate] = useState(value ? new Date(value) : new Date());
-
-    const handleDateChange = (date) => {
-      setTempDate(date);
-    };
-
-    const confirmDate = () => {
-      const dateString = tempDate.toISOString().split('T')[0];
-      onDateSelect(dateString);
-      setShowPicker(false);
-    };
-
+  // STEP 1: Full-Bleed Onboarding matching reference image
+  if (step === 1) {
     return (
-      <View style={styles.fieldContainer}>
-        {label && <Text style={styles.label}>{label}</Text>}
-        <TouchableOpacity 
-          style={[styles.dateButton, error && styles.errorInput]}
-          onPress={() => setShowPicker(true)}
-        >
-          <HugeiconsIcon icon={Calendar01Icon} size={20} color={COLORS.primary} style={styles.dateIcon} />
-          <Text style={[styles.dateButtonText, !value && styles.placeholderText]}>
-            {value || 'Select Date (YYYY-MM-DD)'}
-          </Text>
-        </TouchableOpacity>
+      <View style={{ flex: 1, backgroundColor: '#000000' }}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        
+        {/* Fullscreen Background */}
+        <Image
+          source={require('../../../assets/images/onboarding_bg.jpg')}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+        />
 
-        <Modal
-          visible={showPicker}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowPicker(false)}
+        {/* Smooth Dark Gradient into Pitch Black */}
+        <LinearGradient
+          colors={['transparent', 'rgba(0, 0, 0, 0.6)', '#000000', '#000000']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.38, 0.6, 1]}
+          pointerEvents="none"
+          style={StyleSheet.absoluteFillObject}
+        />
+
+        {/* Foreground Content */}
+        <View 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingHorizontal: 24,
+            paddingBottom: Math.max(insets.bottom, 24),
+            zIndex: 10,
+            elevation: 10,
+          }}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.datePickerModal}>
-              <Text style={styles.modalTitle}>Select Date of Birth</Text>
-              <View style={styles.dateInputRow}>
-                <TextInput
-                  style={styles.dateInput}
-                  placeholder="YYYY"
-                  value={String(tempDate.getFullYear())}
-                  onChangeText={(val) => {
-                    const newDate = new Date(tempDate);
-                    newDate.setFullYear(parseInt(val) || new Date().getFullYear());
-                    handleDateChange(newDate);
-                  }}
-                  keyboardType="numeric"
-                  maxLength={4}
-                />
-                <TextInput
-                  style={styles.dateInput}
-                  placeholder="MM"
-                  value={String(tempDate.getMonth() + 1).padStart(2, '0')}
-                  onChangeText={(val) => {
-                    const newDate = new Date(tempDate);
-                    newDate.setMonth(Math.min(Math.max(parseInt(val) - 1, 0), 11));
-                    handleDateChange(newDate);
-                  }}
-                  keyboardType="numeric"
-                  maxLength={2}
-                />
-                <TextInput
-                  style={styles.dateInput}
-                  placeholder="DD"
-                  value={String(tempDate.getDate()).padStart(2, '0')}
-                  onChangeText={(val) => {
-                    const newDate = new Date(tempDate);
-                    newDate.setDate(Math.min(Math.max(parseInt(val), 1), 31));
-                    handleDateChange(newDate);
-                  }}
-                  keyboardType="numeric"
-                  maxLength={2}
-                />
-              </View>
-              <View style={styles.dateModalButtonRow}>
-                <TouchableOpacity 
-                  style={[styles.dateModalButton, styles.cancelButton]}
-                  onPress={() => setShowPicker(false)}
-                >
-                  <Text style={styles.dateModalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.dateModalButton, styles.confirmButton]}
-                  onPress={confirmDate}
-                >
-                  <Text style={[styles.dateModalButtonText, { color: '#fff' }]}>Confirm</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+          {/* Carousel Indicator */}
+          <View style={styles.carouselIndicators}>
+            <View style={styles.indicatorActive} />
+            <View style={styles.indicatorInactive} />
+            <View style={styles.indicatorInactive} />
           </View>
-        </Modal>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
-    );
-  };
+          {/* Main Headline */}
+          <Text style={styles.heroHeadline}>
+            {'Smart Health\nfor Everyday\nLiving'}
+          </Text>
 
-  const StepContent = () => {
-    switch (step) {
-      case 1:
-        return (
-          <View style={styles.stepContent}>
-            <Image
-              source={require('../../../assets/images/welcome.png')}
-              style={styles.welcomeImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.appTitle}>Swasthya</Text>
-            <Text style={styles.subtitle}>Your journey towards better health begins here!</Text>
-            <TouchableOpacity onPress={next} style={{ marginTop: 30 }}>
-              <LinearGradient colors={[COLORS.primary, COLORS.primaryHover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.getStartedBtn}>
-                <Text style={styles.getStartedText}>Get Started →</Text>
-              </LinearGradient>
+          {/* Continue with Google */}
+          <TouchableOpacity
+            activeOpacity={0.88}
+            style={styles.googleButton}
+            onPress={next}
+          >
+            <GoogleIcon size={20} />
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
+          </TouchableOpacity>
+
+          {/* Continue with Email */}
+          <TouchableOpacity
+            activeOpacity={0.88}
+            style={styles.emailButton}
+            onPress={next}
+          >
+            <HugeiconsIcon icon={Mail01Icon} size={20} color="#FFFFFF" />
+            <Text style={styles.emailButtonText}>Continue with Email</Text>
+          </TouchableOpacity>
+
+          {/* Footer Login Link */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+              <Text style={styles.footerLink}>Log In</Text>
             </TouchableOpacity>
           </View>
-        );
-      case 2:
-        return (
-          <ScrollView style={styles.stepContent} showsVerticalScrollIndicator={false}>
-            <Text style={styles.modelHeading}>Personal Details</Text>
-            <View style={{ marginTop: 10 }}>
-              <Controller
-                control={control}
-                name="name"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Full Name</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={UserIcon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="Enter your full name"
-                        placeholderTextColor={COLORS.inputText}
-                        onChangeText={onChange}
-                        value={value}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{ required: 'Name is required' }}
-              />
-              {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
+        </View>
+      </View>
+    );
+  }
 
-              <Controller
-                control={control}
-                name="gender"
-                render={({ field: { onChange, value } }) => (
-                  <DropdownField
-                    label="Gender"
-                    options={genderOptions}
-                    value={value}
-                    onSelect={onChange}
-                    error={errors.gender?.message}
-                  />
-                )}
-                rules={{ required: 'Gender is required' }}
-              />
-
-              <Controller
-                control={control}
-                name="dob"
-                render={({ field: { onChange, value } }) => (
-                  <DatePickerField
-                    label="Date of Birth"
-                    value={value}
-                    onDateSelect={onChange}
-                    error={errors.dob?.message}
-                  />
-                )}
-                rules={{ required: 'Date of Birth is required' }}
-              />
-            </View>
-            <GradientStepButtons onNext={next} onBack={prev} />
-          </ScrollView>
-        );
-      case 3:
-        return (
-          <ScrollView style={styles.stepContent} showsVerticalScrollIndicator={false}>
-            <Text style={styles.modelHeading}>Body & Food Details</Text>
-            <View style={{ marginTop: 10 }}>
-              <Controller
-                control={control}
-                name="food"
-                render={({ field: { onChange, value } }) => (
-                  <DropdownField
-                    label="Food Preference"
-                    options={foodOptions}
-                    value={value}
-                    onSelect={onChange}
-                    error={errors.food?.message}
-                  />
-                )}
-                rules={{ required: 'Food preference required' }}
-              />
-
-              <Controller
-                control={control}
-                name="weight"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Weight (kg)</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={WeightScale01Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="e.g., 70"
-                        placeholderTextColor={COLORS.inputText}
-                        keyboardType="decimal-pad"
-                        onChangeText={onChange}
-                        value={value}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{ required: 'Weight is required' }}
-              />
-              {errors.weight && <Text style={styles.errorText}>{errors.weight.message}</Text>}
-
-              <Controller
-                control={control}
-                name="height"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Height (cm)</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={RulerIcon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="e.g., 180"
-                        placeholderTextColor={COLORS.inputText}
-                        keyboardType="decimal-pad"
-                        onChangeText={onChange}
-                        value={value}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{ required: 'Height is required' }}
-              />
-              {errors.height && <Text style={styles.errorText}>{errors.height.message}</Text>}
-            </View>
-            <GradientStepButtons onNext={next} onBack={prev} />
-          </ScrollView>
-        );
-      case 4:
-        return (
-          <ScrollView style={styles.stepContent} showsVerticalScrollIndicator={false}>
-            <Text style={styles.modelHeading}>Contact Information</Text>
-            <View style={{ marginTop: 10 }}>
-              <Controller
-                control={control}
-                name="mobile"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Mobile Number</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={SmartPhone01Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="Enter 10-digit number"
-                        placeholderTextColor={COLORS.inputText}
-                        keyboardType="phone-pad"
-                        onChangeText={onChange}
-                        value={value}
-                        maxLength={10}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{ required: 'Mobile is required', pattern: { value: /^[0-9]{10}$/, message: 'Invalid mobile' } }}
-              />
-              {errors.mobile && <Text style={styles.errorText}>{errors.mobile.message}</Text>}
-
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Email Address</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={Mail01Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="Enter your email"
-                        placeholderTextColor={COLORS.inputText}
-                        keyboardType="email-address"
-                        onChangeText={onChange}
-                        value={value}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^\S+@\S+\.\S+$/,
-                    message: 'Invalid email address'
-                  }
-                }}
-              />
-              {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-            </View>
-            <GradientStepButtons onNext={next} onBack={prev} />
-          </ScrollView>
-        );
-      case 5:
-        return (
-          <ScrollView style={styles.stepContent} showsVerticalScrollIndicator={false}>
-            <Text style={styles.modelHeading}>Set Password</Text>
-            <View style={{ marginTop: 10 }}>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Password</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={LockKeyIcon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="Min 6 characters"
-                        placeholderTextColor={COLORS.inputText}
-                        secureTextEntry
-                        onChangeText={onChange}
-                        value={value}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{ required: 'Password is required', minLength: { value: 6, message: 'Minimum 6 characters' } }}
-              />
-              {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-
-              <Controller
-                control={control}
-                name="confirmPassword"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Confirm Password</Text>
-                    <View style={styles.iconInputWrapper}>
-                      <HugeiconsIcon icon={Tick02Icon} size={20} color={COLORS.primary} style={styles.fieldIcon} />
-                      <TextInput
-                        style={styles.fieldInput}
-                        placeholder="Re-enter password"
-                        placeholderTextColor={COLORS.inputText}
-                        secureTextEntry
-                        onChangeText={onChange}
-                        value={value}
-                      />
-                    </View>
-                  </View>
-                )}
-                rules={{
-                  required: 'Confirmation required',
-                  validate: value =>
-                    value === getValues('password') || 'Passwords do not match'
-                }}
-              />
-              {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>}
-            </View>
-            <GradientStepButtons isFinal onNext={handleSubmit(submit)} onBack={prev} />
-          </ScrollView>
-        );
-      default:
-        return null;
-    }
-  };
-  // GradientStepButtons
-  const GradientStepButtons = ({ onNext, onBack, isFinal }) => (
-    <View style={styles.buttonRow}>
-      {onBack && (
-        <TouchableOpacity onPress={onBack} style={{ flex: 1, marginHorizontal: 6 }}>
-          <LinearGradient 
-            colors={[COLORS.textSecondary, COLORS.borderStrong]} 
-            start={{ x: 0, y: 0 }} 
-            end={{ x: 1, y: 0 }}
-            style={styles.stepBtnSecondary}
-          >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#fff" style={{ marginRight: 5 }} />
-            <Text style={styles.btnText}>Back</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity onPress={onNext} style={{ flex: 1, marginHorizontal: 6 }}>
-        <LinearGradient 
-          colors={[COLORS.primary, COLORS.primaryHover]} 
-          start={{ x: 0, y: 0 }} 
-          end={{ x: 1, y: 0 }}
-          style={styles.stepBtn}
-        >
-          <Text style={styles.btnText}>{isFinal ? 'Create Account' : 'Next'}</Text>
-          <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#fff" style={{ marginLeft: 8 }} />
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
-
-  // Progress Indicator
-  const ProgressIndicator = () => (
-    <View style={styles.progressContainer}>
-      {[1, 2, 3, 4, 5].map((dot) => (
-        <View
-          key={dot}
-          style={[
-            styles.progressDot,
-            dot <= step && styles.progressDotActive,
-          ]}
-        />
-      ))}
-    </View>
-  );
+  // STEPS 2 to 5: High-End Dark Registration Wizard
+  const currentFormStep = step - 1; // 1 to 4
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
+    <View style={styles.mainContainer}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
+      {/* Subtle top ambient glow */}
       <LinearGradient
-        start={{ x: 0.80, y: 0.25 }} 
-        end={{ x: 0.0, y: 0.10 }}
-        locations={[0, 1, 0]}
-        colors={[COLORS.primary, COLORS.primaryHover]}
-        style={styles.container}
+        colors={['rgba(59, 130, 246, 0.12)', 'transparent']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.ambientTopGlow}
+        pointerEvents="none"
+      />
+
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
       >
-        <View style={styles.topContainer}>
-          <Text style={styles.topText}>Already have an account?</Text>
-          <TouchableOpacity
-            style={styles.signInButton}
-            onPress={() => navigation.navigate('SignIn')}
+        <View style={{ flex: 1 }}>
+          {/* Top Navigation Bar */}
+          <View style={[styles.navBar, { paddingTop: Math.max(insets.top, 12) }]}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={prev}
+              style={styles.navBackButton}
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            {/* Segmented Progress Bar */}
+            <View style={styles.progressSegmentsContainer}>
+              {[1, 2, 3, 4].map((seg) => (
+                <View
+                  key={seg}
+                  style={[
+                    styles.progressSegment,
+                    seg <= currentFormStep ? styles.progressSegmentActive : styles.progressSegmentInactive
+                  ]}
+                />
+              ))}
+            </View>
+
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('SignIn')}
+              style={styles.navLoginLink}
+            >
+              <Text style={styles.navLoginText}>Log In</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Scrollable Form Content */}
+          <ScrollView 
+            style={styles.scrollContent} 
+            contentContainerStyle={styles.scrollContentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.signInButtonText}>Sign In</Text>
-          </TouchableOpacity>
+            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+              {/* Step 2: Personal Details */}
+              {step === 2 && (
+                <View>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>STEP 1 OF 4</Text>
+                  </View>
+                  <Text style={styles.stepTitle}>Personal Details</Text>
+                  <Text style={styles.stepSubtitle}>Tell us a bit about yourself to personalize your health metrics.</Text>
+
+                  {/* Full Name */}
+                  <Controller
+                    control={control}
+                    name="name"
+                    rules={{ required: 'Full name is required' }}
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.fieldContainer}>
+                        <Text style={styles.label}>Full Name</Text>
+                        <View style={[styles.inputWrapper, errors.name && styles.errorBorder]}>
+                          <HugeiconsIcon icon={UserIcon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                          <TextInput
+                            style={styles.textInput}
+                            placeholder="Enter your full name"
+                            placeholderTextColor="#71717A"
+                            onChangeText={onChange}
+                            value={value}
+                          />
+                        </View>
+                        {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
+                      </View>
+                    )}
+                  />
+
+                  {/* Gender Chips */}
+                  <Controller
+                    control={control}
+                    name="gender"
+                    rules={{ required: 'Please select a gender' }}
+                    render={({ field: { onChange, value } }) => (
+                      <ChipGroup
+                        label="Gender"
+                        options={genderOptions}
+                        value={value}
+                        onSelect={onChange}
+                        error={errors.gender?.message}
+                      />
+                    )}
+                  />
+
+                  {/* Date of Birth Wheel Picker */}
+                  <Controller
+                    control={control}
+                    name="dob"
+                    rules={{ required: 'Date of birth is required' }}
+                    render={({ field: { onChange, value } }) => (
+                      <DateWheelPickerCard
+                        title="Date of Birth"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                  {errors.dob && <Text style={styles.errorText}>{errors.dob.message}</Text>}
+                </View>
+              )}
+
+              {/* Step 3: Body & Food Details */}
+              {step === 3 && (
+                <View>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>STEP 2 OF 4</Text>
+                  </View>
+                  <Text style={styles.stepTitle}>Body & Nutrition</Text>
+                  <Text style={styles.stepSubtitle}>Enter your physical stats to calculate calories and hydration targets.</Text>
+
+                  {/* Food Preference Chips */}
+                  <Controller
+                    control={control}
+                    name="food"
+                    rules={{ required: 'Please select diet preference' }}
+                    render={({ field: { onChange, value } }) => (
+                      <ChipGroup
+                        label="Dietary Preference"
+                        options={foodOptions}
+                        value={value}
+                        onSelect={onChange}
+                        error={errors.food?.message}
+                      />
+                    )}
+                  />
+
+                  {/* Weight Ruler Picker */}
+                  <Controller
+                    control={control}
+                    name="weight"
+                    rules={{ required: 'Weight is required' }}
+                    render={({ field: { onChange, value } }) => (
+                      <RulerPickerCard
+                        title="Weight"
+                        min={30}
+                        max={180}
+                        value={Number(value) || 70}
+                        onChange={(val) => onChange(String(val))}
+                        unit="kg"
+                        units={['kg', 'lbs']}
+                        selectedUnit={weightUnit}
+                        onUnitChange={setWeightUnit}
+                      />
+                    )}
+                  />
+                  {errors.weight && <Text style={styles.errorText}>{errors.weight.message}</Text>}
+
+                  {/* Height Ruler Picker */}
+                  <Controller
+                    control={control}
+                    name="height"
+                    rules={{ required: 'Height is required' }}
+                    render={({ field: { onChange, value } }) => (
+                      <RulerPickerCard
+                        title="Height"
+                        min={100}
+                        max={230}
+                        value={Number(value) || 175}
+                        onChange={(val) => onChange(String(val))}
+                        unit="cm"
+                        units={['cm', 'ft']}
+                        selectedUnit={heightUnit}
+                        onUnitChange={setHeightUnit}
+                      />
+                    )}
+                  />
+                  {errors.height && <Text style={styles.errorText}>{errors.height.message}</Text>}
+                </View>
+              )}
+
+              {/* Step 4: Contact Information */}
+              {step === 4 && (
+                <View>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>STEP 3 OF 4</Text>
+                  </View>
+                  <Text style={styles.stepTitle}>Contact Details</Text>
+                  <Text style={styles.stepSubtitle}>We will use this information to verify and protect your account.</Text>
+
+                  {/* Mobile Number */}
+                  <Controller
+                    control={control}
+                    name="mobile"
+                    rules={{ 
+                      required: 'Mobile number is required',
+                      pattern: { value: /^[0-9]{10}$/, message: 'Please enter a valid 10-digit number' }
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.fieldContainer}>
+                        <Text style={styles.label}>Mobile Number</Text>
+                        <View style={[styles.inputWrapper, errors.mobile && styles.errorBorder]}>
+                          <HugeiconsIcon icon={SmartPhone01Icon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                          <TextInput
+                            style={styles.textInput}
+                            placeholder="10-digit mobile number"
+                            placeholderTextColor="#71717A"
+                            keyboardType="phone-pad"
+                            onChangeText={onChange}
+                            value={value}
+                            maxLength={10}
+                          />
+                        </View>
+                        {errors.mobile && <Text style={styles.errorText}>{errors.mobile.message}</Text>}
+                      </View>
+                    )}
+                  />
+
+                  {/* Email */}
+                  <Controller
+                    control={control}
+                    name="email"
+                    rules={{
+                      required: 'Email address is required',
+                      pattern: {
+                        value: /^\S+@\S+\.\S+$/,
+                        message: 'Enter a valid email address'
+                      }
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.fieldContainer}>
+                        <Text style={styles.label}>Email Address</Text>
+                        <View style={[styles.inputWrapper, errors.email && styles.errorBorder]}>
+                          <HugeiconsIcon icon={Mail01Icon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                          <TextInput
+                            style={styles.textInput}
+                            placeholder="name@example.com"
+                            placeholderTextColor="#71717A"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            onChangeText={onChange}
+                            value={value}
+                          />
+                        </View>
+                        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+                      </View>
+                    )}
+                  />
+                </View>
+              )}
+
+              {/* Step 5: Set Password */}
+              {step === 5 && (
+                <View>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepBadgeText}>STEP 4 OF 4</Text>
+                  </View>
+                  <Text style={styles.stepTitle}>Set Password</Text>
+                  <Text style={styles.stepSubtitle}>Create a secure password to keep your health data private.</Text>
+
+                  {/* Password */}
+                  <Controller
+                    control={control}
+                    name="password"
+                    rules={{ 
+                      required: 'Password is required', 
+                      minLength: { value: 6, message: 'Minimum 6 characters' } 
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.fieldContainer}>
+                        <Text style={styles.label}>Password</Text>
+                        <View style={[styles.inputWrapper, errors.password && styles.errorBorder]}>
+                          <HugeiconsIcon icon={LockKeyIcon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                          <TextInput
+                            style={styles.textInput}
+                            placeholder="At least 6 characters"
+                            placeholderTextColor="#71717A"
+                            secureTextEntry={!showPassword}
+                            onChangeText={onChange}
+                            value={value}
+                          />
+                          <TouchableOpacity 
+                            onPress={() => setShowPassword(!showPassword)}
+                            style={styles.passwordToggle}
+                          >
+                            <HugeiconsIcon 
+                              icon={showPassword ? ViewOffSlashIcon : ViewIcon} 
+                              size={20} 
+                              color="#A1A1AA" 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+                      </View>
+                    )}
+                  />
+
+                  {/* Confirm Password */}
+                  <Controller
+                    control={control}
+                    name="confirmPassword"
+                    rules={{
+                      required: 'Please confirm password',
+                      validate: value => value === getValues('password') || 'Passwords do not match'
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.fieldContainer}>
+                        <Text style={styles.label}>Confirm Password</Text>
+                        <View style={[styles.inputWrapper, errors.confirmPassword && styles.errorBorder]}>
+                          <HugeiconsIcon 
+                            icon={Tick02Icon} 
+                            size={20} 
+                            color={passwordVal && value && passwordVal === value ? '#10B981' : '#A1A1AA'} 
+                            style={styles.fieldIcon} 
+                          />
+                          <TextInput
+                            style={styles.textInput}
+                            placeholder="Re-enter your password"
+                            placeholderTextColor="#71717A"
+                            secureTextEntry={!showConfirmPassword}
+                            onChangeText={onChange}
+                            value={value}
+                          />
+                          <TouchableOpacity 
+                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                            style={styles.passwordToggle}
+                          >
+                            <HugeiconsIcon 
+                              icon={showConfirmPassword ? ViewOffSlashIcon : ViewIcon} 
+                              size={20} 
+                              color="#A1A1AA" 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>}
+                      </View>
+                    )}
+                  />
+                </View>
+              )}
+            </Animated.View>
+          </ScrollView>
+
+          {/* Bottom Action Footer */}
+          <View style={[styles.bottomActionBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+            {step < 5 ? (
+              <TouchableOpacity
+                activeOpacity={0.88}
+                style={styles.primaryActionButton}
+                onPress={next}
+              >
+                <Text style={styles.primaryActionText}>Continue</Text>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#000000" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.88}
+                style={styles.primaryActionButton}
+                onPress={handleSubmit(submit)}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <>
+                    <Text style={styles.primaryActionText}>Create Account</Text>
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#000000" />
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-
-        <Text style={styles.link}>Swasthya</Text>
-
-        <ProgressIndicator />
-
-        {/* Animated View for card */}
-        <Animated.View
-          style={[
-            styles.card,
-            { 
-              transform: [{ translateY: slideAnim }],
-              opacity: opacityAnim
-            }
-          ]}
-        >
-          <StepContent />
-        </Animated.View>
-      </LinearGradient>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
 export default SignUpScreen;
 
-const getStyles = (COLORS) => StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  mainContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: 'space-between',
+    backgroundColor: '#000000',
   },
-  topContainer: {
-    marginTop: 20,
-    marginRight: 20,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  topText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  signInButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  signInButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  link: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: 'white',
-    paddingLeft: 20,
-    marginTop: 10,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginVertical: 12,
-    paddingHorizontal: 20,
-  },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  progressDotActive: {
-    backgroundColor: 'white',
-    width: 24,
-  },
-  card: {
-    padding: 20,
-    backgroundColor: COLORS.cardBackground,
-    width: '100%',
-    borderTopEndRadius: 28,
-    borderTopLeftRadius: 28,
-    height: '65%',
-    marginBottom: 0,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 12,
-  },
-  stepContent: {
-    flex: 1,
-  },
-  modelHeading: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  appTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-    color: COLORS.text,
-    marginVertical: 5,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '900',
-    marginBottom: 10,
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  welcomeImage: {
-    width: '100%',
+  ambientTopGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 180,
-    marginBottom: 20,
   },
-  getStartedBtn: {
-    padding: 16,
-    borderRadius: 12,
+  // Top Navigation
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  navBackButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#121217',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    marginTop: 8,
   },
-  getStartedText: {
-    color: 'white',
+  progressSegmentsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  progressSegment: {
+    width: 28,
+    height: 4,
+    borderRadius: 2,
+  },
+  progressSegmentActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  progressSegmentInactive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+  navLoginLink: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  navLoginText: {
+    color: '#A1A1AA',
+    fontSize: 14,
     fontWeight: '600',
-    fontSize: 18,
+  },
+  // Form Content
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 24,
+  },
+  stepBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  stepBadgeText: {
+    color: '#93C5FD',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  stepTitle: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  stepSubtitle: {
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 28,
   },
   fieldContainer: {
-    marginBottom: 18,
+    marginBottom: 20,
   },
   label: {
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
+    color: '#E4E4E7',
     fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  iconInputWrapper: {
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    backgroundColor: '#121217',
+    borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    height: 56,
+    paddingHorizontal: 16,
   },
   fieldIcon: {
-    marginRight: 10,
+    marginRight: 12,
   },
-  fieldInput: {
+  textInput: {
     flex: 1,
-    height: 50,
-    color: COLORS.text,
-    fontSize: 15,
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '500',
+    height: '100%',
   },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
-  },
-  dropdownButtonText: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: '500',
+  dateText: {
     flex: 1,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
   },
   placeholderText: {
-    color: COLORS.inputText,
+    color: '#71717A',
   },
-  dropdownOptionsContainer: {
-    backgroundColor: COLORS.inputBackground,
+  unitBadge: {
+    color: '#A1A1AA',
+    fontSize: 14,
+    fontWeight: '600',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 8,
-    marginTop: 8,
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
-    overflow: 'hidden',
-    zIndex: 1000,
   },
-  dropdownOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(139, 92, 246, 0.1)',
+  passwordToggle: {
+    padding: 6,
   },
-  dropdownOptionText: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-  },
-  selectedOption: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  dateButton: {
+  twoColumnRow: {
     flexDirection: 'row',
+    gap: 12,
+  },
+  // Chip Selectors
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  chip: {
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    borderRadius: 14,
     alignItems: 'center',
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
-  },
-  dateIcon: {
-    marginRight: 10,
-  },
-  dateButtonText: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  datePickerModal: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
-    padding: 20,
-    width: SCREEN_WIDTH - 40,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
+  chipSelected: {
+    backgroundColor: '#FFFFFF',
   },
-  modalTitle: {
-    fontSize: 18,
+  chipUnselected: {
+    backgroundColor: '#121217',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  chipText: {
+    fontSize: 15,
+  },
+  chipTextSelected: {
+    color: '#000000',
     fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 16,
-    textAlign: 'center',
   },
-  dateInputRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 18,
-  },
-  dateInput: {
-    flex: 1,
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
-    color: COLORS.text,
-    fontSize: 15,
+  chipTextUnselected: {
+    color: '#A1A1AA',
     fontWeight: '500',
-    textAlign: 'center',
-    paddingVertical: 10,
   },
-  dateModalButtonRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  dateModalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
-  },
-  confirmButton: {
-    backgroundColor: 'rgba(139, 92, 246, 0.8)',
-  },
-  dateModalButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  errorInput: {
-    borderColor: COLORS.danger,
+  errorBorder: {
+    borderColor: '#EF4444',
   },
   errorText: {
-    color: COLORS.danger,
+    color: '#F87171',
     fontSize: 12,
     marginTop: 6,
-    marginLeft: 2,
+    marginLeft: 4,
     fontWeight: '500',
   },
-  buttonRow: {
+  // Bottom Action Bar
+  bottomActionBar: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    backgroundColor: '#000000',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  primaryActionButton: {
+    backgroundColor: '#FFFFFF',
+    height: 56,
+    borderRadius: 28,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  stepBtn: {
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     elevation: 6,
   },
-  stepBtnSecondary: {
-    padding: 14,
-    borderRadius: 12,
+  primaryActionText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  // Onboarding Step 1 Styles
+  carouselIndicators: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 18,
+  },
+  indicatorActive: {
+    width: 26,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+  },
+  indicatorInactive: {
+    width: 5,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  heroHeadline: {
+    color: '#FFFFFF',
+    fontSize: 38,
+    fontWeight: '800',
+    lineHeight: 44,
+    letterSpacing: -0.6,
+    marginBottom: 28,
+  },
+  googleButton: {
+    backgroundColor: '#FFFFFF',
+    height: 54,
+    borderRadius: 27,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  btnText: {
-    color: 'white',
+  googleButtonText: {
+    color: '#090A0F',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  emailButton: {
+    backgroundColor: '#141418',
+    height: 54,
+    borderRadius: 27,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  emailButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  footerText: {
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  footerLink: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

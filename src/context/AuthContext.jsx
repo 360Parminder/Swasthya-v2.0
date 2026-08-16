@@ -54,9 +54,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (email, password, name) => {
+  const register = async (userDataOrEmail, password, name) => {
     try {
-      const response = await authApi.register({ email, password, name });
+      const payload = typeof userDataOrEmail === 'object' 
+        ? userDataOrEmail 
+        : { email: userDataOrEmail, password, name };
+      const response = await authApi.register(payload);
       return response;
     } catch (error) {
       return Promise.reject(error);

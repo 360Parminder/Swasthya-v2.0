@@ -1,21 +1,40 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
-
+import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  TextInput, 
+  ActivityIndicator, 
+  KeyboardAvoidingView, 
+  Platform, 
+  StatusBar,
+  ScrollView
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { 
+  SmartPhone01Icon, 
+  LockKeyIcon, 
+  ArrowLeft01Icon, 
+  ArrowRight01Icon,
+  ViewIcon,
+  ViewOffSlashIcon
+} from '@hugeicons/core-free-icons';
+import { GoogleIcon } from '../../components/common/SocialIcons';
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
-import { useThemeColors } from '../../components/ui/colors';
-import { HugeiconsIcon } from '@hugeicons/react-native';
-import { CallIcon, LockKeyIcon } from '@hugeicons/core-free-icons';
 
 const SignInScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { login, isLoading } = useAuth();
-  const COLORS = useThemeColors();
-  const styles = useMemo(() => getStyles(COLORS), [COLORS]);
   
   const [data, setData] = useState({
     mobile: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const showToast = (type, message, subMessage = '') => {
     Toast.show({
@@ -28,159 +47,355 @@ const SignInScreen = ({ navigation }) => {
     });
   };
 
-  const onSubmit = async (data) => {
-    if (data.mobile && data.password) {
-      try {
-        await login(data.mobile, data.password);
-        showToast('success', 'Welcome back!');
-      } catch (error) {
-        showToast('error', error.response?.data?.message || 'An error occurred');
-
-      }
-    } else {
+  const onSubmit = async () => {
+    if (!data.mobile || !data.password) {
       showToast('info', 'Please fill in all fields');
+      return;
+    }
+
+    try {
+      await login(data.mobile, data.password);
+      showToast('success', 'Welcome back! 👋');
+    } catch (error) {
+      showToast('error', error.response?.data?.message || 'Invalid credentials. Please try again.');
     }
   };
 
   return (
+    <View style={styles.mainContainer}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
-    <SafeAreaView style={styles.container}>
+      {/* Subtle top ambient glow */}
+      <LinearGradient
+        colors={['rgba(59, 130, 246, 0.12)', 'transparent']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.ambientTopGlow}
+        pointerEvents="none"
+      />
+
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, width: '100%', alignItems: 'center' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
       >
-      <View style={{ marginBottom: 20, justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
-        <Image
-          source={require('../../../assets/images/logo.png')}
-          style={{ width: 50, height: 50, alignSelf: 'center', marginVertical: 20 }}
-        // resizeMode="contain"
-        />
-        <Text style={{ color: COLORS.text, fontSize: 34, fontWeight: 'bold' }}>Sign in your</Text>
-        <Text style={{ color: COLORS.text, fontSize: 34, fontWeight: 'bold' }}>Account</Text>
-        <View style={styles.topContainer}>
-          <Text style={{ color: COLORS.text, fontSize: 16 }}>Don`t have an account?</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SignUp')}
+        <View style={{ flex: 1 }}>
+          {/* Top Bar */}
+          <View style={[styles.navBar, { paddingTop: Math.max(insets.top, 12) }]}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('SignUp')}
+              style={styles.navBackButton}
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('SignUp')}
+              style={styles.navLink}
+            >
+              <Text style={styles.navLinkText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Scroll Content */}
+          <ScrollView
+            style={styles.scrollContent}
+            contentContainerStyle={styles.scrollContentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text style={{ color: COLORS.accent, fontSize: 16, }}>
-              Sign up
+            {/* Header Badge & Title */}
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>WELCOME BACK</Text>
+            </View>
+            <Text style={styles.title}>{'Sign In to\nSwasthya'}</Text>
+            <Text style={styles.subtitle}>
+              Enter your registered mobile number and password to access your dashboard.
             </Text>
-          </TouchableOpacity>
+
+            {/* Mobile Input */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Mobile Number</Text>
+              <View style={styles.inputWrapper}>
+                <HugeiconsIcon icon={SmartPhone01Icon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter 10-digit number"
+                  placeholderTextColor="#71717A"
+                  keyboardType="phone-pad"
+                  value={data.mobile}
+                  onChangeText={(text) => setData({ ...data, mobile: text })}
+                  maxLength={10}
+                />
+              </View>
+            </View>
+
+            {/* Password Input */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.inputWrapper}>
+                <HugeiconsIcon icon={LockKeyIcon} size={20} color="#A1A1AA" style={styles.fieldIcon} />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#71717A"
+                  secureTextEntry={!showPassword}
+                  value={data.password}
+                  onChangeText={(text) => setData({ ...data, password: text })}
+                />
+                <TouchableOpacity 
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.passwordToggle}
+                >
+                  <HugeiconsIcon 
+                    icon={showPassword ? ViewOffSlashIcon : ViewIcon} 
+                    size={20} 
+                    color="#A1A1AA" 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity style={styles.forgotPasswordButton}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Primary Login Button */}
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={onSubmit}
+              disabled={isLoading}
+              style={[styles.primaryButton, isLoading && { opacity: 0.8 }]}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#000000" />
+              ) : (
+                <>
+                  <Text style={styles.primaryButtonText}>Sign In</Text>
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#000000" />
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign In */}
+            <TouchableOpacity 
+              activeOpacity={0.88}
+              style={styles.googleFullButton}
+              onPress={() => showToast('info', 'Google Sign In', 'Connecting to Google services...')}
+            >
+              <GoogleIcon size={20} />
+              <Text style={styles.googleFullButtonText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            {/* Footer Sign Up Link */}
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                <Text style={styles.footerLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
-      </View>
-      <View style={{ width: '100%', paddingHorizontal: 20 }}>
-        <View style={styles.inputContainerTop}>
-          <HugeiconsIcon icon={CallIcon} size={20} color={COLORS.primary} />
-          <TextInput onChangeText={(text) => setData({ ...data, mobile: text })} placeholder='877911****' placeholderTextColor={COLORS.placeholder} keyboardType='phone-pad' style={styles.input} />
-        </View>
-        <View style={styles.inputContainerBottom}>
-          <HugeiconsIcon icon={LockKeyIcon} size={20} color={COLORS.primary} />
-          <TextInput onChangeText={(text) => setData({ ...data, password: text })} placeholder='********' secureTextEntry={true} placeholderTextColor={COLORS.placeholder} style={styles.input} />
-        </View>
-      </View>
-      <TouchableOpacity>
-        <Text style={{ marginTop: 10, color: COLORS.text, fontSize: 14, fontWeight: '600', alignSelf: 'flex-end', marginRight: 20, textDecorationLine: 'underline' }}>
-          Forgot Password?
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => onSubmit(data)}
-        disabled={isLoading}
-        style={{
-          marginTop: 20,
-          padding: 10,
-          backgroundColor: isLoading ? COLORS.primary + '80' : COLORS.primary,
-          borderRadius: 10,
-          width: '90%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: isLoading ? 0.8 : 1,
-        }}>
-        {isLoading ? (
-          <ActivityIndicator size="small" color={COLORS.buttonText || '#FFFFFF'} />
-        ) : (
-          <Text style={{ color: COLORS.buttonText || '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
-            Login
-          </Text>
-        )}
-      </TouchableOpacity>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 export default SignInScreen;
 
-const getStyles = (COLORS) => StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  mainContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
+    backgroundColor: '#000000',
   },
-  topContainer: {
-    marginTop: 20,
-    marginRight: 20,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+  ambientTopGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+  },
+  navBar: {
     flexDirection: 'row',
-    gap: 5,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
   },
-  formContainer: {
-    padding: 20,
-    backgroundColor: COLORS.cardBackground,
-    width: '100%',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    height: '65%',
-    marginBottom: 0, 
+  navBackButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#121217',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navLink: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  navLinkText: {
+    color: '#A1A1AA',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  badgeText: {
+    color: '#93C5FD',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 2,
-    textAlign: 'center',
-    color: COLORS.text,
+    color: '#FFFFFF',
+    fontSize: 34,
+    fontWeight: '800',
+    lineHeight: 40,
+    letterSpacing: -0.6,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 18,
-    color: COLORS.textSecondary,
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  fieldContainer: {
     marginBottom: 20,
-    textAlign: 'center',
   },
-  link: {
-    fontSize: 60,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: 20,
-    marginTop: 10,
+  label: {
+    color: '#E4E4E7',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  inputContainerTop: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: COLORS.inputBackground, 
-    borderTopRightRadius: 10, 
-    borderTopLeftRadius: 10, 
-    paddingHorizontal: 10, 
-    height: 50, 
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.border,
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#121217',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    height: 56,
+    paddingHorizontal: 16,
   },
-  inputContainerBottom: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: COLORS.inputBackground, 
-    borderBottomRightRadius: 10, 
-    borderBottomLeftRadius: 10, 
-    paddingHorizontal: 10, 
-    height: 50, 
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+  fieldIcon: {
+    marginRight: 12,
   },
-  input: {
-    flex: 1, 
-    paddingLeft: 10, 
-    color: COLORS.inputText || COLORS.text, 
-    height: '100%' 
-  }
+  textInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
+    height: '100%',
+  },
+  passwordToggle: {
+    padding: 6,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 28,
+    marginTop: -6,
+  },
+  forgotPasswordText: {
+    color: '#93C5FD',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  primaryButton: {
+    backgroundColor: '#FFFFFF',
+    height: 56,
+    borderRadius: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+    marginBottom: 24,
+  },
+  primaryButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  dividerText: {
+    color: '#71717A',
+    fontSize: 12,
+    fontWeight: '600',
+    marginHorizontal: 16,
+    letterSpacing: 0.5,
+  },
+  googleFullButton: {
+    backgroundColor: '#121217',
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 32,
+  },
+  googleFullButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerText: {
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  footerLink: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
