@@ -265,9 +265,9 @@ class NotificationService {
       let token = await AsyncStorage.getItem('fcm_token');
       if (!token) {
         try {
-          const messaging = require('@react-native-firebase/messaging').default;
-          if (messaging) {
-            token = await messaging().getToken();
+          const { getMessaging } = require('@react-native-firebase/messaging');
+          if (getMessaging) {
+            token = await getMessaging().getToken();
           }
         } catch (e) {
           token = `swasthya_fcm_${Platform.OS}_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;

@@ -7,7 +7,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from './src/config/toastConfig';
 import { ConnectionProvider } from './src/context/ConnectionContext';
-import notifee, { EventType } from '@notifee/react-native';
+import notifee, { EventType, AndroidImportance } from '@notifee/react-native';
 
 notifee.onBackgroundEvent(async ({ type, detail: _detail }) => {
   if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
@@ -15,7 +15,7 @@ notifee.onBackgroundEvent(async ({ type, detail: _detail }) => {
   }
 });
 
-import messaging from '@react-native-firebase/messaging';
+import { getMessaging } from '@react-native-firebase/messaging';
 
 const App = () => {
   React.useEffect(() => {
@@ -25,23 +25,28 @@ const App = () => {
     });
 
     // Foreground FCM push listener
-    const unsubscribeFCM = messaging().onMessage(async (remoteMessage) => {
-      console.log('[FCM] Message received in foreground:', remoteMessage);
-      if (remoteMessage?.notification) {
-        const isInvite = remoteMessage.data?.type === 'care_circle_invite';
-        await notifee.displayNotification({
-          title: remoteMessage.notification.title || (isInvite ? '🤝 Care Circle Invite' : 'Swasthya Alert'),
-          body: remoteMessage.notification.body || '',
-          data: remoteMessage.data || {},
-          android: {
-            channelId: isInvite ? 'care_circle_invites' : 'medication_reminders',
-            importance: AndroidImportance.HIGH,
-            sound: 'default',
-            pressAction: { id: 'default' },
-          },
-        });
-      }
-    });
+    let unsubscribeFCM = () => {};
+    try {
+      unsubscribeFCM = getMessaging().onMessage(async (remoteMessage) => {
+        console.log('[FCM] Message received in foreground:', remoteMessage);
+        if (remoteMessage?.notification) {
+          const isInvite = remoteMessage.data?.type === 'care_circle_invite';
+          await notifee.displayNotification({
+            title: remoteMessage.notification.title || (isInvite ? '🤝 Care Circle Invite' : 'Swasthya Alert'),
+            body: remoteMessage.notification.body || '',
+            data: remoteMessage.data || {},
+            android: {
+              channelId: isInvite ? 'care_circle_invites' : 'medication_reminders',
+              importance: AndroidImportance.HIGH,
+              sound: 'default',
+              pressAction: { id: 'default' },
+            },
+          });
+        }
+      });
+    } catch (err) {
+      console.warn('[FCM] Could not initialize foreground listener:', err?.message);
+    }
 
     const unsubscribeNotifee = notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
