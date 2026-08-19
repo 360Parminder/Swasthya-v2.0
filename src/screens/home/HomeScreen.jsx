@@ -17,13 +17,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDayAndDate } from '../../utils/date';
 import MedicationScheduleCard from '../../components/home/MedicationScheduleCard';
 import { dashboardApi } from '../../api/dashboard';
+import { connectionApi } from '../../api/connectionApi';
 import { notificationService } from '../../services/notificationService';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { 
-  Notification01Icon, 
-  Pulse01Icon, 
-  DropletIcon, 
-  Moon02Icon, 
+import {
+  Notification01Icon,
+  Pulse01Icon,
+  DropletIcon,
+  Moon02Icon,
   FavouriteIcon,
   UserGroupIcon
 } from '@hugeicons/core-free-icons';
@@ -58,8 +59,8 @@ const HeartRateCard = ({ isDarkMode }) => (
 
 // ─── Sleep Quality Card ──────────────────────────────────────────────
 const SleepQualityCard = ({ navigation, isDarkMode }) => (
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('SleepDetails')} 
+  <TouchableOpacity
+    onPress={() => navigation.navigate('SleepDetails')}
     style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
     activeOpacity={0.88}
   >
@@ -82,17 +83,17 @@ const SleepQualityCard = ({ navigation, isDarkMode }) => (
 
     <View style={cardStyles.sleepBars}>
       {[16, 22, 42, 28, 24, 20, 36].map((h, i) => (
-        <View 
-          key={i} 
+        <View
+          key={i}
           style={[
-            cardStyles.sleepBar, 
-            { 
-              height: h, 
-              backgroundColor: i === 2 
-                ? (isDarkMode ? '#3B82F6' : '#2563EB') 
-                : (isDarkMode ? '#272730' : '#E5E7EB') 
+            cardStyles.sleepBar,
+            {
+              height: h,
+              backgroundColor: i === 2
+                ? (isDarkMode ? '#3B82F6' : '#2563EB')
+                : (isDarkMode ? '#272730' : '#E5E7EB')
             }
-          ]} 
+          ]}
         />
       ))}
     </View>
@@ -101,8 +102,8 @@ const SleepQualityCard = ({ navigation, isDarkMode }) => (
 
 // ─── Hydration Card ──────────────────────────────────────────────────
 const HydrationCard = ({ navigation, isDarkMode }) => (
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('Hydration')} 
+  <TouchableOpacity
+    onPress={() => navigation.navigate('Hydration')}
     style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
     activeOpacity={0.88}
   >
@@ -132,8 +133,8 @@ const HydrationCard = ({ navigation, isDarkMode }) => (
 
 // ─── Care Network Card ───────────────────────────────────────────────
 const CareNetworkCard = ({ navigation, isDarkMode }) => (
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('Connections')} 
+  <TouchableOpacity
+    onPress={() => navigation.navigate('Connections')}
     style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
     activeOpacity={0.88}
   >
@@ -196,6 +197,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { authState } = useAuth();
   const [medications, setMedications] = useState([]);
+  const [hasPendingInvites, setHasPendingInvites] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
   const scheme = useColorScheme();
@@ -214,6 +216,19 @@ const HomeScreen = () => {
       if (validMeds.length > 0) {
         notificationService.syncMedicationReminders(validMeds);
       }
+
+      // Check for pending care circle invites
+      try {
+        const pendingRes = await connectionApi.viewPending();
+        const pendingList =
+          pendingRes?.data?.connections ||
+          pendingRes?.data?.requests ||
+          pendingRes?.data?.data ||
+          [];
+        setHasPendingInvites(Array.isArray(pendingList) && pendingList.length > 0);
+      } catch (err) {
+        console.log('Error checking pending invites in home:', err?.message);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     }
@@ -226,13 +241,13 @@ const HomeScreen = () => {
   }, []);
 
   const { day, date } = getDayAndDate();
-  const displayName = authState?.user?.name || authState?.user?.username || 'Member';
+  const displayName = authState?.user?.name || 'Member';
 
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? '#000000' : '#F9FAFB' }]}>
-      <StatusBar 
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
-        backgroundColor={isDarkMode ? '#000000' : '#F9FAFB'} 
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={isDarkMode ? '#000000' : '#F9FAFB'}
       />
 
       {/* Modern Clean Header */}
@@ -253,18 +268,34 @@ const HomeScreen = () => {
             </View>
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => navigation.navigate('Notifications')}
             style={[
-              styles.notificationButton, 
-              { 
+              styles.notificationButton,
+              {
                 backgroundColor: isDarkMode ? '#121217' : '#FFFFFF',
-                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB'
+                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                position: 'relative',
               }
             ]}
             activeOpacity={0.8}
           >
             <HugeiconsIcon icon={Notification01Icon} size={20} color={isDarkMode ? '#FFFFFF' : '#111827'} />
+            {hasPendingInvites && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 7,
+                  right: 7,
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: '#EF4444',
+                  borderWidth: 1.5,
+                  borderColor: isDarkMode ? '#121217' : '#FFFFFF',
+                }}
+              />
+            )}
           </TouchableOpacity>
         </View>
 
@@ -284,10 +315,10 @@ const HomeScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh} 
-            tintColor={isDarkMode ? '#3B82F6' : '#2563EB'} 
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDarkMode ? '#3B82F6' : '#2563EB'}
           />
         }
       >

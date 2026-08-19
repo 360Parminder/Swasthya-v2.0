@@ -6,6 +6,7 @@ import notifee, {
   RepeatFrequency,
 } from '@notifee/react-native';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class NotificationService {
   async requestPermissions() {
@@ -32,6 +33,16 @@ class NotificationService {
           sound: 'default',
           vibration: true,
           vibrationPattern: [300, 400, 300, 400],
+        });
+
+        // Care Circle Invites channel
+        await notifee.createChannel({
+          id: 'care_circle_invites',
+          name: 'Care Circle Invites',
+          importance: AndroidImportance.HIGH,
+          sound: 'default',
+          vibration: true,
+          vibrationPattern: [300, 500, 300, 500],
         });
       }
       return settings;
@@ -211,6 +222,81 @@ class NotificationService {
       });
     } catch (error) {
       console.error('[NotificationService] Error displaying notification:', error);
+    }
+  }
+
+  /**
+   * Display Care Circle Invite notification
+   */
+  async displayInviteNotification(senderName, data = {}) {
+    try {
+      await this.requestPermissions();
+
+      await notifee.displayNotification({
+        title: '🤝 Care Circle Invite',
+        body: `${senderName || 'A user'} invited you to connect on Swasthya. Tap to view and accept.`,
+        data: {
+          action: 'open_notifications',
+          ...data,
+        },
+        android: {
+          channelId: 'care_circle_invites',
+          importance: AndroidImportance.HIGH,
+          visibility: AndroidVisibility.PUBLIC,
+          sound: 'default',
+          pressAction: {
+            id: 'default',
+          },
+        },
+        ios: {
+          sound: 'default',
+        },
+      });
+    } catch (error) {
+      console.error('[NotificationService] Error displaying invite notification:', error);
+    }
+  }
+
+  /**
+   * Retrieves or generates a persistent device push FCM token
+   */
+  async getDeviceToken() {
+    try {
+      let token = await AsyncStorage.getItem('fcm_token');
+      if (!token) {
+        try {
+          const messaging = require('@react-native-firebase/messaging').default;
+          if (messaging) {
+            token = await messaging().getToken();
+          }
+        } catch (e) {
+          token = `swasthya_fcm_${Platform.OS}_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
+        }
+
+        if (token) {
+          await AsyncStorage.setItem('fcm_token', token);
+        }
+      }
+      return token;
+    } catch (err) {
+      console.log('Error getting device token:', err?.message);
+      return null;
+    }
+  }
+
+  /**
+   * Syncs the device FCM token with backend user record
+   */
+  async syncFcmToken() {
+    try {
+      const token = await this.getDeviceToken();
+      if (token) {
+        const { authApi } = require('../api/authApi');
+        const res = await authApi.updateFcmToken(token);
+        console.log('[NotificationService] FCM Token synced with backend:', res?.data?.message || 'Success');
+      }
+    } catch (error) {
+      console.log('[NotificationService] Failed to sync FCM token with backend:', error?.response?.data?.message || error?.message);
     }
   }
 

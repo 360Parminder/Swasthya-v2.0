@@ -15,22 +15,47 @@ notifee.onBackgroundEvent(async ({ type, detail: _detail }) => {
   }
 });
 
+import messaging from '@react-native-firebase/messaging';
+
 const App = () => {
   React.useEffect(() => {
     import('./src/services/notificationService').then(({ notificationService }) => {
       notificationService.requestPermissions();
+      notificationService.syncFcmToken();
     });
 
-    const unsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
+    // Foreground FCM push listener
+    const unsubscribeFCM = messaging().onMessage(async (remoteMessage) => {
+      console.log('[FCM] Message received in foreground:', remoteMessage);
+      if (remoteMessage?.notification) {
+        const isInvite = remoteMessage.data?.type === 'care_circle_invite';
+        await notifee.displayNotification({
+          title: remoteMessage.notification.title || (isInvite ? '🤝 Care Circle Invite' : 'Swasthya Alert'),
+          body: remoteMessage.notification.body || '',
+          data: remoteMessage.data || {},
+          android: {
+            channelId: isInvite ? 'care_circle_invites' : 'medication_reminders',
+            importance: AndroidImportance.HIGH,
+            sound: 'default',
+            pressAction: { id: 'default' },
+          },
+        });
+      }
+    });
+
+    const unsubscribeNotifee = notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
         const payload = detail.notification?.data;
         if (payload?.action === 'medication_alarm') {
-          // Navigation logic can be handled here or inside index
+          // Navigation logic handled if needed
         }
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeFCM();
+      unsubscribeNotifee();
+    };
   }, []);
 
   const isDarkMode = useColorScheme() === 'dark';

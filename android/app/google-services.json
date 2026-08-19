@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "770979802391",
+    "project_id": "swasthya-33b83",
+    "storage_bucket": "swasthya-33b83.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:770979802391:android:79dbb7623c0e9353341b52",
+        "android_client_info": {
+          "package_name": "com.swasthya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvqeOeZb6ld8lSTu0ShO9fd2zttdBh9KE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

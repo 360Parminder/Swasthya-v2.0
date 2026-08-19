@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Keychain from 'react-native-keychain';
 import { authApi } from '../api/authApi';
+import { notificationService } from '../services/notificationService';
 
 const AuthContext = createContext();
 
@@ -25,6 +26,8 @@ export const AuthProvider = ({ children }) => {
             user: response.data.user,
             authenticated: true,
           });
+          // Sync FCM push token with backend
+          notificationService.syncFcmToken();
         }
         setIsLoading(false);
       } catch (error) {
@@ -37,7 +40,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (mobile, password) => {
     setIsLoading(true);
     try {
-      const response = await authApi.login(mobile, password);
+      const fcmToken = await notificationService.getDeviceToken();
+      const response = await authApi.login(mobile, password, fcmToken);
       console.log('Login response:', response);
 
       setAuthState({
@@ -46,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         authenticated: true,
       });
       await Keychain.setGenericPassword('token', response.data.token);
+      notificationService.syncFcmToken();
       setIsLoading(false);
       return response;
     } catch (error) {
@@ -56,9 +61,10 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userDataOrEmail, password, name) => {
     try {
+      const fcmToken = await notificationService.getDeviceToken();
       const payload = typeof userDataOrEmail === 'object' 
-        ? userDataOrEmail 
-        : { email: userDataOrEmail, password, name };
+        ? { ...userDataOrEmail, fcm_token: fcmToken, notificationToken: fcmToken } 
+        : { email: userDataOrEmail, password, name, fcm_token: fcmToken, notificationToken: fcmToken };
       const response = await authApi.register(payload);
       return response;
     } catch (error) {
@@ -69,7 +75,8 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = async (googleData) => {
     setIsLoading(true);
     try {
-      const response = await authApi.googleAuth(googleData);
+      const fcmToken = await notificationService.getDeviceToken();
+      const response = await authApi.googleAuth({ ...googleData, fcm_token: fcmToken });
       console.log('Google Auth response:', response?.data);
 
       const token = response?.data?.token;
@@ -82,6 +89,7 @@ export const AuthProvider = ({ children }) => {
           authenticated: true,
         });
         await Keychain.setGenericPassword('token', token);
+        notificationService.syncFcmToken();
       }
       setIsLoading(false);
       return response;
