@@ -30,7 +30,6 @@ import {
   WeightScale01Icon,
   RulerIcon,
   UserGroupIcon,
-  CheckmarkCircle02Icon,
   Clock01Icon,
   RefreshIcon,
 } from '@hugeicons/core-free-icons';
@@ -194,9 +193,9 @@ const ProfileScreen = () => {
           <View style={styles.heroTextCol}>
             <View style={styles.verifiedRow}>
               <View style={styles.verifiedDot} />
-              <Text style={styles.verifiedText}>ACTIVE PATIENT</Text>
+              <Text style={styles.verifiedText}>ACTIVE USER</Text>
             </View>
-            <Text style={[styles.heroName, theme.heroName]} numberOfLines={1}>
+            <Text style={[styles.heroName, theme.heroName,{textTransform:"capitalize"}]} numberOfLines={1}>
               {userName}
             </Text>
             <Text style={[styles.heroEmail, theme.heroEmail]} numberOfLines={1}>
@@ -278,7 +277,7 @@ const ProfileScreen = () => {
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuLabel}>FULL NAME</Text>
-              <Text style={[styles.menuValue, theme.menuValue]}>{userName}</Text>
+              <Text style={[styles.menuValue, theme.menuValue,{textTransform:"capitalize"}]}>{userName}</Text>
             </View>
           </View>
           <View style={[styles.rowDivider, theme.rowDivider]} />
@@ -367,7 +366,7 @@ const ProfileScreen = () => {
           {/* Medication History Log */}
           <TouchableOpacity
             style={styles.navRow}
-            onPress={() => navigation.navigate('MedicationHistory')}
+            onPress={() => navigation.navigate('Medication')}
             activeOpacity={0.7}
           >
             <View style={[styles.menuIconBox, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF' }]}>

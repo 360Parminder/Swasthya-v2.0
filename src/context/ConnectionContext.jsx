@@ -1,33 +1,59 @@
-import React, { createContext, use, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { connectionApi } from '../api/connectionApi';
-import { showToast } from '../config/toastConfig'; // Make sure you have this utility
+import { showToast } from '../config/toastConfig';
 
 const ConnectionContext = createContext();
 
 export const ConnectionProvider = ({ children }) => {
     const [connections, setConnections] = useState([]);
-    const [requests, setRequests] = useState([]);
+    const [receivedRequests, setReceivedRequests] = useState([]);
+    const [sentRequests, setSentRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const fetchRequests = async () => {
+    const fetchRequests = useCallback(async () => {
         try {
             setIsLoading(true);
             const response = await connectionApi.viewPending();
-            setRequests((response.data.connections || []).filter(Boolean));
+            const recv = response.data.receivedRequests || response.data.requests || response.data.connections || [];
+            const sent = response.data.sentRequests || [];
+            setReceivedRequests(recv.filter(Boolean));
+            setSentRequests(sent.filter(Boolean));
+            return { received: recv, sent };
         } catch (error) {
-            showToast('error', error.response?.data?.message || 'Failed to fetch requests');
+            // Silently handle or toast on error
+            return { received: [], sent: [] };
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    const fetchConnections = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const response = await connectionApi.viewAll();
+            setConnections(response.data.connections || []);
+            return response.data.connections || [];
+        } catch (error) {
+            return [];
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    const refreshAll = useCallback(async () => {
+        await Promise.all([fetchConnections(), fetchRequests()]);
+    }, [fetchConnections, fetchRequests]);
 
     const sendRequest = async (receiverId) => {
         try {
             setIsLoading(true);
-            await connectionApi.sendRequest(receiverId);
-            showToast('success', 'Connection Request Sent');
+            const res = await connectionApi.sendRequest(receiverId);
+            showToast('success', 'Invitation Sent', 'Connection request has been delivered.');
+            await fetchRequests();
+            return { success: true, data: res.data };
         } catch (error) {
-            showToast('error', error.response?.data?.message || 'An error occurred');
+            showToast('error', 'Failed', error.response?.data?.message || 'Could not send invitation');
+            return { success: false, error: error.response?.data?.message };
         } finally {
             setIsLoading(false);
         }
@@ -37,41 +63,50 @@ export const ConnectionProvider = ({ children }) => {
         try {
             setIsLoading(true);
             await connectionApi.updateRequest(senderId, status);
-            await fetchRequests();
-            showToast('success', 'Connection Updated');
+            await refreshAll();
+            showToast('success', status === 'accepted' ? 'Connection Established' : 'Request Declined');
+            return { success: true };
         } catch (error) {
             showToast('error', error.response?.data?.message || 'An error occurred');
+            return { success: false };
         } finally {
             setIsLoading(false);
         }
     };
 
-    const fetchConnections = async () => {
+    const cancelRequest = async (receiverId) => {
         try {
             setIsLoading(true);
-            const response = await connectionApi.viewAll();
-            setConnections(response.data.connections || []);
+            await connectionApi.cancelRequest(receiverId);
+            await fetchRequests();
+            showToast('info', 'Request Cancelled', 'Connection invitation has been withdrawn.');
+            return { success: true };
         } catch (error) {
-            showToast('error', error.response?.data?.message || 'Failed to fetch connections');
+            showToast('error', error.response?.data?.message || 'Could not cancel request');
+            return { success: false };
         } finally {
             setIsLoading(false);
         }
     };
-    console.log('ConnectionContext initialized with connections:', connections);
+
     useEffect(() => {
-        fetchConnections();
-    }, []);
+        refreshAll();
+    }, [refreshAll]);
 
     return (
         <ConnectionContext.Provider
             value={{
                 connections,
-                requests,
+                requests: receivedRequests,
+                receivedRequests,
+                sentRequests,
                 isLoading,
                 fetchRequests,
+                fetchConnections,
+                refreshAll,
                 sendRequest,
                 updateConnection,
-                fetchConnections,
+                cancelRequest,
             }}
         >
             {children}

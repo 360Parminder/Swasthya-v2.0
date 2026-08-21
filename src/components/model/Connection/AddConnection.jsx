@@ -19,7 +19,7 @@ const dummyContacts = [
     { id: '4', name: 'Alex Wright', subtitle: 'alex.w@provider.net', initials: 'AW' }
 ];
 
-const AddConnection = ({ isVisible, onClose }) => {
+const AddConnection = ({ isVisible, onClose, onSuccess }) => {
     const COLORS = useThemeColors();
     const TEAL = COLORS.primary;
     const GREEN = COLORS.success;
@@ -27,6 +27,7 @@ const AddConnection = ({ isVisible, onClose }) => {
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
+    const [sentMap, setSentMap] = useState({});
     const [errorMsg, setErrorMsg] = useState('');
 
     const styles = useMemo(() => getStyles(COLORS, TEAL, GREEN), [COLORS, TEAL, GREEN]);
@@ -54,11 +55,13 @@ const AddConnection = ({ isVisible, onClose }) => {
     const sendRequest = async (receiverId) => {
         try {
             await connectionApi.sendRequest(receiverId);
+            setSentMap(prev => ({ ...prev, [receiverId]: true }));
             Toast.show({
                 type: 'success',
                 text1: 'Invitation Sent',
                 text2: 'Connection request has been delivered.'
             });
+            if (onSuccess) onSuccess();
         } catch (error) {
             Toast.show({
                 type: 'error',
@@ -70,16 +73,25 @@ const AddConnection = ({ isVisible, onClose }) => {
 
     const renderResultItem = ({ item }) => {
         // If it's a real API result
-        if (item.userId || item._id) {
+        const targetId = item.userId || item._id;
+        const isSent = sentMap[targetId];
+
+        if (targetId) {
             return (
                 <View style={styles.contactCard}>
                     <Image source={{ uri: item.avatar || DEFAULT_AVATAR }} style={styles.avatarImage} />
                     <View style={styles.contactInfo}>
-                        <Text style={styles.contactName}>{item.username}</Text>
-                        <Text style={styles.contactSubtitle}>{item.email}</Text>
+                        <Text style={styles.contactName}>{item.name || item.username}</Text>
+                        <Text style={styles.contactSubtitle}>{item.email || `@${item.username}`}</Text>
                     </View>
-                    <TouchableOpacity style={styles.inviteButton} onPress={() => sendRequest(item.userId || item._id)}>
-                        <Text style={styles.inviteButtonText}>Connect</Text>
+                    <TouchableOpacity
+                        style={[styles.inviteButton, isSent && { backgroundColor: COLORS.border }]}
+                        onPress={() => !isSent && sendRequest(targetId)}
+                        disabled={isSent}
+                    >
+                        <Text style={[styles.inviteButtonText, isSent && { color: COLORS.healthCardSubtext }]}>
+                            {isSent ? 'Sent' : 'Connect'}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             );

@@ -181,6 +181,42 @@ function ProfileStackScreen() {
           animation: 'slide_from_bottom',
         }}
       />
+      <ProfileStack.Screen
+        name="Connections"
+        component={Connection}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <ProfileStack.Screen
+        name="Medication"
+        component={Medication}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <ProfileStack.Screen
+        name="MedicationHistory"
+        component={MedicationHistory}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <ProfileStack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_right',
+        }}
+      />
     </ProfileStack.Navigator>
   );
 }
