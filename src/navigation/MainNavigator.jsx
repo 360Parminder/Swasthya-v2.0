@@ -7,6 +7,7 @@ import Connection from '../screens/connections/Connection';
 
 import Medication from '../screens/medication/Medication';
 import MedicationHistory from '../screens/medication/MedicationHistory';
+import RefillAlertScreen from '../screens/medication/RefillAlertScreen';
 import AlarmScreen from '../screens/home/AlarmScreen';
 
 import { View } from 'react-native';
@@ -24,6 +25,8 @@ import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
+const MedicationStack = createNativeStackNavigator();
+const ConnectionsStack = createNativeStackNavigator();
 
 // Home Stack Navigator
 function HomeStackScreen() {
@@ -82,6 +85,15 @@ function HomeStackScreen() {
       <HomeStack.Screen
         name="MedicationHistory"
         component={MedicationHistory}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <HomeStack.Screen
+        name="RefillAlerts"
+        component={RefillAlertScreen}
         options={{
           headerShown: false,
           presentation: 'modal',
@@ -155,6 +167,131 @@ function HomeStackScreen() {
   );
 }
 
+// Medication Stack Navigator
+function MedicationStackScreen() {
+  const colors = useThemeColors();
+  return (
+    <MedicationStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background,
+          height: 56,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: { fontWeight: 'bold' },
+        headerTitleAlign: 'center',
+        headerShadowVisible: false,
+      }}
+    >
+      <MedicationStack.Screen
+        name="Medication"
+        component={Medication}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <MedicationStack.Screen
+        name="MedicationHistory"
+        component={MedicationHistory}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <MedicationStack.Screen
+        name="RefillAlerts"
+        component={RefillAlertScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <MedicationStack.Screen
+        name="Connections"
+        component={Connection}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <MedicationStack.Screen
+        name="AlarmScreen"
+        component={AlarmScreen}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+        }}
+      />
+      <MedicationStack.Screen
+        name="HelpSupport"
+        component={HelpSupportScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+    </MedicationStack.Navigator>
+  );
+}
+
+// Connections Stack Navigator
+function ConnectionsStackScreen() {
+  const colors = useThemeColors();
+  return (
+    <ConnectionsStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background,
+          height: 56,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: { fontWeight: 'bold' },
+        headerTitleAlign: 'center',
+        headerShadowVisible: false,
+      }}
+    >
+      <ConnectionsStack.Screen
+        name="Connections"
+        component={Connection}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <ConnectionsStack.Screen
+        name="Medication"
+        component={Medication}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <ConnectionsStack.Screen
+        name="MedicationHistory"
+        component={MedicationHistory}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <ConnectionsStack.Screen
+        name="HelpSupport"
+        component={HelpSupportScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+    </ConnectionsStack.Navigator>
+  );
+}
+
 // Profile Stack Navigator
 function ProfileStackScreen() {
   const colors = useThemeColors();
@@ -202,6 +339,15 @@ function ProfileStackScreen() {
       <ProfileStack.Screen
         name="MedicationHistory"
         component={MedicationHistory}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <ProfileStack.Screen
+        name="RefillAlerts"
+        component={RefillAlertScreen}
         options={{
           headerShown: false,
           presentation: 'modal',
@@ -291,8 +437,8 @@ const MainNavigator = () => {
       })}
     >
       <Tab.Screen name="HomeTab" component={HomeStackScreen} />
-      <Tab.Screen name="MedicationTab" component={Medication} />
-      <Tab.Screen name="ConnectionsTab" component={Connection} />
+      <Tab.Screen name="MedicationTab" component={MedicationStackScreen} />
+      <Tab.Screen name="ConnectionsTab" component={ConnectionsStackScreen} />
       <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
       {/* <Tab.Screen name="AlarmScreen" component={AlarmScreen} /> */}
     </Tab.Navigator>

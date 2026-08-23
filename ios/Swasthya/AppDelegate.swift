@@ -15,7 +15,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    FirebaseApp.configure()
+    if let filePath = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+       FileManager.default.fileExists(atPath: filePath) {
+      FirebaseApp.configure()
+    } else {
+      NSLog("[AppDelegate] GoogleService-Info.plist not found in bundle, skipping FirebaseApp.configure()")
+    }
 
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)

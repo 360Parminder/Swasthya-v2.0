@@ -22,6 +22,7 @@
 		90AB06EC07C746A683071FC2 /* Rubik-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 75D2C43F393C4838AC75821A /* Rubik-Italic.ttf */; };
 		93A57A4688954ABF90179BAB /* Rubik-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 12B9B78C068443689C52EE1A /* Rubik-BlackItalic.ttf */; };
 		A68EB42033AFBB61625752C9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		13B07FB91A68108700A75B9A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* GoogleService-Info.plist */; };
 		B1CDEFDDA51740DE909BE522 /* Rubik-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 68604D9AC64C4E878DA53D18 /* Rubik-SemiBold.ttf */; };
 		CB0C15E7EAE340669F1A75D1 /* Rubik-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DCECCA56EE6E4FA28144A86F /* Rubik-Light.ttf */; };
 		DE9FF9323E084A959165C857 /* Rubik-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CBCF4BC355554580918C6A3F /* Rubik-Regular.ttf */; };
@@ -37,6 +38,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Swasthya/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Swasthya/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Swasthya/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Swasthya/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		268DD9762FE3ED540072D101 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3B4392A12AC88292D35C810B /* Pods-Swasthya.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Swasthya.debug.xcconfig"; path = "Target Support Files/Pods-Swasthya/Pods-Swasthya.debug.xcconfig"; sourceTree = "<group>"; };
 		5035CFF0965C4122A6D858C5 /* Rubik-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Rubik-ExtraBoldItalic.ttf"; path = "../assets/fonts/Rubik-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				13B07FB71A68108700A75B9A /* GoogleService-Info.plist */,
 			);
 			name = Swasthya;
 			sourceTree = "<group>";
@@ -230,6 +233,7 @@
 				B1CDEFDDA51740DE909BE522 /* Rubik-SemiBold.ttf in Resources */,
 				59C1CDF0BCBB4A0BBAE21AD7 /* Rubik-SemiBoldItalic.ttf in Resources */,
 				A68EB42033AFBB61625752C9 /* PrivacyInfo.xcprivacy in Resources */,
+				13B07FB91A68108700A75B9A /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

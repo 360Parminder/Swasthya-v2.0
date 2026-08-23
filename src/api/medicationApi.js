@@ -12,4 +12,6 @@ export const medicationApi = {
             date
         }
     }),
+    getRefillAlerts: () => apiClient.get('/medication/refills'),
+    refillMedication: (data) => apiClient.post('/medication/refill', data),
 };

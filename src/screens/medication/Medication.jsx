@@ -585,7 +585,7 @@ const Medication = () => {
           {/* Refill Alerts Card */}
           <TouchableOpacity
             style={[styles.actionCard, theme.actionCard]}
-            onPress={() => setIsAddModalVisible(true)}
+            onPress={() => navigation.navigate('RefillAlerts')}
             activeOpacity={0.88}
           >
             <View style={[styles.actionIconBox, theme.refillIconBox]}>
