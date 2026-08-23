@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,492 +6,678 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
+  StatusBar,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, G } from 'react-native-svg';
-import { useThemeColors } from '../../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, Moon02Icon, Sun02Icon, Clock01Icon } from '@hugeicons/core-free-icons';
+import {
+  ArrowLeft01Icon,
+  Moon02Icon,
+  Sun02Icon,
+  Clock01Icon,
+  SparklesIcon,
+  CheckmarkCircle02Icon,
+  VolumeHighIcon,
+  Notification03Icon,
+} from '@hugeicons/core-free-icons';
+import Toast from 'react-native-toast-message';
+import { useThemeColors } from '../../components/ui/colors';
 
-// Duration Pill
-const DurationPill = ({ value, label, selected, onPress, styles }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={[styles.durationPill, selected && styles.durationPillSelected]}
-  >
-    <Text style={[styles.durationValue, selected && styles.durationValueSelected]}>{value}</Text>
-    <Text style={[styles.durationLabel, selected && styles.durationLabelSelected]}>{label}</Text>
-  </TouchableOpacity>
-);
-
-// Day Circle
-const DayCircle = ({ day, active, styles }) => (
-  <TouchableOpacity style={[styles.dayCircle, active && styles.dayCircleActive]}>
-    <Text style={[styles.dayText, active && styles.dayTextActive]}>{day}</Text>
-  </TouchableOpacity>
-);
-
-// Time Display with circular ring
-const TimeRing = ({ time, progress, color, styles, borderColor }) => {
-  const radius = 52;
-  const strokeWidth = 4;
+// ─── Time Dial Display ──────────────────────────────────────────────
+const TimeDial = ({ timeStr, progress = 0.75, color = '#6366F1', isDark, icon: IconComponent }) => {
+  const size = 96;
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progressLength = circumference * progress;
 
   return (
-    <View style={styles.timeRingContainer}>
-      <Svg width={(radius + strokeWidth) * 2} height={(radius + strokeWidth) * 2}>
-        <G rotation="-90" origin={`${radius + strokeWidth}, ${radius + strokeWidth}`}>
+    <View style={dialStyles.wrapper}>
+      <Svg width={size} height={size}>
+        <G rotation="-90" origin={`${size / 2}, ${size / 2}`}>
           <Circle
-            cx={radius + strokeWidth}
-            cy={radius + strokeWidth}
+            cx={size / 2}
+            cy={size / 2}
             r={radius}
-            stroke={borderColor || '#E2E8F0'}
+            stroke={isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0'}
             strokeWidth={strokeWidth}
             fill="none"
           />
           <Circle
-            cx={radius + strokeWidth}
-            cy={radius + strokeWidth}
+            cx={size / 2}
+            cy={size / 2}
             r={radius}
             stroke={color}
             strokeWidth={strokeWidth}
-            fill="none"
-            strokeLinecap="round"
             strokeDasharray={`${progressLength} ${circumference}`}
+            strokeLinecap="round"
+            fill="none"
           />
         </G>
       </Svg>
-      <Text style={styles.timeRingText}>{time}</Text>
+      <View style={dialStyles.centerContent}>
+        {IconComponent && <HugeiconsIcon icon={IconComponent} size={16} color={color} />}
+        <Text style={[dialStyles.timeText, { color: isDark ? '#FFFFFF' : '#111827' }]}>
+          {timeStr}
+        </Text>
+      </View>
     </View>
   );
 };
 
+const dialStyles = StyleSheet.create({
+  wrapper: {
+    width: 96,
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  centerContent: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  timeText: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+});
+
 const SleepScheduleScreen = () => {
   const navigation = useNavigation();
-  const COLORS = useThemeColors();
-  const styles = React.useMemo(() => getStyles(COLORS), [COLORS]);
+  const colors = useThemeColors();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+
+  // Bedtime (minutes from midnight: 22:30 -> 1350)
+  const [bedtimeMinutes, setBedtimeMinutes] = useState(22 * 60 + 30);
+  // Wakeup (minutes from midnight: 06:45 -> 405)
+  const [wakeMinutes, setWakeMinutes] = useState(6 * 60 + 45);
 
   const [windDownEnabled, setWindDownEnabled] = useState(true);
   const [selectedDuration, setSelectedDuration] = useState(30);
-  const [activeDays, setActiveDays] = useState(['M', 'T', 'W', 'T2', 'F']);
+  const [smartAlarmEnabled, setSmartAlarmEnabled] = useState(true);
+  const [activeDays, setActiveDays] = useState(['M', 'T', 'W', 'TH', 'F']);
+
+  const adjustBedtime = (deltaMinutes) => {
+    setBedtimeMinutes((prev) => {
+      let next = (prev + deltaMinutes) % 1440;
+      if (next < 0) next += 1440;
+      return next;
+    });
+  };
+
+  const adjustWakeTime = (deltaMinutes) => {
+    setWakeMinutes((prev) => {
+      let next = (prev + deltaMinutes) % 1440;
+      if (next < 0) next += 1440;
+      return next;
+    });
+  };
+
+  const formatMinutesToTime = (totalMinutes) => {
+    const hours24 = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const period = hours24 >= 12 ? 'PM' : 'AM';
+    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    const minStr = String(mins).padStart(2, '0');
+    return {
+      formatted: `${hours12}:${minStr}`,
+      period,
+      full: `${hours12}:${minStr} ${period}`,
+    };
+  };
+
+  const bedtimeObj = useMemo(() => formatMinutesToTime(bedtimeMinutes), [bedtimeMinutes]);
+  const wakeObj = useMemo(() => formatMinutesToTime(wakeMinutes), [wakeMinutes]);
+
+  // Calculate total sleep duration
+  const totalSleepMinutes = useMemo(() => {
+    let diff = wakeMinutes - bedtimeMinutes;
+    if (diff < 0) diff += 1440;
+    return diff;
+  }, [bedtimeMinutes, wakeMinutes]);
+
+  const totalHours = Math.floor(totalSleepMinutes / 60);
+  const remainingMins = totalSleepMinutes % 60;
+  const cycleCount = (totalSleepMinutes / 90).toFixed(1);
+
+  const toggleDay = (dayKey) => {
+    setActiveDays((prev) =>
+      prev.includes(dayKey) ? prev.filter((d) => d !== dayKey) : [...prev, dayKey]
+    );
+  };
+
+  const handleSave = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Schedule Saved',
+      text2: `Target ${totalHours}h ${remainingMins}m sleep window active.`,
+    });
+    setTimeout(() => {
+      navigation.goBack();
+    }, 400);
+  };
+
+  const daysList = [
+    { key: 'S1', label: 'S' },
+    { key: 'M', label: 'M' },
+    { key: 'T', label: 'T' },
+    { key: 'W', label: 'W' },
+    { key: 'TH', label: 'T' },
+    { key: 'F', label: 'F' },
+    { key: 'S2', label: 'S' },
+  ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={COLORS.primary} strokeWidth={2.5} />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+
+      {/* ── Top Navigation Bar ── */}
+      <View style={[styles.navBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[styles.navIconBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+          activeOpacity={0.7}
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={colors.textPrimary} strokeWidth={2.2} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Sleep Schedule</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', width: 40 }}>
+
+        <View style={styles.navTitleContainer}>
+          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Sleep Schedule</Text>
+          <Text style={[styles.navSubtitle, { color: colors.textSecondary }]}>Target Window & Alarms</Text>
         </View>
+
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={{ backgroundColor: '#F8FAFC' }}
+        style={styles.mainScrollView}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-
-        {/* Title */}
-        <Text style={styles.pageTitle}>Sleep Schedule</Text>
-        <Text style={styles.pageSubtitle}>
-          Configure your ideal sleep window for better recovery.
-        </Text>
-
-        {/* Total Sleep Goal */}
-        <View style={styles.goalCard}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.goalLabel}>TOTAL SLEEP GOAL</Text>
-            <Text style={styles.goalValue}>8h 15m</Text>
-            <Text style={styles.goalDesc}>
-              You are within the recommended range for optimal cognitive function.
-            </Text>
-          </View>
-          <HugeiconsIcon icon={Moon02Icon} size={36} color="rgba(255,255,255,0.15)" />
-        </View>
-
-        {/* Bedtime Card */}
-        <View style={styles.timeCard}>
-          <View style={styles.timeCardHeader}>
-            <HugeiconsIcon icon={Moon02Icon} size={22} color={COLORS.primary} />
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.timeCardTitle}>Bedtime</Text>
-              <Text style={styles.timeCardSub}>Wind down starts 22:00</Text>
+        {/* ── Hero Target Goal Card ── */}
+        <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.heroHeaderRow}>
+            <View style={styles.heroBadgeRow}>
+              <HugeiconsIcon icon={SparklesIcon} size={14} color="#818CF8" />
+              <Text style={styles.heroBadgeText}>TARGET SLEEP GOAL</Text>
+            </View>
+            <View style={[styles.cyclesBadge, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : '#EEF2FF' }]}>
+              <Text style={[styles.cyclesBadgeText, { color: '#6366F1' }]}>~{cycleCount} Cycles</Text>
             </View>
           </View>
 
-          <View style={styles.timeCardBody}>
-            <TimeRing time="22:30" progress={0.75} color={COLORS.primary} styles={styles} borderColor={COLORS.border} />
-          </View>
-
-          <View style={styles.timeAdjustRow}>
-            <TouchableOpacity style={styles.adjustBtn}>
-              <Text style={styles.adjustBtnText}>-15m</Text>
-            </TouchableOpacity>
-            <Text style={styles.periodLabel}>PM</Text>
-            <TouchableOpacity style={styles.adjustBtn}>
-              <Text style={styles.adjustBtnText}>+15m</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={[styles.heroValText, { color: colors.textPrimary }]}>
+            {totalHours}h {remainingMins > 0 ? `${remainingMins}m` : '00m'}
+          </Text>
+          <Text style={[styles.heroSubText, { color: colors.textSecondary }]}>
+            Provides {cycleCount} full 90-minute restorative sleep cycles for optimal energy.
+          </Text>
         </View>
 
-        {/* Wake Up Card */}
-        <View style={styles.timeCard}>
-          <View style={styles.timeCardHeader}>
-            <HugeiconsIcon icon={Sun02Icon} size={22} color={COLORS.warning} />
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.timeCardTitle}>Wake Up</Text>
-              <Text style={styles.timeCardSub}>Smart alarm enabled</Text>
+        {/* ── Bedtime Adjust Card ── */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardTitleWithIcon}>
+              <View style={[styles.cardIconBox, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : '#EEF2FF' }]}>
+                <HugeiconsIcon icon={Moon02Icon} size={18} color="#6366F1" />
+              </View>
+              <View>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Bedtime</Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  Wind down begins at {bedtimeObj.full}
+                </Text>
+              </View>
             </View>
           </View>
 
-          <View style={styles.timeCardBody}>
-            <TimeRing time="06:45" progress={0.45} color={COLORS.textMuted} styles={styles} borderColor={COLORS.border} />
-          </View>
-
-          <View style={styles.timeAdjustRow}>
-            <TouchableOpacity style={styles.adjustBtn}>
-              <Text style={styles.adjustBtnText}>-15m</Text>
+          <View style={styles.adjustRow}>
+            <TouchableOpacity
+              style={[styles.adjustBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+              onPress={() => adjustBedtime(-15)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.adjustBtnText, { color: colors.textPrimary }]}>-15m</Text>
             </TouchableOpacity>
-            <Text style={styles.periodLabel}>AM</Text>
-            <TouchableOpacity style={styles.adjustBtn}>
-              <Text style={styles.adjustBtnText}>+15m</Text>
+
+            <TimeDial
+              timeStr={bedtimeObj.formatted}
+              progress={0.78}
+              color="#6366F1"
+              isDark={isDark}
+              icon={Moon02Icon}
+            />
+
+            <TouchableOpacity
+              style={[styles.adjustBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+              onPress={() => adjustBedtime(15)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.adjustBtnText, { color: colors.textPrimary }]}>+15m</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Wind-down Reminder */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeaderRow}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <HugeiconsIcon icon={Clock01Icon} size={20} color={COLORS.primary} />
-              <Text style={styles.sectionCardTitle}>Wind-down Reminder</Text>
+        {/* ── Wake Up Adjust Card ── */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardTitleWithIcon}>
+              <View style={[styles.cardIconBox, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFFBEB' }]}>
+                <HugeiconsIcon icon={Sun02Icon} size={18} color="#F59E0B" />
+              </View>
+              <View>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Wake Up</Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  Alarm set for {wakeObj.full}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.adjustRow}>
+            <TouchableOpacity
+              style={[styles.adjustBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+              onPress={() => adjustWakeTime(-15)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.adjustBtnText, { color: colors.textPrimary }]}>-15m</Text>
+            </TouchableOpacity>
+
+            <TimeDial
+              timeStr={wakeObj.formatted}
+              progress={0.35}
+              color="#F59E0B"
+              isDark={isDark}
+              icon={Sun02Icon}
+            />
+
+            <TouchableOpacity
+              style={[styles.adjustBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+              onPress={() => adjustWakeTime(15)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.adjustBtnText, { color: colors.textPrimary }]}>+15m</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── Wind-Down Reminder Card ── */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.toggleHeaderRow}>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Wind-Down Reminder</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                Notification alert before bedtime
+              </Text>
             </View>
             <Switch
               value={windDownEnabled}
               onValueChange={setWindDownEnabled}
-              trackColor={{ false: '#E2E8F0', true: COLORS.primary }}
+              trackColor={{ false: colors.border, true: '#6366F1' }}
               thumbColor="#FFFFFF"
             />
           </View>
 
-          {/* Time Picker Pill List */}
-          <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Duration before bedtime</Text>
-          <View style={styles.durationPillsRow}>
-            <DurationPill
-              value="15m"
-              label="Quick"
-              selected={selectedDuration === 15}
-              onPress={() => setSelectedDuration(15)}
-              styles={styles}
-            />
-            <DurationPill
-              value="30m"
-              label="Standard"
-              selected={selectedDuration === 30}
-              onPress={() => setSelectedDuration(30)}
-              styles={styles}
-            />
-            <DurationPill
-              value="45m"
-              label="Deep"
-              selected={selectedDuration === 45}
-              onPress={() => setSelectedDuration(45)}
-              styles={styles}
-            />
-            <DurationPill
-              value="60m"
-              label="Extended"
-              selected={selectedDuration === 60}
-              onPress={() => setSelectedDuration(60)}
-              styles={styles}
+          {windDownEnabled && (
+            <View style={styles.durationPillsContainer}>
+              <Text style={[styles.durationLabel, { color: colors.textMuted }]}>REMINDER LEAD TIME</Text>
+              <View style={styles.durationPillsRow}>
+                {[
+                  { val: 15, label: '15m', sub: 'Quick' },
+                  { val: 30, label: '30m', sub: 'Standard' },
+                  { val: 45, label: '45m', sub: 'Optimal' },
+                  { val: 60, label: '60m', sub: 'Relax' },
+                ].map((item) => {
+                  const isSelected = selectedDuration === item.val;
+                  return (
+                    <TouchableOpacity
+                      key={item.val}
+                      style={[
+                        styles.durationPill,
+                        isSelected
+                          ? { backgroundColor: '#6366F1', borderColor: '#6366F1' }
+                          : { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                      ]}
+                      onPress={() => setSelectedDuration(item.val)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.durationPillVal,
+                          { color: isSelected ? '#FFFFFF' : colors.textPrimary },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.durationPillSub,
+                          { color: isSelected ? 'rgba(255,255,255,0.8)' : colors.textMuted },
+                        ]}
+                      >
+                        {item.sub}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* ── Smart Gentle Alarm Card ── */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.toggleHeaderRow}>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Smart Light Alarm</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                Gradual volume ramp up in light sleep window
+              </Text>
+            </View>
+            <Switch
+              value={smartAlarmEnabled}
+              onValueChange={setSmartAlarmEnabled}
+              trackColor={{ false: colors.border, true: '#F59E0B' }}
+              thumbColor="#FFFFFF"
             />
           </View>
         </View>
 
-        {/* Days Active Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardSectionTitle}>Active Days</Text>
-          <Text style={styles.cardSectionSub}>
-            Apply this schedule on selected days of the week.
+        {/* ── Active Days Selector ── */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Active Schedule Days</Text>
+          <Text style={[styles.cardSubtitle, { color: colors.textSecondary, marginBottom: 14 }]}>
+            Choose days of week to apply this bedtime routine
           </Text>
+
           <View style={styles.daysRow}>
-            <DayCircle day="S" active={false} styles={styles} />
-            <DayCircle day="M" active={true} styles={styles} />
-            <DayCircle day="T" active={true} styles={styles} />
-            <DayCircle day="W" active={true} styles={styles} />
-            <DayCircle day="T" active={true} styles={styles} />
-            <DayCircle day="F" active={true} styles={styles} />
-            <DayCircle day="S" active={false} styles={styles} />
+            {daysList.map((d) => {
+              const isActive = activeDays.includes(d.key);
+              return (
+                <TouchableOpacity
+                  key={d.key}
+                  style={[
+                    styles.dayCircle,
+                    isActive
+                      ? { backgroundColor: '#6366F1', borderColor: '#6366F1' }
+                      : { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                  ]}
+                  onPress={() => toggleDay(d.key)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.dayText,
+                      { color: isActive ? '#FFFFFF' : colors.textSecondary },
+                    ]}
+                  >
+                    {d.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* Save Button */}
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save Sleep Schedule</Text>
+        {/* ── Save Button ── */}
+        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.88}>
+          <Text style={styles.saveBtnText}>Save Sleep Routine</Text>
         </TouchableOpacity>
 
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const getStyles = (COLORS) => StyleSheet.create({
-  header: {
+// ─── Styles ──────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: COLORS.background,
+    borderBottomWidth: 1,
   },
-  headerButton: {
-    padding: 8,
+  navIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginLeft: 6,
+  navTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 12,
   },
-  headerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginLeft: 8,
+  navTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  navSubtitle: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  mainScrollView: {
+    flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 110,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
 
-  /* Page Title */
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 6,
+  // Hero Card
+  heroCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  pageSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-
-  /* Total Sleep Goal */
-  goalCard: {
-    backgroundColor: COLORS.primaryHover,
-    borderRadius: 16,
-    padding: 24,
+  heroHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  goalLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.primarySoft,
-    letterSpacing: 1.2,
-    marginBottom: 6,
-  },
-  goalValue: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: COLORS.buttonText,
+    justifyContent: 'space-between',
     marginBottom: 8,
-    lineHeight: 40,
   },
-  goalDesc: {
+  heroBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    color: '#818CF8',
+  },
+  cyclesBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  cyclesBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  heroValText: {
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  heroSubText: {
     fontSize: 12,
-    color: COLORS.primarySoft,
-    lineHeight: 18,
+    fontWeight: '500',
+    lineHeight: 17,
   },
 
-  /* Time Card */
-  timeCard: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
-    padding: 20,
+  // Generic Card
+  card: {
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 18,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
-    shadowRadius: 8,
+    shadowRadius: 6,
     elevation: 1,
   },
-  timeCardHeader: {
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    marginBottom: 14,
   },
-  timeCardTitle: {
+  cardTitleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cardIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
-  timeCardSub: {
+  cardSubtitle: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    fontWeight: '500',
     marginTop: 2,
   },
-  timeCardBody: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  timeAdjustRow: {
+
+  // Adjust Row
+  adjustRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   adjustBtn: {
-    backgroundColor: COLORS.border,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   adjustBtnText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  periodLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+    fontWeight: '800',
   },
 
-  /* Time Ring */
-  timeRingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  timeRingText: {
-    position: 'absolute',
-    fontSize: 26,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-
-  /* Section Card */
-  sectionCard: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  sectionHeaderRow: {
+  // Toggle Header
+  toggleHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
-  sectionCardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginLeft: 10,
+  toggleTextCol: {
+    flex: 1,
+    marginRight: 16,
   },
 
-  /* Duration Pills */
-  durationRow: {
+  // Duration Pills
+  durationPillsContainer: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  durationLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  durationPillsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
+    gap: 8,
   },
   durationPill: {
     flex: 1,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
     alignItems: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardBackground,
+    justifyContent: 'center',
   },
-  durationPillSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primarySoft,
+  durationPillVal: {
+    fontSize: 14,
+    fontWeight: '800',
   },
-  durationValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  durationValueSelected: {
-    color: COLORS.primary,
-  },
-  durationLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
+  durationPillSub: {
+    fontSize: 10,
+    fontWeight: '500',
     marginTop: 2,
   },
-  durationLabelSelected: {
-    color: COLORS.primary,
-  },
-  helperText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    lineHeight: 18,
-  },
 
-  /* Repeat Schedule */
-  repeatTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 16,
-  },
+  // Active Days
   daysRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   dayCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.border,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dayCircleActive: {
-    backgroundColor: COLORS.primary,
-  },
   dayText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  dayTextActive: {
-    color: COLORS.buttonText,
+    fontWeight: '800',
   },
 
-  /* Save Button */
-  saveButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 16,
-    paddingVertical: 16,
+  // Save Button
+  saveBtn: {
+    backgroundColor: '#6366F1',
+    paddingVertical: 15,
+    borderRadius: 22,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 20,
+    justifyContent: 'center',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: 6,
   },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.buttonText,
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  bottomSpacer: {
+    height: 30,
   },
 });
 

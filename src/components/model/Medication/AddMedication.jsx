@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,10 +21,15 @@ import {
   Search01Icon,
   CubeIcon,
   Notification03Icon,
-  RepeatIcon
+  RepeatIcon,
+  UserIcon,
+  Tick02Icon,
+  Cancel01Icon,
+  UserGroup03Icon,
 } from '@hugeicons/core-free-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { medicationApi } from '../../../api/medicationApi';
+import { connectionApi } from '../../../api/connectionApi';
 import { notificationService } from '../../../services/notificationService';
 import Toast from 'react-native-toast-message';
 import { 
@@ -76,8 +81,51 @@ const AddMedication = ({ isVisible, onClose }) => {
     remindRefill: true,
   });
 
+  // Connections State
+  const [connectionsList, setConnectionsList] = useState([]);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+  const [connectionSearch, setConnectionSearch] = useState('');
+  const [selectedConnection, setSelectedConnection] = useState(null);
+
+  const fetchConnections = useCallback(async () => {
+    try {
+      setIsLoadingConnections(true);
+      const response = await connectionApi.viewAll();
+      if (response?.data?.connections) {
+        setConnectionsList(response.data.connections || []);
+      }
+    } catch (error) {
+      console.error('Error fetching connections in AddMedication:', error);
+    } finally {
+      setIsLoadingConnections(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isVisible && formData.forWhom === 'connection') {
+      fetchConnections();
+    }
+  }, [isVisible, formData.forWhom, fetchConnections]);
+
+  const filteredConnections = useMemo(() => {
+    if (!connectionSearch.trim()) return connectionsList;
+    const query = connectionSearch.toLowerCase();
+    return connectionsList.filter((c) => {
+      const name = (c?.name || '').toLowerCase();
+      const email = (c?.email || '').toLowerCase();
+      const userId = (c?.userId || '').toLowerCase();
+      return name.includes(query) || email.includes(query) || userId.includes(query);
+    });
+  }, [connectionsList, connectionSearch]);
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleClose = () => {
+    setSelectedConnection(null);
+    setConnectionSearch('');
+    onClose();
   };
 
   const updateTimesCount = (increment) => {
@@ -95,6 +143,15 @@ const AddMedication = ({ isVisible, onClose }) => {
   };
 
   const handleSubmit = async () => {
+    if (formData.forWhom === 'connection' && !formData.relativeId) {
+      Toast.show({
+        type: 'info',
+        text1: 'Select Connection',
+        text2: 'Please select a connection to add this medication for.',
+      });
+      return;
+    }
+
     if (!formData.name?.trim() || !formData.strength?.trim() || !formData.dosage?.trim()) {
       Toast.show({ 
         type: 'info', 
@@ -134,7 +191,7 @@ const AddMedication = ({ isVisible, onClose }) => {
       if (response.status === 201 || response.status === 200) {
         notificationService.syncMedicationReminders([payload]);
         Toast.show({ type: 'success', text1: 'Medication Added 🎉', text2: 'Schedule updated successfully.' });
-        onClose();
+        handleClose();
       } else {
         Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to add medication' });
       }
@@ -150,7 +207,7 @@ const AddMedication = ({ isVisible, onClose }) => {
   };
 
   return (
-    <Modal visible={isVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal visible={isVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
       <SafeAreaView style={[styles.modalRoot, theme.modalRoot]} edges={['top', 'bottom']}>
         <StatusBar 
           barStyle={isDark ? 'light-content' : 'dark-content'} 
@@ -159,7 +216,7 @@ const AddMedication = ({ isVisible, onClose }) => {
 
         {/* Top Header */}
         <View style={[styles.header, theme.header]}>
-          <TouchableOpacity onPress={onClose} style={[styles.backButton, theme.backButton]} activeOpacity={0.8}>
+          <TouchableOpacity onPress={handleClose} style={[styles.backButton, theme.backButton]} activeOpacity={0.8}>
             <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={isDark ? '#FFFFFF' : '#111827'} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, theme.headerTitle]}>Add Medication</Text>
@@ -192,7 +249,11 @@ const AddMedication = ({ isVisible, onClose }) => {
                   styles.segmentButton,
                   formData.forWhom === 'myself' ? theme.segmentActive : theme.segmentInactive
                 ]}
-                onPress={() => handleInputChange('forWhom', 'myself')}
+                onPress={() => {
+                  handleInputChange('forWhom', 'myself');
+                  handleInputChange('relativeId', null);
+                  setSelectedConnection(null);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={[
@@ -220,16 +281,120 @@ const AddMedication = ({ isVisible, onClose }) => {
               </TouchableOpacity>
             </View>
 
+            {/* Connection Picker & Search List */}
             {formData.forWhom === 'connection' && (
-              <View style={styles.fieldContainer}>
-                <View style={[styles.inputWrapper, theme.inputWrapper]}>
-                  <HugeiconsIcon icon={Search01Icon} size={20} color={isDark ? '#A1A1AA' : '#6B7280'} style={styles.fieldIcon} />
-                  <TextInput
-                    style={[styles.textInput, theme.textInput]}
-                    placeholder="Search connection (e.g. Sarah M.)"
-                    placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
-                  />
-                </View>
+              <View style={styles.connectionSection}>
+                {selectedConnection ? (
+                  <View style={[styles.selectedConnCard, theme.twoToneCard]}>
+                    <View style={styles.selectedConnLeft}>
+                      <View style={[styles.selectedConnAvatar, { backgroundColor: isDark ? '#3B82F6' : '#2563EB' }]}>
+                        <Text style={styles.selectedConnAvatarTxt}>
+                          {(selectedConnection.name || 'C').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={styles.selectedConnDetails}>
+                        <View style={styles.selectedConnBadgeRow}>
+                          <HugeiconsIcon icon={Tick02Icon} size={11} color="#10B981" strokeWidth={2.5} />
+                          <Text style={styles.selectedConnBadge}>SELECTED RECIPIENT</Text>
+                        </View>
+                        <Text style={[styles.selectedConnName, theme.cardHeaderTitle]} numberOfLines={1}>
+                          {selectedConnection.name || selectedConnection.username || 'Connection Member'}
+                        </Text>
+                        <Text style={[styles.selectedConnSub, theme.cardSubText]} numberOfLines={1}>
+                          {selectedConnection.email || (selectedConnection.userId ? `@${selectedConnection.userId}` : 'Active Member')}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      style={[styles.selectedConnChangeBtn, theme.stepBtn]}
+                      onPress={() => {
+                        setSelectedConnection(null);
+                        handleInputChange('relativeId', null);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.selectedConnChangeTxt, theme.stepBtnTxt]}>Change</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View>
+                    <View style={[styles.inputWrapper, theme.inputWrapper, { marginBottom: 8 }]}>
+                      <HugeiconsIcon icon={Search01Icon} size={20} color={isDark ? '#A1A1AA' : '#6B7280'} style={styles.fieldIcon} />
+                      <TextInput
+                        style={[styles.connSearchInput, theme.textInput]}
+                        placeholder="Search by name, @username, or email..."
+                        value={connectionSearch}
+                        onChangeText={setConnectionSearch}
+                        placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
+                      />
+                      {connectionSearch.length > 0 && (
+                        <TouchableOpacity onPress={() => setConnectionSearch('')} style={styles.connClearBtn}>
+                          <HugeiconsIcon icon={Cancel01Icon} size={16} color={isDark ? '#A1A1AA' : '#6B7280'} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {isLoadingConnections ? (
+                      <View style={styles.connLoadingBox}>
+                        <ActivityIndicator size="small" color={isDark ? '#93C5FD' : '#2563EB'} />
+                        <Text style={[styles.connLoadingTxt, theme.cardSubText]}>Loading connections...</Text>
+                      </View>
+                    ) : connectionsList.length === 0 ? (
+                      <View style={[styles.connEmptyBox, theme.twoToneCard]}>
+                        <HugeiconsIcon icon={UserGroup03Icon} size={26} color={isDark ? '#93C5FD' : '#2563EB'} style={{ marginBottom: 6 }} />
+                        <Text style={[styles.connEmptyTxt, theme.cardHeaderTitle]}>No Connections Found</Text>
+                        <Text style={[styles.connEmptySub, theme.cardSubText]}>
+                          You haven't connected with any circle members yet. Add connections in the Connections tab to manage their medications.
+                        </Text>
+                      </View>
+                    ) : filteredConnections.length === 0 ? (
+                      <View style={[styles.connEmptyBox, theme.twoToneCard]}>
+                        <Text style={[styles.connEmptyTxt, theme.cardHeaderTitle]}>No Matching Connections</Text>
+                        <Text style={[styles.connEmptySub, theme.cardSubText]}>
+                          No connection matches "{connectionSearch}".
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={styles.connListContainer}>
+                        {filteredConnections.map((conn) => {
+                          const initial = (conn.name || 'C').charAt(0).toUpperCase();
+                          return (
+                            <TouchableOpacity
+                              key={conn._id || conn.id}
+                              style={[styles.connCardItem, theme.twoToneCard]}
+                              onPress={() => {
+                                setSelectedConnection(conn);
+                                handleInputChange('relativeId', conn._id || conn.id);
+                              }}
+                              activeOpacity={0.75}
+                            >
+                              <View style={styles.connItemLeft}>
+                                <View style={[styles.connAvatarCircle, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#EFF6FF' }]}>
+                                  <Text style={[styles.connAvatarTxt, { color: isDark ? '#93C5FD' : '#2563EB' }]}>
+                                    {initial}
+                                  </Text>
+                                </View>
+                                <View style={styles.connItemDetails}>
+                                  <Text style={[styles.connItemName, theme.cardHeaderTitle]} numberOfLines={1}>
+                                    {conn.name || conn.username || 'Connection Member'}
+                                  </Text>
+                                  <Text style={[styles.connItemSub, theme.cardSubText]} numberOfLines={1}>
+                                    {conn.email || (conn.userId ? `@${conn.userId}` : 'Circle Member')}
+                                  </Text>
+                                </View>
+                              </View>
+
+                              <View style={[styles.connSelectBtn, { backgroundColor: isDark ? '#3B82F6' : '#2563EB' }]}>
+                                <Text style={styles.connSelectBtnTxt}>Select</Text>
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             )}
 
@@ -665,6 +830,164 @@ const styles = StyleSheet.create({
   },
   marginBottomLarge: {
     marginBottom: 36,
+  },
+
+  // Connection Styles
+  connectionSection: {
+    marginBottom: 18,
+  },
+  connSearchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    height: '100%',
+    paddingLeft: 6,
+  },
+  connClearBtn: {
+    padding: 6,
+  },
+  selectedConnCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedConnLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 8,
+  },
+  selectedConnAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedConnAvatarTxt: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  selectedConnDetails: {
+    flex: 1,
+  },
+  selectedConnBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 2,
+  },
+  selectedConnBadge: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#10B981',
+    letterSpacing: 0.6,
+  },
+  selectedConnName: {
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  selectedConnSub: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  selectedConnChangeBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  selectedConnChangeTxt: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  connLoadingBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 8,
+  },
+  connLoadingTxt: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  connEmptyBox: {
+    padding: 18,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  connEmptyTxt: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  connEmptySub: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 17,
+    paddingHorizontal: 12,
+  },
+  connListContainer: {
+    gap: 8,
+    marginTop: 4,
+  },
+  connCardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  connItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    marginRight: 8,
+  },
+  connAvatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  connAvatarTxt: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  connItemDetails: {
+    flex: 1,
+  },
+  connItemName: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  connItemSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  connSelectBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  connSelectBtnTxt: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 

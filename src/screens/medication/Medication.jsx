@@ -72,6 +72,8 @@ export const parseMedicationsList = (rawMedications) => {
   if (!rawMedications || !Array.isArray(rawMedications)) return [];
   const list = [];
   rawMedications.forEach(group => {
+    const recipient = group.user_id?.name || group.user_id?.username || (typeof group.user_id === 'string' ? null : null);
+    const isConn = group.forWhom === 'connection' || !!group.relative_id;
     if (group && Array.isArray(group.record) && group.record.length > 0) {
       group.record.forEach(rec => {
         if (rec) {
@@ -79,8 +81,9 @@ export const parseMedicationsList = (rawMedications) => {
             ...rec,
             _id: rec._id,
             parentContainerId: group._id,
-            forWhom: group.forWhom || 'myself',
+            forWhom: isConn ? 'connection' : (group.forWhom || 'myself'),
             relative_id: group.relative_id,
+            recipientName: recipient,
             logs: rec.logs || [],
             frequencyText: typeof rec.frequency === 'object' ? rec.frequency?.type || 'Daily' : (rec.frequency || 'Daily'),
             stockCount: typeof rec.stock === 'object' ? rec.stock?.quantity : (typeof rec.stock === 'number' ? rec.stock : 30),
@@ -93,6 +96,8 @@ export const parseMedicationsList = (rawMedications) => {
       list.push({
         ...group,
         _id: group._id,
+        forWhom: isConn ? 'connection' : (group.forWhom || 'myself'),
+        recipientName: recipient,
         logs: group.logs || [],
         frequencyText: typeof group.frequency === 'object' ? group.frequency?.type || 'Daily' : (group.frequency || 'Daily'),
         stockCount: typeof group.stock === 'object' ? group.stock?.quantity : (typeof group.stock === 'number' ? group.stock : 30),
@@ -224,7 +229,8 @@ const Medication = () => {
   // Filtered List
   const filteredMeds = useMemo(() => {
     return medications.filter(item => {
-      if (selectedFilter === 'circle') return item.forWhom === 'connection';
+      if (selectedFilter === 'circle') return item.forWhom === 'connection' || !!item.relative_id;
+      if (selectedFilter === 'today') return item.forWhom !== 'connection';
       return true;
     });
   }, [medications, selectedFilter]);
@@ -473,6 +479,11 @@ const Medication = () => {
                           </Text>
                         </View>
                       </View>
+                      {item.forWhom === 'connection' && (
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#3B82F6', marginTop: 1, marginBottom: 2 }}>
+                          👤 For: {item.recipientName || 'Circle Member'}
+                        </Text>
+                      )}
                       <Text style={[styles.medFrequencyText, theme.medFrequencyText]}>
                         {item.totalDoses > 1 ? `Dose ${item.doseNumber} of ${item.totalDoses}` : 'Daily Dose'} • {item.doseQuantity} {formName.toLowerCase()}{parseInt(item.doseQuantity, 10) > 1 ? 's' : ''}
                       </Text>
