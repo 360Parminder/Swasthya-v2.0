@@ -10,7 +10,7 @@ import MedicationHistory from '../screens/medication/MedicationHistory';
 import RefillAlertScreen from '../screens/medication/RefillAlertScreen';
 import AlarmScreen from '../screens/home/AlarmScreen';
 
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
 import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserGroup03Icon, UserIcon } from '@hugeicons/core-free-icons'
@@ -383,10 +383,10 @@ const MainNavigator = () => {
           position: 'absolute',
           height: 60,
           marginHorizontal: 10,
-          bottom: 10,
+          bottom: Platform.OS === 'ios' ? 20 : 10,
           left: 10,
           right: 10,
-          borderRadius: 18,
+          borderRadius: Platform.OS === 'ios' ? 28 : 18,
           elevation: 15,
           backgroundColor: colors.cardBackground,
           borderWidth: 0.5,

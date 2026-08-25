@@ -1,122 +1,158 @@
----
+# Swasthya App 📱
 
-# Health and Fitness App
-
-Welcome to the Health and Fitness App repository! This application is designed to help users monitor and improve their physical activities, dietary habits, sleep patterns, and mental health. The app includes features for tracking progress, setting goals, and receiving reminders to stay on track with personal health and fitness objectives.
-
-## Features
-
-### Physical Activities
-- **Exercise Tracking**
-- **Step Counter**
-- **Calorie Burn Tracker**
-- **Workout Planner**
-
-### Dietary Habits
-- **Food Diary**
-- **Calorie Counter**
-- **Nutrition Tracker**
-- **Meal Planner**
-
-### Sleep Patterns
-- **Sleep Tracker**
-- **Sleep Quality Analysis**
-- **Sleep Duration Monitoring**
-- **Sleep Schedule Reminder**
-
-### Mental Health
-- **Mood Tracker**
-- **Stress Level Monitoring**
-- **Meditation Timer**
-- **Journaling**
-
-### Reminders
-- **Activity Reminders**
-- **Meal Reminders**
-- **Sleep Reminders**
-- **Mental Health Check-ins**
-
-### Goal Setting
-- **Physical Activity Goals**
-- **Dietary Goals**
-- **Sleep Goals**
-- **Mental Health Goals**
-
-### Progress Tracking
-- **Activity Progress**
-- **Dietary Progress**
-- **Sleep Progress**
-- **Mental Health Progress**
-
-## Project Structure
-
-### Mind Map
-
-The mind map provides an overview of the app's features and how they are categorized:
-
-![Mind Map](https://github.com/BearerOP/Health-and-Fitness-App/blob/main/path_to_mind_map_image)
-
-### Flow Chart
-
-The flow chart outlines the application's structure and how different features are interconnected:
-
-![Flow Chart](https://github.com/BearerOP/Health-and-Fitness-App/blob/main/path_to_flow_chart_image)
-
-- **Home Dashboard:** Central hub for accessing all app features.
-- **Physical Activities:** Links to exercise tracking, step counter, calorie burn tracker, and workout planner.
-- **Dietary Habits:** Links to food diary, calorie counter, nutrition tracker, and meal planner.
-- **Sleep Patterns:** Links to sleep tracker, sleep quality analysis, sleep duration monitoring, and sleep schedule reminder.
-- **Mental Health:** Links to mood tracker, stress level monitoring, meditation timer, and journaling.
-- **Reminders:** Includes activity reminders, meal reminders, sleep reminders, and mental health check-ins.
-- **Goal Setting:** Allows setting physical activity goals, dietary goals, sleep goals, and mental health goals.
-- **Progress Tracking:** Monitors activity progress, dietary progress, sleep progress, and mental health progress.
-
-## Development Status
-
-### Working
-- Exercise Tracking
-- Calorie Burn Tracker
-- Food Diary
-- Calorie Counter
-- Nutrition Tracker
-- Meditation Timer
-- Activity Progress
-
-### Need Watch
-- Step Counter
-- Sleep Duration Monitoring
-
-### Not Working
-- Sleep Quality Analysis
-
-### Not Decided Yet
-- Sleep Schedule Reminder
-- Sleep Progress
-
-## Installation
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/360Parminder/Swasthya-v2.0.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd Swasthya
-    ```
-3. Install dependencies:
-    ```sh
-    npm install
-    ```
-4. Start the application:
-    ```sh
-    npx react-native run-android
-    ```
-
-## Contribution
-
-Contributions are welcome! Please fork the repository and submit pull requests for any enhancements or bug fixes. Make sure to follow the code of conduct and guidelines for contributing.
-
+> **Your All-In-One Health, Medication, Sleep & Care Circle Companion**  
+> Built with **React Native**, **Notifee**, **Firebase Cloud Messaging**, **Hugeicons**, and **Node.js/MongoDB**.
 
 ---
 
-This README provides a clear overview of the app, its features, development status, and instructions for installation and contribution. Ensure to replace the placeholder links for the mind map and flow chart images with the actual paths once you upload them to the repository.
+## 🌟 Overview
+
+**Swasthya App** is a next-generation holistic health management mobile application designed to empower individuals and families to take control of their well-being. From intelligent medication tracking with automated dose reminders and refill alerts, to comprehensive sleep architecture analysis and care circle coordination, Swasthya seamlessly connects personal health with family care.
+
+---
+
+## ✨ Key Features & Screen Modules
+
+### 💊 1. Medication & Prescription Management
+- **Smart Medication Scheduling**: Add medications with custom forms (Tablets, Capsules, Syrup, Injections, Drops, Inhalers, Powder), dosage units (mg, ml, puffs), frequencies (Daily, Weekly, Specific Days), and multiple scheduled dose timings.
+- **Interactive Daily Dose Tracker**: 1-tap dose logging (`TAKEN` / `SKIPPED`) with optimistic UI updates and instant audio feedback.
+- **Adherence & Progress Ring**: Live visual adherence percentage meter, total dose metrics, and next scheduled dose highlight.
+- **Prescription Refill Alerts & Inventory System**:
+  - Calculates remaining days of supply based on daily intake frequencies.
+  - Color-coded stock status tagging (`CRITICAL`, `LOW_STOCK`, `HEALTHY`).
+  - 1-tap Quick Refill presets (`+15`, `+30`, `+60` doses) and custom manual refill quantity modal.
+- **Medication History & Adherence Logs**:
+  - Horizontal interactive date carousel for quick timeline navigation.
+  - Visual adherence score gauge and daily intake statistics (Scheduled, Taken, Skipped, Pending).
+  - Detailed chronological timeline logs with time stamps.
+
+---
+
+### 🤝 2. Care Circle & Family Health Network
+- **Family & Relative Prescriptions**: Prescribe and track medications for children, elderly parents, or relatives directly from your account.
+- **Live Care Network Oversight**: Toggle between **"Myself"** and **"Care Circle"** prescriptions with recipient member badges (`👤 For: Sarah M.`).
+- **Connection Management**:
+  - Real-time user search by name, email, or unique `@userId`.
+  - Send, accept, decline, or cancel care circle connection invitations.
+  - Shared health vitals, active prescription visibility, and emergency care contacts.
+
+---
+
+### 🌙 3. Sleep Architecture & Smart Schedule
+- **Sleep Details & Stage Breakdown**:
+  - **Radial Sleep Score Ring** (0–100 scale) with dynamic visual quality indicators.
+  - **Interactive Hypnogram Gauge**: Stacked multi-color breakdown of Deep Sleep, REM, Core Sleep, and Awake duration.
+  - **7-Day Trend Analysis**: Bar chart tracking weekly sleep duration against the 8-hour target.
+  - **Biometrics Grid**: Heart Rate range (bpm), Respiratory Rate (brpm), and Blood Oxygen (SpO2).
+  - **Smart Sleep Tips & Bedtime Checklist**: Interactive checklist (e.g. Dim Blue Light, Cool Room, No Late Caffeine, Meditation).
+- **Sleep Schedule & Cycle Calculator**:
+  - Optimal 90-minute sleep cycle calculator with recommended bedtime options based on your target wake-up time.
+  - Interactive Bedtime & Wakeup dials with increment/decrement controls.
+  - Wind-down lead time selector (`15m`, `30m`, `45m`, `60m`).
+  - Smart Sunrise light alarm toggle and active day schedule selector (`Mon`–`Sun`).
+
+---
+
+### 💧 4. Hydration & Vital Tracking
+- **Smart Water Intake Tracker**: Interactive fluid consumption logger with customizable container sizes (`250ml`, `500ml`, `750ml`, `1000ml`).
+- **Daily Target Goal Ring**: Visual progress towards optimal hydration targets.
+- **Hydration Logs & Reminder Notifications**: Periodic drink water alerts.
+
+---
+
+### 🏋️ 5. Physical Activity & Nutrition
+- **Step & Calorie Counter**: Real-time physical activity monitoring with daily milestone badges.
+- **Workout Planner**: Guided routines, exercise logs, and fitness goal setting.
+- **Food Diary & Calorie Counter**: Macronutrient tracking (Carbs, Protein, Fats) and meal logging.
+
+---
+
+### 🔔 6. Notifications & Intelligent Alerts
+- **Centralized Alert Hub**: Segmented filtering for **All Alerts**, **Circle Invites**, **Refills**, and **Health Feed**.
+- **Care Circle Invite Actions**: Instant 1-tap Accept or Decline with optimistic UI removal.
+- **Real-Time Push Notifications**: Firebase Cloud Messaging (FCM) + Notifee background dose alarms and remote circle alerts.
+- **Device Token Logging**: Native iOS APNs & FCM push token output for testing and device synchronization.
+
+---
+
+## 🎨 Design System & UI Highlights
+
+- **Aesthetic**: Premium health-tech interface built with glassmorphism, refined gradients, subtle borders, and smooth shadows.
+- **Theme**: Seamless **Light Mode** and **OLED Dark Mode** powered by `useThemeColors()`.
+- **Iconography**: Complete `@hugeicons/react-native` free icon suite.
+- **Audio Feedback**: Subtle auditory haptics on dose tracking and button actions.
+
+---
+
+## 📂 Project Structure
+
+```
+Swasthya-app/
+├── App.tsx                        # Root app component, FCM listeners & Notifee setup
+├── index.js                       # App entry point
+├── package.json                   # Dependencies and scripts
+├── ios/                           # Native iOS project (Xcode, Pods, AppDelegate.swift)
+├── android/                       # Native Android project (Gradle, Manifest)
+└── src/
+    ├── api/                       # Axios API services (auth, medication, connection, sleep, hydration)
+    ├── components/
+    │   ├── model/                 # Modal components (AddMedication, AddConnection, RefillModal)
+    │   └── ui/                    # Design tokens & color palettes (colors.js)
+    ├── config/                    # Toast and app configurations
+    ├── context/                   # React Contexts (AuthContext, ConnectionContext)
+    ├── navigation/                # React Navigation stacks & bottom tabs (MainNavigator.jsx)
+    ├── screens/
+    │   ├── auth/                  # Login, Register, Forgot Password
+    │   ├── connections/           # Care Circle & Connection list
+    │   ├── home/                  # Home dashboard, Quick Vitals, Alarms
+    │   ├── Hydration/             # Water intake logger & history
+    │   ├── medication/            # Medication list, History, Refill Alerts
+    │   ├── notifications/         # Notifications & Invites hub
+    │   ├── profile/               # User profile, settings, health data
+    │   └── sleep/                 # SleepDetailsScreen, SleepScheduleScreen
+    └── services/                  # Background services (NotificationService, SoundService)
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js** >= 18
+- **npm** or **yarn**
+- **CocoaPods** (for iOS: `sudo gem install cocoapods`)
+- **Xcode** (for macOS / iOS development)
+- **Android Studio** & Android SDK (for Android development)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/360Parminder/Swasthya-v2.0.git
+   cd Swasthya/Swasthya-app
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Install iOS Pods (macOS only):**
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+
+4. **Run on iOS Simulator / Device:**
+   ```bash
+   npx react-native run-ios
+   ```
+
+5. **Run on Android Emulator / Device:**
+   ```bash
+   npx react-native run-android
+   ```
+
+---
+
+## 📄 License
+This project is licensed under the MIT License.

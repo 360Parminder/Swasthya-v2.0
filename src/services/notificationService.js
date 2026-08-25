@@ -262,21 +262,52 @@ class NotificationService {
    */
   async getDeviceToken() {
     try {
-      let token = await AsyncStorage.getItem('fcm_token');
-      if (!token) {
-        try {
-          const { getMessaging } = require('@react-native-firebase/messaging');
-          if (getMessaging) {
-            token = await getMessaging().getToken();
-          }
-        } catch (e) {
-          token = `swasthya_fcm_${Platform.OS}_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
-        }
+      let token = null;
+      let apnsToken = null;
 
-        if (token) {
-          await AsyncStorage.setItem('fcm_token', token);
+      try {
+        const messaging = require('@react-native-firebase/messaging').default || require('@react-native-firebase/messaging');
+        if (messaging) {
+          // On iOS, must request permission and register for remote messages first
+          if (Platform.OS === 'ios') {
+            try {
+              const authStatus = await messaging().requestPermission();
+              console.log('[NotificationService] iOS Push Auth Status:', authStatus);
+              await messaging().registerDeviceForRemoteMessages();
+              apnsToken = await messaging().getAPNSToken();
+            } catch (iosErr) {
+              console.log('⚠️ [NotificationService] iOS remote registration notice:', iosErr?.message);
+            }
+          }
+
+          token = await messaging().getToken();
         }
+      } catch (e) {
+        console.log('[NotificationService] Firebase messaging error:', e?.message);
       }
+
+      if (!token) {
+        token = await AsyncStorage.getItem('fcm_token');
+      }
+
+      if (!token) {
+        token = `swasthya_fcm_${Platform.OS}_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
+      }
+
+      if (token) {
+        await AsyncStorage.setItem('fcm_token', token);
+      }
+
+      // Explicit Console Logging for iOS Device Token
+      console.log('\n======================================================');
+      console.log(`📱 [${Platform.OS.toUpperCase()} DEVICE TOKEN] FCM TOKEN:`);
+      console.log(token);
+      if (apnsToken) {
+        console.log('🍏 [iOS APNS DEVICE TOKEN]:');
+        console.log(apnsToken);
+      }
+      console.log('======================================================\n');
+
       return token;
     } catch (err) {
       console.log('Error getting device token:', err?.message);
