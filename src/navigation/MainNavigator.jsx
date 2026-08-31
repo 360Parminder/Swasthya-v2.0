@@ -10,7 +10,8 @@ import MedicationHistory from '../screens/medication/MedicationHistory';
 import RefillAlertScreen from '../screens/medication/RefillAlertScreen';
 import AlarmScreen from '../screens/home/AlarmScreen';
 
-import { Platform, View } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { Platform, View, Animated } from 'react-native';
 import { useThemeColors } from '../components/ui/colors';
 import { HugeiconsIcon } from '@hugeicons/react-native'
 import { FirstAidKitIcon, Home01Icon, Notification03Icon, UserGroup03Icon, UserIcon } from '@hugeicons/core-free-icons'
@@ -367,6 +368,104 @@ function ProfileStackScreen() {
   );
 }
 
+// Smooth Animated Tab Icon with Spring and Crossfade
+const AnimatedTabIcon = ({ focused, icon: TargetIcon, colors }) => {
+  const animValue = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  const bounceAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (focused) {
+      Animated.parallel([
+        Animated.spring(animValue, {
+          toValue: 1,
+          friction: 6,
+          tension: 130,
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.timing(bounceAnim, {
+            toValue: 1.15,
+            duration: 110,
+            useNativeDriver: true,
+          }),
+          Animated.spring(bounceAnim, {
+            toValue: 1,
+            friction: 5,
+            tension: 90,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+    } else {
+      Animated.timing(animValue, {
+        toValue: 0,
+        duration: 160,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [focused]);
+
+  return (
+    <View style={{ width: 44, height: 44, justifyContent: 'center', alignItems: 'center' }}>
+      {/* Animated Circular Colored Bubble */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: colors.primary,
+          transform: [{ scale: animValue }],
+          opacity: animValue,
+        }}
+      />
+      {/* Animated Icon with subtle scale bounce and smooth crossfade */}
+      <Animated.View
+        style={{
+          transform: [{ scale: bounceAnim }],
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        {/* Inactive dark icon */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            opacity: animValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 0],
+            }),
+          }}
+        >
+          <HugeiconsIcon
+            icon={TargetIcon}
+            color={colors.textPrimary || '#111827'}
+            size={22}
+            strokeWidth={1.8}
+          />
+        </Animated.View>
+
+        {/* Active white icon */}
+        <Animated.View
+          style={{
+            opacity: animValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 1],
+            }),
+          }}
+        >
+          <HugeiconsIcon
+            icon={TargetIcon}
+            color="#FFFFFF"
+            size={22}
+            strokeWidth={2}
+          />
+        </Animated.View>
+      </Animated.View>
+    </View>
+  );
+};
+
 // Main Tab Navigator
 const MainNavigator = () => {
   const colors = useThemeColors();
@@ -376,26 +475,36 @@ const MainNavigator = () => {
         headerShown: false,
         tabBarShowLabel: false,
         lazy: true,
+        safeAreaInsets: { bottom: 0, top: 0 },
         tabBarItemStyle: {
-          margin: 10,
+          height: 60,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingVertical: 0,
+          marginVertical: 0,
+          marginTop:10
         },
         tabBarStyle: {
           position: 'absolute',
           height: 60,
-          marginHorizontal: 10,
-          bottom: Platform.OS === 'ios' ? 20 : 10,
-          left: 10,
-          right: 10,
-          borderRadius: Platform.OS === 'ios' ? 28 : 18,
-          elevation: 15,
-          backgroundColor: colors.cardBackground,
-          borderWidth: 0.5,
+          marginHorizontal: 20,
+          bottom: Platform.OS === 'ios' ? 24 : 14,
+          left: 0,
+          right: 0,
+          borderRadius: 30,
+          elevation: 12,
+          backgroundColor: colors.surface || colors.cardBackground,
+          borderWidth: 1,
           borderColor: colors.border,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          paddingHorizontal: 2,
+          paddingBottom: 0,
+          paddingTop: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
         },
         tabBarIcon: ({ focused }) => {
           let targetIcon;
@@ -410,28 +519,11 @@ const MainNavigator = () => {
           }
 
           return (
-            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-              {focused && (
-                <View style={{
-                  position: 'absolute',
-                  width: 20,
-                  height: 20,
-                  opacity: 0.15,
-                  borderRadius: 10
-                }} />
-              )}
-              {/* <Icon
-                name={iconName}
-                color={focused ? colors.primary : colors.placeholder}
-                size={24}
-              /> */}
-              <HugeiconsIcon
-                icon={targetIcon}
-                color={focused ? colors.primary : colors.placeholder}
-                size={24}
-                strokeWidth={1.5}
-              />
-            </View>
+            <AnimatedTabIcon
+              focused={focused}
+              icon={targetIcon}
+              colors={colors}
+            />
           );
         },
       })}
