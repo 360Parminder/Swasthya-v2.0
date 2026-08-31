@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   useColorScheme
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useThemeColors } from '../../components/ui/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDayAndDate } from '../../utils/date';
@@ -101,35 +101,52 @@ const SleepQualityCard = ({ navigation, isDarkMode }) => (
 );
 
 // ─── Hydration Card ──────────────────────────────────────────────────
-const HydrationCard = ({ navigation, isDarkMode }) => (
-  <TouchableOpacity
-    onPress={() => navigation.navigate('Hydration')}
-    style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
-    activeOpacity={0.88}
-  >
-    <View style={cardStyles.cardHeaderRow}>
-      <View style={cardStyles.titleWithIcon}>
-        <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
-        <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
-          HYDRATION
+const HydrationCard = ({ hydration, navigation, isDarkMode }) => {
+  const total = Number(hydration?.totalIntake) || 0;
+  const target = Number(hydration?.intakeTarget) || 2500;
+  const pct = target > 0 ? Math.min(Math.round((total / target) * 100), 100) : 0;
+  const displayLiters = (total / 1000).toFixed(2);
+  const targetLiters = (target / 1000).toFixed(1);
+
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('Hydration')}
+      style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
+      activeOpacity={0.88}
+    >
+      <View style={cardStyles.cardHeaderRow}>
+        <View style={cardStyles.titleWithIcon}>
+          <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
+          <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+            HYDRATION
+          </Text>
+        </View>
+        <View style={[cardStyles.pillBadge, { backgroundColor: isDarkMode ? 'rgba(2, 132, 199, 0.15)' : '#E0F2FE' }]}>
+          <Text style={[cardStyles.pillBadgeText, { color: '#0284C7' }]}>{pct}% OF GOAL</Text>
+        </View>
+      </View>
+
+      <View style={cardStyles.valueRow}>
+        <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>
+          {displayLiters}{' '}
+        </Text>
+        <Text style={[cardStyles.unitText, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+          / {targetLiters} L
         </Text>
       </View>
-      <View style={[cardStyles.pillBadge, { backgroundColor: isDarkMode ? 'rgba(2, 132, 199, 0.15)' : '#E0F2FE' }]}>
-        <Text style={[cardStyles.pillBadgeText, { color: '#0284C7' }]}>75% OF GOAL</Text>
+
+      {/* Progress Bar */}
+      <View style={[cardStyles.progressTrack, { backgroundColor: isDarkMode ? '#272730' : '#E5E7EB' }]}>
+        <View
+          style={[
+            cardStyles.progressFill,
+            { backgroundColor: isDarkMode ? '#38BDF8' : '#0284C7', width: `${pct}%` },
+          ]}
+        />
       </View>
-    </View>
-
-    <View style={cardStyles.valueRow}>
-      <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>1.5 </Text>
-      <Text style={[cardStyles.unitText, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>/ 2.0 L</Text>
-    </View>
-
-    {/* Progress Bar */}
-    <View style={[cardStyles.progressTrack, { backgroundColor: isDarkMode ? '#272730' : '#E5E7EB' }]}>
-      <View style={[cardStyles.progressFill, { backgroundColor: isDarkMode ? '#38BDF8' : '#0284C7', width: '75%' }]} />
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 // ─── Care Network Card ───────────────────────────────────────────────
 const CareNetworkCard = ({ navigation, isDarkMode }) => (
@@ -197,15 +214,12 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { authState } = useAuth();
   const [medications, setMedications] = useState([]);
+  const [hydrationData, setHydrationData] = useState(null);
   const [hasPendingInvites, setHasPendingInvites] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
   const scheme = useColorScheme();
   const isDarkMode = scheme === 'dark';
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -215,6 +229,12 @@ const HomeScreen = () => {
       setMedications(validMeds);
       if (validMeds.length > 0) {
         notificationService.syncMedicationReminders(validMeds);
+      }
+
+      // Sync live hydration data
+      const hydration = response?.data?.data?.hydration;
+      if (hydration) {
+        setHydrationData(hydration);
       }
 
       // Check for pending care circle invites
@@ -233,6 +253,12 @@ const HomeScreen = () => {
       console.error('Error fetching dashboard data:', error);
     }
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchDashboardData();
+    }, [])
+  );
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -330,7 +356,7 @@ const HomeScreen = () => {
 
         <SleepQualityCard navigation={navigation} isDarkMode={isDarkMode} />
 
-        <HydrationCard navigation={navigation} isDarkMode={isDarkMode} />
+        <HydrationCard hydration={hydrationData} navigation={navigation} isDarkMode={isDarkMode} />
 
         <CareNetworkCard navigation={navigation} isDarkMode={isDarkMode} />
 

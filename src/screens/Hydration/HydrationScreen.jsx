@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,11 @@ import {
   ScrollView,
   StatusBar,
   useColorScheme,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Svg, { Circle, G, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -26,14 +28,15 @@ import {
   FlashIcon,
 } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
+import { waterApi } from '../../api/waterApi';
 
 // ─── Radial Hydration Progress Ring ─────────────────────────────────
-const HydrationRing = ({ current = 1850, goal = 2500, isDark }) => {
+const HydrationRing = ({ current = 0, goal = 2500, isDark }) => {
   const size = 114;
   const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const percentage = Math.min(Math.round((current / goal) * 100), 100);
+  const percentage = goal > 0 ? Math.min(Math.round((current / goal) * 100), 100) : 0;
   const progressLength = (circumference * percentage) / 100;
 
   return (
@@ -75,7 +78,9 @@ const HydrationRing = ({ current = 1850, goal = 2500, isDark }) => {
         <Text style={[ringStyles.scoreNumber, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
           {percentage}%
         </Text>
-        <Text style={ringStyles.scoreLabel}>OPTIMAL</Text>
+        <Text style={ringStyles.scoreLabel}>
+          {percentage >= 100 ? 'ACHIEVED' : percentage >= 50 ? 'OPTIMAL' : 'TRACKING'}
+        </Text>
       </View>
     </View>
   );
@@ -115,58 +120,179 @@ const HydrationScreen = () => {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
-  // Hydration Goal & Current State
-  const [dailyGoal] = useState(2500); // 2.5 Liters
-  const [logs, setLogs] = useState([
-    { id: '1', title: 'Sports Bottle', amount: 500, time: '10:45 AM', icon: Coffee02Icon },
-    { id: '2', title: 'Herbal Tea / Mug', amount: 350, time: '09:15 AM', icon: Coffee01Icon },
-    { id: '3', title: 'Small Glass', amount: 200, time: '08:30 AM', icon: DropletIcon },
-    { id: '4', title: 'Sports Bottle', amount: 500, time: '06:45 AM', icon: Coffee02Icon },
-    { id: '5', title: 'Morning Glass', amount: 300, time: '06:15 AM', icon: DropletIcon },
-  ]);
+  // Live State
+  const [dailyGoal, setDailyGoal] = useState(2500);
+  const [logs, setLogs] = useState([]);
+  const [weeklyHistory, setWeeklyHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Derived Total
+  // Fetch from live backend
+  const loadHydrationData = useCallback(async (showLoadingSpinner = false) => {
+    if (showLoadingSpinner) setIsLoading(true);
+    try {
+      const [todayRes, historyRes] = await Promise.allSettled([
+        waterApi.getWater(),
+        waterApi.getWaterHistory(),
+      ]);
+
+      if (todayRes.status === 'fulfilled' && todayRes.value?.data?.data) {
+        const todayObj = todayRes.value.data.data;
+        if (todayObj.intakeTarget) {
+          setDailyGoal(Number(todayObj.intakeTarget));
+        }
+        if (Array.isArray(todayObj.waterIntake)) {
+          const parsed = [...todayObj.waterIntake].reverse().map((item, idx) => ({
+            id: item._id ? item._id.toString() : `log-${idx}`,
+            title:
+              item.title ||
+              (item.quantity === 200
+                ? 'Small Glass'
+                : item.quantity === 350
+                ? 'Cup / Mug'
+                : item.quantity === 500
+                ? 'Sports Bottle'
+                : item.quantity === 750
+                ? 'Large Flask'
+                : 'Water Intake'),
+            amount: Number(item.quantity) || 250,
+            time: item.time || '10:00 AM',
+            icon:
+              item.quantity === 350
+                ? Coffee01Icon
+                : item.quantity === 500
+                ? Coffee02Icon
+                : DropletIcon,
+          }));
+          setLogs(parsed);
+        } else {
+          setLogs([]);
+        }
+      }
+
+      if (historyRes.status === 'fulfilled' && Array.isArray(historyRes.value?.data?.data)) {
+        setWeeklyHistory(historyRes.value.data.data);
+      }
+    } catch (err) {
+      console.log('Hydration API error:', err);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // Refresh on mount & on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      loadHydrationData(false);
+    }, [loadHydrationData])
+  );
+
+  useEffect(() => {
+    loadHydrationData(true);
+  }, [loadHydrationData]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadHydrationData(false);
+  };
+
+  // Derived metrics
   const totalWater = useMemo(() => {
     return logs.reduce((sum, item) => sum + item.amount, 0);
   }, [logs]);
 
-  const percentage = Math.min(Math.round((totalWater / dailyGoal) * 100), 100);
+  const percentage = dailyGoal > 0 ? Math.min(Math.round((totalWater / dailyGoal) * 100), 100) : 0;
   const remaining = Math.max(dailyGoal - totalWater, 0);
 
-  // Quick Preset Add Handlers
-  const handleQuickAdd = (title, amount, icon) => {
+  // 1-Tap Quick Add with optimistic update & backend sync
+  const handleQuickAdd = async (title, amount, icon) => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const tempId = `temp-${Date.now()}`;
     const newLog = {
-      id: Date.now().toString(),
+      id: tempId,
       title,
       amount,
       time: timeStr,
       icon,
     };
+
+    // Immediate optimistic update
     setLogs((prev) => [newLog, ...prev]);
+
+    try {
+      const res = await waterApi.addWater({ quantity: amount, time: timeStr, title }, dailyGoal);
+      if (res?.data?.data?.waterIntake) {
+        const synced = [...res.data.data.waterIntake].reverse().map((item, idx) => ({
+          id: item._id ? item._id.toString() : `log-${idx}`,
+          title: item.title || title,
+          amount: Number(item.quantity) || amount,
+          time: item.time || timeStr,
+          icon:
+            item.quantity === 350
+              ? Coffee01Icon
+              : item.quantity === 500
+              ? Coffee02Icon
+              : DropletIcon,
+        }));
+        setLogs(synced);
+      }
+    } catch (err) {
+      console.log('Error adding water log to backend:', err);
+    }
   };
 
-  const handleDeleteLog = (id) => {
+  // 1-Tap Delete with optimistic update & backend sync
+  const handleDeleteLog = async (id) => {
     setLogs((prev) => prev.filter((item) => item.id !== id));
+    try {
+      await waterApi.deleteWaterLog(id);
+    } catch (err) {
+      console.log('Error deleting water log from backend:', err);
+    }
   };
 
   const QUICK_PRESETS = [
-    { title: 'Small Glass', amount: 200, label: '200 ml', icon: DropletIcon, badge: 'Sip' },
-    { title: 'Cup / Mug', amount: 350, label: '350 ml', icon: Coffee01Icon, badge: 'Tea/Coffee' },
-    { title: 'Sports Bottle', amount: 500, label: '500 ml', icon: Coffee02Icon, badge: 'Standard' },
-    { title: 'Large Flask', amount: 750, label: '750 ml', icon: DropletIcon, badge: 'Deep Hydration' },
+    { title: 'Small Glass', amount: 200, label: '200 ml', icon: DropletIcon },
+    { title: 'Cup / Mug', amount: 350, label: '350 ml', icon: Coffee01Icon },
+    { title: 'Sports Bottle', amount: 500, label: '500 ml', icon: Coffee02Icon },
+    { title: 'Large Flask', amount: 750, label: '750 ml', icon: DropletIcon },
   ];
 
-  const WEEK_TREND = [
-    { day: 'M', amount: '2.4L', pct: 96, optimal: true },
-    { day: 'T', amount: '2.1L', pct: 84, optimal: true },
-    { day: 'W', amount: '2.6L', pct: 104, optimal: true },
-    { day: 'T', amount: '1.9L', pct: 76, optimal: false },
-    { day: 'F', amount: '2.5L', pct: 100, optimal: true },
-    { day: 'S', amount: '2.2L', pct: 88, optimal: true },
-    { day: 'S', amount: '1.85L', pct: percentage, optimal: true, isToday: true },
-  ];
+  // Compute 7-day consistency data using live history
+  const weekTrend = useMemo(() => {
+    const daysMap = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const now = new Date();
+    const result = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayLetter = daysMap[d.getDay()];
+      const isToday = i === 0;
+
+      // Find in weeklyHistory
+      const matched = weeklyHistory.find((entry) => {
+        if (!entry?.date) return false;
+        return new Date(entry.date).toISOString().split('T')[0] === dateStr;
+      });
+
+      const dayTotal = isToday ? totalWater : matched ? Number(matched.totalIntake) || 0 : 0;
+      const dayTarget = matched ? Number(matched.intakeTarget) || dailyGoal : dailyGoal;
+      const pct = dayTarget > 0 ? Math.min(Math.round((dayTotal / dayTarget) * 100), 100) : 0;
+
+      result.push({
+        day: dayLetter,
+        amount: dayTotal >= 1000 ? `${(dayTotal / 1000).toFixed(1)}L` : `${dayTotal}ml`,
+        pct,
+        optimal: pct >= 80,
+        isToday,
+      });
+    }
+    return result;
+  }, [weeklyHistory, totalWater, dailyGoal]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
@@ -209,263 +335,299 @@ const HydrationScreen = () => {
         style={styles.mainScrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#0284C7']}
+            tintColor="#0284C7"
+          />
+        }
       >
-        {/* ── Hero Hydration Status Card ── */}
-        <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.heroLeft}>
-            <View style={styles.heroBadgeRow}>
-              <View style={[styles.badgePill, { backgroundColor: isDark ? '#082F49' : '#E0F2FE' }]}>
-                <HugeiconsIcon icon={SparklesIcon} size={12} color="#0284C7" />
-                <Text style={[styles.badgePillText, { color: '#0284C7' }]}>
-                  {percentage >= 100 ? 'GOAL ACHIEVED' : `${percentage}% OF TARGET`}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.heroIntakeDisplay}>
-              <Text style={[styles.heroBigNumber, { color: colors.textPrimary }]}>
-                {(totalWater / 1000).toFixed(2)}
-              </Text>
-              <Text style={[styles.heroUnitText, { color: colors.textSecondary }]}>
-                L
-              </Text>
-            </View>
-
-            <Text style={[styles.heroGoalSubtext, { color: colors.textMuted }]}>
-              Goal: {(dailyGoal / 1000).toFixed(1)} L • {remaining > 0 ? `${remaining} ml to go` : 'Target met!'}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0284C7" />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              Syncing hydration telemetry...
             </Text>
-
-            <View style={[styles.pacingChip, { backgroundColor: colors.surfaceAlt }]}>
-              <HugeiconsIcon icon={FlashIcon} size={13} color="#0284C7" />
-              <Text style={[styles.pacingChipText, { color: colors.textSecondary }]}>
-                Next intake recommended in 35m
-              </Text>
-            </View>
           </View>
-
-          <View style={styles.heroRight}>
-            <HydrationRing current={totalWater} goal={dailyGoal} isDark={isDark} />
-          </View>
-        </View>
-
-        {/* ── 1-Tap Quick Intake Logger (2x2 Grid) ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleWithIcon}>
-              <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>LOG WATER INTAKE</Text>
-            </View>
-            <Text style={[styles.cardHeaderBadge, { color: '#0284C7' }]}>1-TAP ADD</Text>
-          </View>
-
-          <View style={styles.presetGrid}>
-            <View style={styles.presetRow}>
-              {QUICK_PRESETS.slice(0, 2).map((item, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  style={[styles.presetCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
-                  onPress={() => handleQuickAdd(item.title, item.amount, item.icon)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.presetTopRow}>
-                    <View style={[styles.presetIconWrap, { backgroundColor: isDark ? '#0C4A6E' : '#E0F2FE' }]}>
-                      <HugeiconsIcon icon={item.icon} size={18} color="#0284C7" />
-                    </View>
-                    <View style={styles.plusPill}>
-                      <HugeiconsIcon icon={PlusSignIcon} size={12} color="#0284C7" />
-                      <Text style={styles.plusPillText}>Add</Text>
-                    </View>
+        ) : (
+          <>
+            {/* ── Hero Hydration Status Card ── */}
+            <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.heroLeft}>
+                <View style={styles.heroBadgeRow}>
+                  <View style={[styles.badgePill, { backgroundColor: isDark ? '#082F49' : '#E0F2FE' }]}>
+                    <HugeiconsIcon icon={SparklesIcon} size={12} color="#0284C7" />
+                    <Text style={[styles.badgePillText, { color: '#0284C7' }]}>
+                      {percentage >= 100 ? 'GOAL ACHIEVED' : `${percentage}% OF TARGET`}
+                    </Text>
                   </View>
-                  <Text style={[styles.presetAmount, { color: colors.textPrimary }]}>{item.label}</Text>
-                  <Text style={[styles.presetTitle, { color: colors.textSecondary }]}>{item.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.presetRow}>
-              {QUICK_PRESETS.slice(2, 4).map((item, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  style={[styles.presetCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
-                  onPress={() => handleQuickAdd(item.title, item.amount, item.icon)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.presetTopRow}>
-                    <View style={[styles.presetIconWrap, { backgroundColor: isDark ? '#0C4A6E' : '#E0F2FE' }]}>
-                      <HugeiconsIcon icon={item.icon} size={18} color="#0284C7" />
-                    </View>
-                    <View style={styles.plusPill}>
-                      <HugeiconsIcon icon={PlusSignIcon} size={12} color="#0284C7" />
-                      <Text style={styles.plusPillText}>Add</Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.presetAmount, { color: colors.textPrimary }]}>{item.label}</Text>
-                  <Text style={[styles.presetTitle, { color: colors.textSecondary }]}>{item.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-
-        {/* ── Hydration Telemetry Breakdown (2x2 Grid) ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleWithIcon}>
-              <HugeiconsIcon icon={SparklesIcon} size={16} color="#0284C7" />
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>HYDRATION METRICS</Text>
-            </View>
-            <Text style={[styles.cardHeaderBadge, { color: '#0284C7' }]}>{logs.length} LOGS TODAY</Text>
-          </View>
-
-          <View style={styles.metricsGrid}>
-            <View style={styles.metricsRow}>
-              <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
-                <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Total Volume</Text>
-                <Text style={[styles.metricValue, { color: colors.textPrimary }]}>{totalWater} ml</Text>
-                <Text style={[styles.metricSub, { color: '#0284C7' }]}>{percentage}% achieved</Text>
-              </View>
-
-              <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
-                <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Target Remaining</Text>
-                <Text style={[styles.metricValue, { color: colors.textPrimary }]}>{remaining} ml</Text>
-                <Text style={[styles.metricSub, { color: colors.textMuted }]}>{(remaining / 250).toFixed(1)} glasses</Text>
-              </View>
-            </View>
-
-            <View style={styles.metricsRow}>
-              <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
-                <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Avg Drink Size</Text>
-                <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
-                  {logs.length > 0 ? Math.round(totalWater / logs.length) : 0} ml
-                </Text>
-                <Text style={[styles.metricSub, { color: colors.textMuted }]}>Consistent intake</Text>
-              </View>
-
-              <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
-                <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Metabolic Pacing</Text>
-                <Text style={[styles.metricValue, { color: '#10B981' }]}>Optimal</Text>
-                <Text style={[styles.metricSub, { color: colors.textMuted }]}>Kidney reset</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* ── 7-Day Consistency Bar Chart ── */}
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('HydrationHistory')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleWithIcon}>
-              <HugeiconsIcon icon={Clock01Icon} size={16} color="#0284C7" />
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>7-DAY CONSISTENCY</Text>
-            </View>
-            <Text style={[styles.cardHeaderBadge, { color: '#10B981' }]}>AVG 2.2L</Text>
-          </View>
-
-          <View style={styles.chartBarsContainer}>
-            {WEEK_TREND.map((item, idx) => (
-              <View key={idx} style={styles.chartBarCol}>
-                <Text style={[styles.chartBarTopText, { color: item.isToday ? '#0284C7' : colors.textMuted }]}>
-                  {item.amount}
-                </Text>
-                <View style={[styles.chartBarTrack, { backgroundColor: colors.surfaceAlt }]}>
-                  <View
-                    style={[
-                      styles.chartBarFill,
-                      {
-                        height: `${Math.min(item.pct, 100)}%`,
-                        backgroundColor: item.isToday ? '#0284C7' : (item.optimal ? '#38BDF8' : '#F43F5E'),
-                      },
-                    ]}
-                  />
                 </View>
-                <Text style={[styles.chartDayText, { color: item.isToday ? '#0284C7' : colors.textSecondary, fontWeight: item.isToday ? '800' : '600' }]}>
-                  {item.day}
+
+                <View style={styles.heroIntakeDisplay}>
+                  <Text style={[styles.heroBigNumber, { color: colors.textPrimary }]}>
+                    {(totalWater / 1000).toFixed(2)}
+                  </Text>
+                  <Text style={[styles.heroUnitText, { color: colors.textSecondary }]}>
+                    L
+                  </Text>
+                </View>
+
+                <Text style={[styles.heroGoalSubtext, { color: colors.textMuted }]}>
+                  Goal: {(dailyGoal / 1000).toFixed(1)} L • {remaining > 0 ? `${remaining} ml to go` : 'Target achieved!'}
+                </Text>
+
+                <View style={[styles.pacingChip, { backgroundColor: colors.surfaceAlt }]}>
+                  <HugeiconsIcon icon={FlashIcon} size={13} color="#0284C7" />
+                  <Text style={[styles.pacingChipText, { color: colors.textSecondary }]}>
+                    {remaining === 0 ? 'Daily hydration complete!' : 'Next intake recommended in 35m'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.heroRight}>
+                <HydrationRing current={totalWater} goal={dailyGoal} isDark={isDark} />
+              </View>
+            </View>
+
+            {/* ── 1-Tap Quick Intake Logger (2x2 Grid) ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardTitleWithIcon}>
+                  <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>LOG WATER INTAKE</Text>
+                </View>
+                <Text style={[styles.cardHeaderBadge, { color: '#0284C7' }]}>1-TAP ADD</Text>
+              </View>
+
+              <View style={styles.presetGrid}>
+                <View style={styles.presetRow}>
+                  {QUICK_PRESETS.slice(0, 2).map((item, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.presetCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+                      onPress={() => handleQuickAdd(item.title, item.amount, item.icon)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.presetTopRow}>
+                        <View style={[styles.presetIconWrap, { backgroundColor: isDark ? '#0C4A6E' : '#E0F2FE' }]}>
+                          <HugeiconsIcon icon={item.icon} size={18} color="#0284C7" />
+                        </View>
+                        <View style={styles.plusPill}>
+                          <HugeiconsIcon icon={PlusSignIcon} size={12} color="#0284C7" />
+                          <Text style={styles.plusPillText}>Add</Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.presetAmount, { color: colors.textPrimary }]}>{item.label}</Text>
+                      <Text style={[styles.presetTitle, { color: colors.textSecondary }]}>{item.title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={styles.presetRow}>
+                  {QUICK_PRESETS.slice(2, 4).map((item, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.presetCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+                      onPress={() => handleQuickAdd(item.title, item.amount, item.icon)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.presetTopRow}>
+                        <View style={[styles.presetIconWrap, { backgroundColor: isDark ? '#0C4A6E' : '#E0F2FE' }]}>
+                          <HugeiconsIcon icon={item.icon} size={18} color="#0284C7" />
+                        </View>
+                        <View style={styles.plusPill}>
+                          <HugeiconsIcon icon={PlusSignIcon} size={12} color="#0284C7" />
+                          <Text style={styles.plusPillText}>Add</Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.presetAmount, { color: colors.textPrimary }]}>{item.label}</Text>
+                      <Text style={[styles.presetTitle, { color: colors.textSecondary }]}>{item.title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            {/* ── Hydration Telemetry Breakdown (2x2 Grid) ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardTitleWithIcon}>
+                  <HugeiconsIcon icon={SparklesIcon} size={16} color="#0284C7" />
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>HYDRATION METRICS</Text>
+                </View>
+                <Text style={[styles.cardHeaderBadge, { color: '#0284C7' }]}>{logs.length} LOGS TODAY</Text>
+              </View>
+
+              <View style={styles.metricsGrid}>
+                <View style={styles.metricsRow}>
+                  <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
+                    <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Total Volume</Text>
+                    <Text style={[styles.metricValue, { color: colors.textPrimary }]}>{totalWater} ml</Text>
+                    <Text style={[styles.metricSub, { color: '#0284C7' }]}>{percentage}% achieved</Text>
+                  </View>
+
+                  <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
+                    <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Target Remaining</Text>
+                    <Text style={[styles.metricValue, { color: colors.textPrimary }]}>{remaining} ml</Text>
+                    <Text style={[styles.metricSub, { color: colors.textMuted }]}>
+                      {(remaining / 250).toFixed(1)} glasses left
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.metricsRow}>
+                  <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
+                    <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Avg Drink Size</Text>
+                    <Text style={[styles.metricValue, { color: colors.textPrimary }]}>
+                      {logs.length > 0 ? Math.round(totalWater / logs.length) : 0} ml
+                    </Text>
+                    <Text style={[styles.metricSub, { color: colors.textMuted }]}>Across today's logs</Text>
+                  </View>
+
+                  <View style={[styles.metricBox, { backgroundColor: colors.surfaceAlt }]}>
+                    <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Metabolic Pacing</Text>
+                    <Text style={[styles.metricValue, { color: '#10B981' }]}>
+                      {percentage >= 70 ? 'Optimal' : 'Moderate'}
+                    </Text>
+                    <Text style={[styles.metricSub, { color: colors.textMuted }]}>Cellular recovery</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* ── 7-Day Consistency Bar Chart ── */}
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('HydrationHistory')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardTitleWithIcon}>
+                  <HugeiconsIcon icon={Clock01Icon} size={16} color="#0284C7" />
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>7-DAY CONSISTENCY</Text>
+                </View>
+                <Text style={[styles.cardHeaderBadge, { color: '#10B981' }]}>
+                  {weekTrend.filter((w) => w.optimal).length}/7 OPTIMAL
                 </Text>
               </View>
-            ))}
-          </View>
-        </TouchableOpacity>
 
-        {/* ── Today's Intake Log Timeline ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleWithIcon}>
-              <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>TODAY'S INTAKE TIMELINE</Text>
+              <View style={styles.chartBarsContainer}>
+                {weekTrend.map((item, idx) => (
+                  <View key={idx} style={styles.chartBarCol}>
+                    <Text style={[styles.chartBarTopText, { color: item.isToday ? '#0284C7' : colors.textMuted }]}>
+                      {item.amount}
+                    </Text>
+                    <View style={[styles.chartBarTrack, { backgroundColor: colors.surfaceAlt }]}>
+                      <View
+                        style={[
+                          styles.chartBarFill,
+                          {
+                            height: `${Math.min(item.pct, 100)}%`,
+                            backgroundColor: item.isToday ? '#0284C7' : item.optimal ? '#38BDF8' : '#F43F5E',
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.chartDayText,
+                        {
+                          color: item.isToday ? '#0284C7' : colors.textSecondary,
+                          fontWeight: item.isToday ? '800' : '600',
+                        },
+                      ]}
+                    >
+                      {item.day}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </TouchableOpacity>
+
+            {/* ── Today's Intake Log Timeline ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardTitleWithIcon}>
+                  <HugeiconsIcon icon={DropletIcon} size={16} color="#0284C7" />
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>TODAY'S INTAKE TIMELINE</Text>
+                </View>
+                <Text style={[styles.cardHeaderBadge, { color: colors.textMuted }]}>{logs.length} ENTRIES</Text>
+              </View>
+
+              {logs.length === 0 ? (
+                <View style={styles.emptyLogBox}>
+                  <Text style={[styles.emptyLogText, { color: colors.textMuted }]}>
+                    No water intake logged yet today.
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.timelineList}>
+                  {logs.map((item, idx) => {
+                    const ItemIcon = item.icon || DropletIcon;
+                    return (
+                      <View
+                        key={item.id}
+                        style={[
+                          styles.logRow,
+                          {
+                            borderBottomColor: colors.border,
+                            borderBottomWidth: idx === logs.length - 1 ? 0 : 1,
+                          },
+                        ]}
+                      >
+                        <View style={styles.logLeft}>
+                          <View style={[styles.logIconBox, { backgroundColor: isDark ? '#082F49' : '#E0F2FE' }]}>
+                            <HugeiconsIcon icon={ItemIcon} size={18} color="#0284C7" />
+                          </View>
+                          <View style={styles.logTexts}>
+                            <Text style={[styles.logTitle, { color: colors.textPrimary }]}>{item.title}</Text>
+                            <Text style={[styles.logTime, { color: colors.textMuted }]}>Logged at {item.time}</Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.logRight}>
+                          <Text style={[styles.logAmount, { color: '#0284C7' }]}>+{item.amount} ml</Text>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteLog(item.id)}
+                            style={styles.logDeleteBtn}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={15} color={colors.textMuted} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
-            <Text style={[styles.cardHeaderBadge, { color: colors.textMuted }]}>{logs.length} ENTRIES</Text>
-          </View>
 
-          {logs.length === 0 ? (
-            <View style={styles.emptyLogBox}>
-              <Text style={[styles.emptyLogText, { color: colors.textMuted }]}>
-                No water intake logged yet today.
+            {/* ── Clinical Insight Card ── */}
+            <View
+              style={[
+                styles.insightCard,
+                { backgroundColor: isDark ? '#0C4A6E' : '#F0F9FF', borderColor: '#BAE6FD' },
+              ]}
+            >
+              <View style={styles.insightHeaderRow}>
+                <View style={[styles.insightIconWrap, { backgroundColor: '#0284C7' }]}>
+                  <HugeiconsIcon icon={SparklesIcon} size={15} color="#FFFFFF" />
+                </View>
+                <Text style={styles.insightHeading}>Clinical Pacing Insight</Text>
+              </View>
+              <Text style={[styles.insightBody, { color: isDark ? '#BAE6FD' : '#0369A1' }]}>
+                Drinking 250ml every 90 minutes provides optimal renal filtration and avoids cellular fatigue compared to drinking large volumes at once.
               </Text>
             </View>
-          ) : (
-            <View style={styles.timelineList}>
-              {logs.map((item, idx) => {
-                const ItemIcon = item.icon || DropletIcon;
-                return (
-                  <View
-                    key={item.id}
-                    style={[
-                      styles.logRow,
-                      {
-                        borderBottomColor: colors.border,
-                        borderBottomWidth: idx === logs.length - 1 ? 0 : 1,
-                      },
-                    ]}
-                  >
-                    <View style={styles.logLeft}>
-                      <View style={[styles.logIconBox, { backgroundColor: isDark ? '#082F49' : '#E0F2FE' }]}>
-                        <HugeiconsIcon icon={ItemIcon} size={18} color="#0284C7" />
-                      </View>
-                      <View style={styles.logTexts}>
-                        <Text style={[styles.logTitle, { color: colors.textPrimary }]}>{item.title}</Text>
-                        <Text style={[styles.logTime, { color: colors.textMuted }]}>Logged at {item.time}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.logRight}>
-                      <Text style={[styles.logAmount, { color: '#0284C7' }]}>+{item.amount} ml</Text>
-                      <TouchableOpacity
-                        onPress={() => handleDeleteLog(item.id)}
-                        style={styles.logDeleteBtn}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <HugeiconsIcon icon={Delete02Icon} size={15} color={colors.textMuted} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-        </View>
-
-        {/* ── Clinical Insight Card ── */}
-        <View style={[styles.insightCard, { backgroundColor: isDark ? '#0C4A6E' : '#F0F9FF', borderColor: '#BAE6FD' }]}>
-          <View style={styles.insightHeaderRow}>
-            <View style={[styles.insightIconWrap, { backgroundColor: '#0284C7' }]}>
-              <HugeiconsIcon icon={SparklesIcon} size={15} color="#FFFFFF" />
-            </View>
-            <Text style={styles.insightHeading}>Clinical Pacing Insight</Text>
-          </View>
-          <Text style={[styles.insightBody, { color: isDark ? '#BAE6FD' : '#0369A1' }]}>
-            Drinking 250ml every 90 minutes provides optimal renal filtration and avoids cellular fatigue compared to drinking large volumes at once.
-          </Text>
-        </View>
-
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-// ─── Styles matching SleepDetailsScreen & Modern Suite ──────────────
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -509,6 +671,16 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+  },
+  loadingContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // ── Hero Card ──
