@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Switch,
   StatusBar,
   useColorScheme,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,14 +18,11 @@ import {
   ArrowLeft01Icon,
   Moon02Icon,
   Sun02Icon,
-  Clock01Icon,
   SparklesIcon,
-  CheckmarkCircle02Icon,
-  VolumeHighIcon,
-  Notification03Icon,
 } from '@hugeicons/core-free-icons';
 import Toast from 'react-native-toast-message';
 import { useThemeColors } from '../../components/ui/colors';
+import { sleepApi } from '../../api/sleepApi';
 
 // ─── Time Dial Display ──────────────────────────────────────────────
 const TimeDial = ({ timeStr, progress = 0.75, color = '#6366F1', isDark, icon: IconComponent }) => {
@@ -104,6 +102,27 @@ const SleepScheduleScreen = () => {
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [smartAlarmEnabled, setSmartAlarmEnabled] = useState(true);
   const [activeDays, setActiveDays] = useState(['M', 'T', 'W', 'TH', 'F']);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const res = await sleepApi.getSleepSchedule();
+        if (res?.data?.data) {
+          const s = res.data.data;
+          if (s.bedtimeMinutes !== undefined) setBedtimeMinutes(s.bedtimeMinutes);
+          if (s.wakeMinutes !== undefined) setWakeMinutes(s.wakeMinutes);
+          if (s.activeDays && Array.isArray(s.activeDays)) setActiveDays(s.activeDays);
+          if (s.windDownReminder !== undefined) setWindDownEnabled(s.windDownReminder);
+          if (s.reminderLeadTime !== undefined) setSelectedDuration(s.reminderLeadTime);
+          if (s.smartAlarmEnabled !== undefined) setSmartAlarmEnabled(s.smartAlarmEnabled);
+        }
+      } catch (err) {
+        console.log('Error fetching sleep schedule:', err);
+      }
+    };
+    fetchSchedule();
+  }, []);
 
   const adjustBedtime = (deltaMinutes) => {
     setBedtimeMinutes((prev) => {
@@ -154,15 +173,36 @@ const SleepScheduleScreen = () => {
     );
   };
 
-  const handleSave = () => {
-    Toast.show({
-      type: 'success',
-      text1: 'Schedule Saved',
-      text2: `Target ${totalHours}h ${remainingMins}m sleep window active.`,
-    });
-    setTimeout(() => {
-      navigation.goBack();
-    }, 400);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await sleepApi.updateSleepSchedule({
+        bedtimeMinutes,
+        wakeMinutes,
+        activeDays,
+        windDownReminder: windDownEnabled,
+        reminderLeadTime: selectedDuration,
+        smartAlarmEnabled,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Schedule Saved',
+        text2: `Target ${totalHours}h ${remainingMins}m sleep window active.`,
+      });
+      setTimeout(() => {
+        navigation.goBack();
+      }, 350);
+    } catch (err) {
+      console.log('Error saving sleep schedule:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Save Failed',
+        text2: 'Could not sync schedule to server.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const daysList = [
@@ -427,8 +467,17 @@ const SleepScheduleScreen = () => {
         </View>
 
         {/* ── Save Button ── */}
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.88}>
-          <Text style={styles.saveBtnText}>Save Sleep Routine</Text>
+        <TouchableOpacity
+          style={[styles.saveBtn, isSaving && { opacity: 0.7 }]}
+          onPress={handleSave}
+          disabled={isSaving}
+          activeOpacity={0.88}
+        >
+          {isSaving ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.saveBtnText}>Save Sleep Routine</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.bottomSpacer} />

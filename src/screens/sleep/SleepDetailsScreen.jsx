@@ -1,16 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   StatusBar,
   useColorScheme,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -28,8 +29,7 @@ import {
   AlertCircleIcon,
 } from '@hugeicons/core-free-icons';
 import { useThemeColors } from '../../components/ui/colors';
-
-const { width } = Dimensions.get('window');
+import { sleepApi } from '../../api/sleepApi';
 
 // ─── Radial Sleep Score Component ───────────────────────────────────
 const SleepScoreRing = ({ score = 88, isDark }) => {
@@ -37,7 +37,8 @@ const SleepScoreRing = ({ score = 88, isDark }) => {
   const strokeWidth = 9;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progressLength = (circumference * score) / 100;
+  const clampedScore = Math.min(Math.max(score, 0), 100);
+  const progressLength = (circumference * clampedScore) / 100;
 
   return (
     <View style={ringStyles.wrapper}>
@@ -55,7 +56,7 @@ const SleepScoreRing = ({ score = 88, isDark }) => {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#6366F1"
+            stroke="#818CF8"
             strokeWidth={strokeWidth}
             strokeDasharray={`${progressLength} ${circumference}`}
             strokeLinecap="round"
@@ -66,9 +67,11 @@ const SleepScoreRing = ({ score = 88, isDark }) => {
       <View style={ringStyles.centerContent}>
         <HugeiconsIcon icon={Moon02Icon} size={18} color="#818CF8" />
         <Text style={[ringStyles.scoreNumber, { color: isDark ? '#FFFFFF' : '#111827' }]}>
-          {score}%
+          {clampedScore}%
         </Text>
-        <Text style={ringStyles.scoreLabel}>OPTIMAL</Text>
+        <Text style={ringStyles.scoreLabel}>
+          {clampedScore >= 85 ? 'OPTIMAL' : clampedScore >= 70 ? 'GOOD' : 'FAIR'}
+        </Text>
       </View>
     </View>
   );
@@ -107,6 +110,12 @@ const SleepDetailsScreen = () => {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
+  // Live Backend State
+  const [sleepData, setSleepData] = useState(null);
+  const [sleepHistory, setSleepHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   // Checklist Interactive State
   const [checklist, setChecklist] = useState([
     { id: '1', label: 'Digital detox (Screens off 45m prior)', checked: true },
@@ -115,6 +124,44 @@ const SleepDetailsScreen = () => {
     { id: '4', label: '10-minute relaxation / meditation', checked: false },
   ]);
 
+  const loadSleepData = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setIsLoading(true);
+    try {
+      const [currentRes, historyRes] = await Promise.allSettled([
+        sleepApi.getCurrentSleep(),
+        sleepApi.getSleepHistory(),
+      ]);
+
+      if (currentRes.status === 'fulfilled' && currentRes.value?.data?.data?.current) {
+        setSleepData(currentRes.value.data.data.current);
+      }
+
+      if (historyRes.status === 'fulfilled' && Array.isArray(historyRes.value?.data?.data)) {
+        setSleepHistory(historyRes.value.data.data);
+      }
+    } catch (err) {
+      console.log('Error loading sleep data:', err);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadSleepData(false);
+    }, [loadSleepData])
+  );
+
+  useEffect(() => {
+    loadSleepData(true);
+  }, [loadSleepData]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadSleepData(false);
+  };
+
   const toggleCheckItem = (id) => {
     setChecklist((prev) =>
       prev.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item))
@@ -122,6 +169,82 @@ const SleepDetailsScreen = () => {
   };
 
   const completedCount = checklist.filter((i) => i.checked).length;
+
+  // Derived metrics from live backend data
+  const score = sleepData?.score || 88;
+  const hours = sleepData?.duration?.hour ?? 7;
+  const minutes = sleepData?.duration?.minute ?? 48;
+  const efficiency = sleepData?.efficiency || 94;
+  const cycles = sleepData?.cycles || 5;
+
+  const formatTimeStr = (dateVal, fallback) => {
+    if (!dateVal) return fallback;
+    try {
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime())) return fallback;
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return fallback;
+    }
+  };
+
+  const bedtimeStr = formatTimeStr(sleepData?.sleepTime, '10:45 PM');
+  const wakeTimeStr = formatTimeStr(sleepData?.wakeTime, '06:33 AM');
+
+  // Stages
+  const deepMins = sleepData?.stages?.deepMinutes || 112;
+  const remMins = sleepData?.stages?.remMinutes || 105;
+  const coreMins = sleepData?.stages?.coreMinutes || 221;
+  const awakeMins = sleepData?.stages?.awakeMinutes || 30;
+
+  const totalStageMins = deepMins + remMins + coreMins + awakeMins || 468;
+  const deepPct = Math.round((deepMins / totalStageMins) * 100);
+  const remPct = Math.round((remMins / totalStageMins) * 100);
+  const corePct = Math.round((coreMins / totalStageMins) * 100);
+  const awakePct = Math.max(0, 100 - (deepPct + remPct + corePct));
+
+  const formatMinDuration = (mins) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}h ${m < 10 ? '0' : ''}${m}m`;
+  };
+
+  // 7-day consistency derived from backend history
+  const weekTrend = useMemo(() => {
+    const daysMap = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const now = new Date();
+    const result = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayLetter = daysMap[d.getDay()];
+      const isToday = i === 0;
+
+      const matched = sleepHistory.find((entry) => {
+        if (!entry?.sleepTime) return false;
+        return new Date(entry.sleepTime).toISOString().split('T')[0] === dateStr;
+      });
+
+      const entryHours = isToday
+        ? hours + minutes / 60
+        : matched
+        ? (matched.duration?.hour || 0) + (matched.duration?.minute || 0) / 60
+        : 7.2;
+
+      const height = Math.min(Math.max(Math.round((entryHours / 9) * 90), 20), 90);
+
+      result.push({
+        day: dayLetter,
+        hours: `${entryHours.toFixed(1)}h`,
+        height,
+        optimal: entryHours >= 7.0,
+        isToday,
+      });
+    }
+    return result;
+  }, [sleepHistory, hours, minutes]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
@@ -155,311 +278,336 @@ const SleepDetailsScreen = () => {
         style={styles.mainScrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#818CF8']}
+            tintColor="#818CF8"
+          />
+        }
       >
-        {/* ── Hero Sleep Summary Card ── */}
-        <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.heroTopRow}>
-            <SleepScoreRing score={88} isDark={isDark} />
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#818CF8" />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              Syncing sleep architecture...
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* ── Hero Sleep Summary Card ── */}
+            <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.heroTopRow}>
+                <SleepScoreRing score={score} isDark={isDark} />
 
-            <View style={styles.heroInfoCol}>
-              <View style={styles.heroBadgeRow}>
-                <View style={styles.liveDot} />
-                <Text style={styles.heroBadgeText}>LAST NIGHT'S REST</Text>
-              </View>
+                <View style={styles.heroInfoCol}>
+                  <View style={styles.heroBadgeRow}>
+                    <View style={styles.liveDot} />
+                    <Text style={styles.heroBadgeText}>LAST NIGHT'S REST</Text>
+                  </View>
 
-              <Text style={[styles.heroMainTitle, { color: colors.textPrimary }]}>7h 48m Asleep</Text>
-              <Text style={[styles.heroSubText, { color: colors.textSecondary }]}>
-                Time in bed: 8h 15m • 94% Efficiency
-              </Text>
+                  <Text style={[styles.heroMainTitle, { color: colors.textPrimary }]}>
+                    {hours}h {minutes}m Asleep
+                  </Text>
+                  <Text style={[styles.heroSubText, { color: colors.textSecondary }]}>
+                    Time in bed: {hours}h {minutes + 25}m • {efficiency}% Efficiency
+                  </Text>
 
-              {/* Bedtime & Wake time chips */}
-              <View style={styles.timeChipsRow}>
-                <View style={[styles.timeChip, { backgroundColor: colors.surfaceAlt }]}>
-                  <HugeiconsIcon icon={Moon02Icon} size={13} color="#818CF8" />
-                  <Text style={[styles.timeChipText, { color: colors.textPrimary }]}>10:45 PM</Text>
-                </View>
+                  {/* Bedtime & Wake time chips */}
+                  <View style={styles.timeChipsRow}>
+                    <View style={[styles.timeChip, { backgroundColor: colors.surfaceAlt }]}>
+                      <HugeiconsIcon icon={Moon02Icon} size={13} color="#818CF8" />
+                      <Text style={[styles.timeChipText, { color: colors.textPrimary }]}>{bedtimeStr}</Text>
+                    </View>
 
-                <Text style={[styles.timeChipArrow, { color: colors.textMuted }]}>→</Text>
+                    <Text style={[styles.timeChipArrow, { color: colors.textMuted }]}>→</Text>
 
-                <View style={[styles.timeChip, { backgroundColor: colors.surfaceAlt }]}>
-                  <HugeiconsIcon icon={Sun02Icon} size={13} color="#F59E0B" />
-                  <Text style={[styles.timeChipText, { color: colors.textPrimary }]}>06:33 AM</Text>
+                    <View style={[styles.timeChip, { backgroundColor: colors.surfaceAlt }]}>
+                      <HugeiconsIcon icon={Sun02Icon} size={13} color="#F59E0B" />
+                      <Text style={[styles.timeChipText, { color: colors.textPrimary }]}>{wakeTimeStr}</Text>
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        </View>
 
-        {/* ── Sleep Stages Breakdown Card ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleWithIcon}>
-              <HugeiconsIcon icon={SparklesIcon} size={16} color="#818CF8" />
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>SLEEP STAGES</Text>
-            </View>
-            <Text style={[styles.cardHeaderBadge, { color: '#818CF8' }]}>5 CYCLES COMPLETED</Text>
-          </View>
-
-          {/* Stacked Multi-Color Stage Gauge */}
-          <View style={styles.stageGaugeTrack}>
-            <View style={[styles.stageGaugeSegment, { width: '24%', backgroundColor: '#4F46E5' }]} />
-            <View style={[styles.stageGaugeSegment, { width: '22%', backgroundColor: '#8B5CF6' }]} />
-            <View style={[styles.stageGaugeSegment, { width: '47%', backgroundColor: '#06B6D4' }]} />
-            <View style={[styles.stageGaugeSegment, { width: '7%', backgroundColor: '#F43F5E' }]} />
-          </View>
-
-          {/* Stage Details Grid - 2x2 Grid */}
-          <View style={styles.stageGrid}>
-            <View style={styles.stageRow}>
-              {/* Deep */}
-              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-                <View style={styles.stageColorDotRow}>
-                  <View style={[styles.stageDot, { backgroundColor: '#4F46E5' }]} />
-                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>Deep Sleep</Text>
+            {/* ── Sleep Stages Breakdown Card ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardTitleWithIcon}>
+                  <HugeiconsIcon icon={SparklesIcon} size={16} color="#818CF8" />
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>SLEEP STAGES</Text>
                 </View>
-                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>1h 52m</Text>
-                <Text style={[styles.stagePct, { color: colors.textMuted }]}>24% • Physical recovery</Text>
+                <Text style={[styles.cardHeaderBadge, { color: '#818CF8' }]}>{cycles} CYCLES COMPLETED</Text>
               </View>
 
-              {/* REM */}
-              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-                <View style={styles.stageColorDotRow}>
-                  <View style={[styles.stageDot, { backgroundColor: '#8B5CF6' }]} />
-                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>REM Sleep</Text>
+              {/* Stacked Multi-Color Stage Gauge */}
+              <View style={styles.stageGaugeTrack}>
+                <View style={[styles.stageGaugeSegment, { width: `${deepPct}%`, backgroundColor: '#4F46E5' }]} />
+                <View style={[styles.stageGaugeSegment, { width: `${remPct}%`, backgroundColor: '#8B5CF6' }]} />
+                <View style={[styles.stageGaugeSegment, { width: `${corePct}%`, backgroundColor: '#06B6D4' }]} />
+                <View style={[styles.stageGaugeSegment, { width: `${awakePct}%`, backgroundColor: '#F43F5E' }]} />
+              </View>
+
+              {/* Stage Details Grid - 2x2 Grid */}
+              <View style={styles.stageGrid}>
+                <View style={styles.stageRow}>
+                  {/* Deep */}
+                  <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                    <View style={styles.stageColorDotRow}>
+                      <View style={[styles.stageDot, { backgroundColor: '#4F46E5' }]} />
+                      <Text style={[styles.stageName, { color: colors.textSecondary }]}>Deep Sleep</Text>
+                    </View>
+                    <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>
+                      {formatMinDuration(deepMins)}
+                    </Text>
+                    <Text style={[styles.stagePct, { color: colors.textMuted }]}>{deepPct}% • Physical recovery</Text>
+                  </View>
+
+                  {/* REM */}
+                  <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                    <View style={styles.stageColorDotRow}>
+                      <View style={[styles.stageDot, { backgroundColor: '#8B5CF6' }]} />
+                      <Text style={[styles.stageName, { color: colors.textSecondary }]}>REM Sleep</Text>
+                    </View>
+                    <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>
+                      {formatMinDuration(remMins)}
+                    </Text>
+                    <Text style={[styles.stagePct, { color: colors.textMuted }]}>{remPct}% • Memory & dreams</Text>
+                  </View>
                 </View>
-                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>1h 45m</Text>
-                <Text style={[styles.stagePct, { color: colors.textMuted }]}>22% • Memory & dreams</Text>
+
+                <View style={styles.stageRow}>
+                  {/* Core */}
+                  <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                    <View style={styles.stageColorDotRow}>
+                      <View style={[styles.stageDot, { backgroundColor: '#06B6D4' }]} />
+                      <Text style={[styles.stageName, { color: colors.textSecondary }]}>Core Sleep</Text>
+                    </View>
+                    <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>
+                      {formatMinDuration(coreMins)}
+                    </Text>
+                    <Text style={[styles.stagePct, { color: colors.textMuted }]}>{corePct}% • Metabolic reset</Text>
+                  </View>
+
+                  {/* Awake */}
+                  <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                    <View style={styles.stageColorDotRow}>
+                      <View style={[styles.stageDot, { backgroundColor: '#F43F5E' }]} />
+                      <Text style={[styles.stageName, { color: colors.textSecondary }]}>Awake Time</Text>
+                    </View>
+                    <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>
+                      {formatMinDuration(awakeMins)}
+                    </Text>
+                    <Text style={[styles.stagePct, { color: colors.textMuted }]}>{awakePct}% • Micro-arousals</Text>
+                  </View>
+                </View>
               </View>
             </View>
 
-            <View style={styles.stageRow}>
-              {/* Core */}
-              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-                <View style={styles.stageColorDotRow}>
-                  <View style={[styles.stageDot, { backgroundColor: '#06B6D4' }]} />
-                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>Core Sleep</Text>
+            {/* ── 7-Day Sleep Trend Chart ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardTitleWithIcon}>
+                  <HugeiconsIcon icon={Clock01Icon} size={16} color="#818CF8" />
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>7-DAY CONSISTENCY</Text>
                 </View>
-                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>3h 41m</Text>
-                <Text style={[styles.stagePct, { color: colors.textMuted }]}>47% • Metabolic reset</Text>
-              </View>
-
-              {/* Awake */}
-              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-                <View style={styles.stageColorDotRow}>
-                  <View style={[styles.stageDot, { backgroundColor: '#F43F5E' }]} />
-                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>Awake Time</Text>
-                </View>
-                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>0h 30m</Text>
-                <Text style={[styles.stagePct, { color: colors.textMuted }]}>7% • Micro-arousals</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* ── 7-Day Sleep Trend Chart ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleWithIcon}>
-              <HugeiconsIcon icon={Clock01Icon} size={16} color="#818CF8" />
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>7-DAY CONSISTENCY</Text>
-            </View>
-            <Text style={[styles.cardHeaderBadge, { color: '#10B981' }]}>AVG 7h 42m</Text>
-          </View>
-
-          <View style={styles.chartBarsContainer}>
-            {[
-              { day: 'M', hours: '7.5h', height: 60, optimal: true },
-              { day: 'T', hours: '7.2h', height: 55, optimal: true },
-              { day: 'W', hours: '8.1h', height: 75, optimal: true },
-              { day: 'T', hours: '6.8h', height: 48, optimal: false },
-              { day: 'F', hours: '7.8h', height: 68, optimal: true },
-              { day: 'S', hours: '8.4h', height: 82, optimal: true },
-              { day: 'S', hours: '7.9h', height: 70, isToday: true, optimal: true },
-            ].map((item, index) => (
-              <View key={index} style={styles.chartCol}>
-                <Text style={[styles.chartBarLabel, { color: item.isToday ? '#818CF8' : colors.textMuted }]}>
-                  {item.hours}
-                </Text>
-                <View
-                  style={[
-                    styles.chartBar,
-                    {
-                      height: item.height,
-                      backgroundColor: item.isToday
-                        ? '#6366F1'
-                        : item.optimal
-                        ? isDark
-                          ? '#312E81'
-                          : '#C7D2FE'
-                        : isDark
-                        ? '#272730'
-                        : '#E5E7EB',
-                    },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.chartDayText,
-                    { color: item.isToday ? colors.textPrimary : colors.textMuted },
-                    item.isToday && { fontWeight: '800' },
-                  ]}
-                >
-                  {item.day}
+                <Text style={[styles.cardHeaderBadge, { color: '#10B981' }]}>
+                  {weekTrend.filter((w) => w.optimal).length}/7 OPTIMAL
                 </Text>
               </View>
-            ))}
-          </View>
-        </View>
 
-        {/* ── Sleep Biometrics Grid ── */}
-        <View style={styles.biometricsRow}>
-          {/* Heart Rate Dip */}
-          <View style={[styles.biometricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.bioIconRow}>
-              <View style={[styles.bioIconBox, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEF2F2' }]}>
-                <HugeiconsIcon icon={FavouriteIcon} size={15} color="#EF4444" />
+              <View style={styles.chartBarsContainer}>
+                {weekTrend.map((item, index) => (
+                  <View key={index} style={styles.chartCol}>
+                    <Text style={[styles.chartBarLabel, { color: item.isToday ? '#818CF8' : colors.textMuted }]}>
+                      {item.hours}
+                    </Text>
+                    <View
+                      style={[
+                        styles.chartBar,
+                        {
+                          height: item.height,
+                          backgroundColor: item.isToday
+                            ? '#6366F1'
+                            : item.optimal
+                            ? isDark
+                              ? '#312E81'
+                              : '#C7D2FE'
+                            : isDark
+                            ? '#272730'
+                            : '#E5E7EB',
+                        },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.chartDayText,
+                        { color: item.isToday ? colors.textPrimary : colors.textMuted },
+                        item.isToday && { fontWeight: '800' },
+                      ]}
+                    >
+                      {item.day}
+                    </Text>
+                  </View>
+                ))}
               </View>
-              <Text style={[styles.bioLabel, { color: colors.textMuted }]}>HEART DIP</Text>
             </View>
-            <Text style={[styles.bioVal, { color: colors.textPrimary }]}>54 <Text style={styles.bioUnit}>bpm</Text></Text>
-            <Text style={styles.bioSubSuccess}>-18% Healthy Dip</Text>
-          </View>
 
-          {/* Respiratory Rate */}
-          <View style={[styles.biometricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.bioIconRow}>
-              <View style={[styles.bioIconBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
-                <HugeiconsIcon icon={Pulse01Icon} size={15} color="#3B82F6" />
-              </View>
-              <Text style={[styles.bioLabel, { color: colors.textMuted }]}>RESPIRATION</Text>
-            </View>
-            <Text style={[styles.bioVal, { color: colors.textPrimary }]}>14.2 <Text style={styles.bioUnit}>rpm</Text></Text>
-            <Text style={styles.bioSubNormal}>Normal & Steady</Text>
-          </View>
-        </View>
-
-        {/* ── Bedtime Wind-Down Checklist ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeaderRow}>
-            <View>
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>WIND-DOWN CHECKLIST</Text>
-              <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                {completedCount} of {checklist.length} evening habits complete
-              </Text>
-            </View>
-            <View style={[styles.checklistBadge, { backgroundColor: colors.surfaceAlt }]}>
-              <Text style={[styles.checklistBadgeText, { color: '#818CF8' }]}>
-                {Math.round((completedCount / checklist.length) * 100)}%
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.checklistWrapper}>
-            {checklist.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  styles.checkItem,
-                  { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
-                  item.checked && { borderColor: 'rgba(99, 102, 241, 0.3)' },
-                ]}
-                onPress={() => toggleCheckItem(item.id)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.checkCircle,
-                    { borderColor: colors.border },
-                    item.checked && { backgroundColor: '#6366F1', borderColor: '#6366F1' },
-                  ]}
-                >
-                  {item.checked && <HugeiconsIcon icon={Tick02Icon} size={12} color="#FFFFFF" strokeWidth={3} />}
+            {/* ── Sleep Biometrics Grid ── */}
+            <View style={styles.biometricsRow}>
+              {/* Heart Rate Dip */}
+              <View style={[styles.biometricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.bioIconRow}>
+                  <View style={[styles.bioIconBox, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEF2F2' }]}>
+                    <HugeiconsIcon icon={FavouriteIcon} size={15} color="#EF4444" />
+                  </View>
+                  <Text style={[styles.bioLabel, { color: colors.textMuted }]}>HEART DIP</Text>
                 </View>
-                <Text
-                  style={[
-                    styles.checkLabelText,
-                    { color: item.checked ? colors.textPrimary : colors.textSecondary },
-                    item.checked && styles.checkLabelChecked,
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+                <Text style={[styles.bioVal, { color: colors.textPrimary }]}>54 <Text style={styles.bioUnit}>bpm</Text></Text>
+                <Text style={styles.bioSubSuccess}>-18% Healthy Dip</Text>
+              </View>
 
-        {/* ── Room Sanctuary Environment Card ── */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.textPrimary, marginBottom: 14 }]}>
-            ROOM ENVIRONMENT
-          </Text>
-
-          <View style={styles.envGrid}>
-            <View style={[styles.envItem, { backgroundColor: colors.surfaceAlt }]}>
-              <HugeiconsIcon icon={ThermometerIcon} size={20} color="#EF4444" />
-              <View style={styles.envTextCol}>
-                <Text style={[styles.envItemVal, { color: colors.textPrimary }]}>68°F</Text>
-                <Text style={[styles.envItemLabel, { color: colors.textSecondary }]}>Optimal Sleep Temp</Text>
+              {/* Respiratory Rate */}
+              <View style={[styles.biometricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.bioIconRow}>
+                  <View style={[styles.bioIconBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
+                    <HugeiconsIcon icon={Pulse01Icon} size={15} color="#3B82F6" />
+                  </View>
+                  <Text style={[styles.bioLabel, { color: colors.textMuted }]}>RESPIRATION</Text>
+                </View>
+                <Text style={[styles.bioVal, { color: colors.textPrimary }]}>14.2 <Text style={styles.bioUnit}>rpm</Text></Text>
+                <Text style={styles.bioSubNormal}>Normal & Steady</Text>
               </View>
             </View>
 
-            <View style={[styles.envItem, { backgroundColor: colors.surfaceAlt }]}>
-              <HugeiconsIcon icon={DropletIcon} size={20} color="#3B82F6" />
-              <View style={styles.envTextCol}>
-                <Text style={[styles.envItemVal, { color: colors.textPrimary }]}>45%</Text>
-                <Text style={[styles.envItemLabel, { color: colors.textSecondary }]}>Ideal Humidity</Text>
+            {/* ── Bedtime Wind-Down Checklist ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View>
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>WIND-DOWN CHECKLIST</Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    {completedCount} of {checklist.length} evening habits complete
+                  </Text>
+                </View>
+                <View style={[styles.checklistBadge, { backgroundColor: colors.surfaceAlt }]}>
+                  <Text style={[styles.checklistBadgeText, { color: '#818CF8' }]}>
+                    {Math.round((completedCount / checklist.length) * 100)}%
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.checklistWrapper}>
+                {checklist.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.checkItem,
+                      { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                      item.checked && { borderColor: 'rgba(99, 102, 241, 0.3)' },
+                    ]}
+                    onPress={() => toggleCheckItem(item.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[
+                        styles.checkCircle,
+                        { borderColor: colors.border },
+                        item.checked && { backgroundColor: '#6366F1', borderColor: '#6366F1' },
+                      ]}
+                    >
+                      {item.checked && <HugeiconsIcon icon={Tick02Icon} size={12} color="#FFFFFF" strokeWidth={3} />}
+                    </View>
+                    <Text
+                      style={[
+                        styles.checkLabelText,
+                        { color: colors.textPrimary },
+                        item.checked && { color: colors.textSecondary, textDecorationLine: 'line-through' },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          </View>
-        </View>
 
-        {/* ── Action Button: Edit Sleep Schedule ── */}
-        <TouchableOpacity
-          style={styles.scheduleCtaBtn}
-          onPress={() => navigation.navigate('SleepSchedule')}
-          activeOpacity={0.88}
-        >
-          <HugeiconsIcon icon={SlidersHorizontalIcon} size={18} color="#FFFFFF" />
-          <Text style={styles.scheduleCtaText}>Configure Sleep Target & Smart Alarm</Text>
-        </TouchableOpacity>
+            {/* ── Environmental Hygiene Card ── */}
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>ENVIRONMENTAL HYGIENE</Text>
+                <View style={styles.optimalBadge}>
+                  <Text style={styles.optimalBadgeText}>OPTIMAL ZONE</Text>
+                </View>
+              </View>
 
-        <View style={styles.bottomSpacer} />
+              <View style={styles.envGrid}>
+                {/* Temp */}
+                <View style={[styles.envItem, { backgroundColor: colors.surfaceAlt }]}>
+                  <View style={styles.envIconHeader}>
+                    <HugeiconsIcon icon={ThermometerIcon} size={16} color="#6366F1" />
+                    <Text style={[styles.envLabel, { color: colors.textSecondary }]}>Room Temp</Text>
+                  </View>
+                  <Text style={[styles.envVal, { color: colors.textPrimary }]}>19.5°C</Text>
+                  <Text style={styles.envStatus}>Target 18-20°C</Text>
+                </View>
+
+                {/* Humidity */}
+                <View style={[styles.envItem, { backgroundColor: colors.surfaceAlt }]}>
+                  <View style={styles.envIconHeader}>
+                    <HugeiconsIcon icon={DropletIcon} size={16} color="#06B6D4" />
+                    <Text style={[styles.envLabel, { color: colors.textSecondary }]}>Humidity</Text>
+                  </View>
+                  <Text style={[styles.envVal, { color: colors.textPrimary }]}>48%</Text>
+                  <Text style={styles.envStatus}>Target 40-50%</Text>
+                </View>
+
+                {/* Noise */}
+                <View style={[styles.envItem, { backgroundColor: colors.surfaceAlt }]}>
+                  <View style={styles.envIconHeader}>
+                    <HugeiconsIcon icon={AlertCircleIcon} size={16} color="#10B981" />
+                    <Text style={[styles.envLabel, { color: colors.textSecondary }]}>Noise Floor</Text>
+                  </View>
+                  <Text style={[styles.envVal, { color: colors.textPrimary }]}>28 dB</Text>
+                  <Text style={styles.envStatus}>Whisper Quiet</Text>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-// ─── Styles ──────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
   navBar: {
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
   },
   navIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
   },
   navTitleContainer: {
-    flex: 1,
     alignItems: 'center',
-    marginHorizontal: 12,
   },
   navTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   navSubtitle: {
     fontSize: 11,
@@ -470,12 +618,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    padding: 16,
     paddingBottom: 40,
   },
+  loadingContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
 
-  // Hero Card
+  // ── Hero Card ──
   heroCard: {
     borderRadius: 24,
     borderWidth: 1,
@@ -510,18 +667,18 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.6,
     color: '#818CF8',
+    letterSpacing: 0.6,
   },
   heroMainTitle: {
     fontSize: 22,
     fontWeight: '900',
-    letterSpacing: -0.4,
-    marginBottom: 2,
+    letterSpacing: -0.5,
   },
   heroSubText: {
     fontSize: 12,
     fontWeight: '500',
+    marginTop: 2,
     marginBottom: 10,
   },
   timeChipsRow: {
@@ -533,20 +690,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   timeChipText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   timeChipArrow: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
-  // Generic Card
+  // ── Standard Card ──
   card: {
     borderRadius: 22,
     borderWidth: 1,
@@ -572,29 +729,31 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 0.7,
+    letterSpacing: 0.6,
   },
   cardSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 11,
     marginTop: 2,
+    fontWeight: '500',
   },
   cardHeaderBadge: {
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
 
-  // Sleep Stage Gauge
+  // ── Sleep Stages ──
   stageGaugeTrack: {
     height: 10,
     borderRadius: 5,
     flexDirection: 'row',
     overflow: 'hidden',
     marginBottom: 16,
+    gap: 2,
   },
   stageGaugeSegment: {
     height: '100%',
+    borderRadius: 3,
   },
   stageGrid: {
     gap: 10,
@@ -605,7 +764,7 @@ const styles = StyleSheet.create({
   },
   stageItem: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 12,
   },
   stageColorDotRow: {
@@ -621,10 +780,10 @@ const styles = StyleSheet.create({
   },
   stageName: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   stageDuration: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
@@ -634,36 +793,37 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Chart
+  // ── 7-Day Consistency ──
   chartBarsContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    height: 120,
+    height: 130,
     paddingTop: 10,
   },
   chartCol: {
     alignItems: 'center',
     flex: 1,
-    gap: 6,
   },
   chartBarLabel: {
     fontSize: 9,
     fontWeight: '700',
+    marginBottom: 6,
   },
   chartBar: {
-    width: 18,
-    borderRadius: 9,
+    width: 14,
+    borderRadius: 7,
   },
   chartDayText: {
     fontSize: 11,
+    marginTop: 8,
     fontWeight: '600',
   },
 
-  // Biometrics
+  // ── Biometrics ──
   biometricsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
     marginBottom: 16,
   },
   biometricCard: {
@@ -681,24 +841,22 @@ const styles = StyleSheet.create({
   bioIconBox: {
     width: 24,
     height: 24,
-    borderRadius: 8,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   bioLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
   },
   bioVal: {
     fontSize: 20,
     fontWeight: '900',
-    letterSpacing: -0.3,
   },
   bioUnit: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#9CA3AF',
   },
   bioSubSuccess: {
     fontSize: 10,
@@ -713,19 +871,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Checklist
+  // ── Checklist ──
   checklistBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
   },
   checklistBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
   },
   checklistWrapper: {
     gap: 8,
-    marginTop: 6,
   },
   checkItem: {
     flexDirection: 'row',
@@ -736,9 +893,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   checkCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -748,58 +905,47 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  checkLabelChecked: {
-    textDecorationLine: 'none',
-  },
 
-  // Room Environment
+  // ── Environmental Hygiene ──
+  optimalBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  optimalBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#16A34A',
+  },
   envGrid: {
     flexDirection: 'row',
     gap: 10,
   },
   envItem: {
     flex: 1,
+    borderRadius: 14,
+    padding: 10,
+  },
+  envIconHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    padding: 14,
-    borderRadius: 16,
+    gap: 4,
+    marginBottom: 4,
   },
-  envTextCol: {
-    flex: 1,
-  },
-  envItemVal: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  envItemLabel: {
+  envLabel: {
     fontSize: 10,
-    fontWeight: '500',
-    marginTop: 1,
+    fontWeight: '600',
   },
-
-  // CTA
-  scheduleCtaBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#6366F1',
-    paddingVertical: 14,
-    borderRadius: 20,
-    gap: 8,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  scheduleCtaText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  envVal: {
+    fontSize: 15,
     fontWeight: '800',
   },
-  bottomSpacer: {
-    height: 30,
+  envStatus: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#10B981',
+    marginTop: 2,
   },
 });
 

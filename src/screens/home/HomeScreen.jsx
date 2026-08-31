@@ -58,47 +58,62 @@ const HeartRateCard = ({ isDarkMode }) => (
 );
 
 // ─── Sleep Quality Card ──────────────────────────────────────────────
-const SleepQualityCard = ({ navigation, isDarkMode }) => (
-  <TouchableOpacity
-    onPress={() => navigation.navigate('SleepDetails')}
-    style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
-    activeOpacity={0.88}
-  >
-    <View style={cardStyles.cardHeaderRow}>
-      <View style={cardStyles.titleWithIcon}>
-        <HugeiconsIcon icon={Moon02Icon} size={16} color={isDarkMode ? '#93C5FD' : '#2563EB'} />
-        <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
-          SLEEP QUALITY
+const SleepQualityCard = ({ sleep, navigation, isDarkMode }) => {
+  const score = sleep?.score || 88;
+  const hours = sleep?.duration?.hour ?? 7;
+  const minutes = sleep?.duration?.minute ?? 48;
+  const deepMins = sleep?.stages?.deepMinutes || 112;
+  const remMins = sleep?.stages?.remMinutes || 105;
+
+  const formatMinStr = (mins) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}h ${m}m`;
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('SleepDetails')}
+      style={[cardStyles.card, isDarkMode ? cardStyles.cardDark : cardStyles.cardLight]}
+      activeOpacity={0.88}
+    >
+      <View style={cardStyles.cardHeaderRow}>
+        <View style={cardStyles.titleWithIcon}>
+          <HugeiconsIcon icon={Moon02Icon} size={16} color={isDarkMode ? '#93C5FD' : '#2563EB'} />
+          <Text style={[cardStyles.cardTitle, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+            SLEEP QUALITY
+          </Text>
+        </View>
+        <Text style={cardStyles.scorePill}>{score}% {score >= 85 ? 'OPTIMAL' : 'GOOD'}</Text>
+      </View>
+
+      <View style={cardStyles.valueRow}>
+        <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>
+          {hours}h {minutes}m
         </Text>
       </View>
-      <Text style={cardStyles.scorePill}>88% OPTIMAL</Text>
-    </View>
+      <Text style={[cardStyles.subDescription, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
+        Deep Sleep: {formatMinStr(deepMins)} • REM: {formatMinStr(remMins)}
+      </Text>
 
-    <View style={cardStyles.valueRow}>
-      <Text style={[cardStyles.largeValue, isDarkMode ? cardStyles.textWhite : cardStyles.textBlack]}>7h 30m</Text>
-    </View>
-    <Text style={[cardStyles.subDescription, isDarkMode ? cardStyles.textMutedDark : cardStyles.textMutedLight]}>
-      Deep Sleep: 2h 15m • REM: 1h 45m
-    </Text>
-
-    <View style={cardStyles.sleepBars}>
-      {[16, 22, 42, 28, 24, 20, 36].map((h, i) => (
-        <View
-          key={i}
-          style={[
-            cardStyles.sleepBar,
-            {
-              height: h,
-              backgroundColor: i === 2
-                ? (isDarkMode ? '#3B82F6' : '#2563EB')
-                : (isDarkMode ? '#272730' : '#E5E7EB')
-            }
-          ]}
-        />
-      ))}
-    </View>
-  </TouchableOpacity>
-);
+      <View style={cardStyles.sleepBars}>
+        {[16, 22, 42, 28, 24, 20, 36].map((h, i) => (
+          <View
+            key={i}
+            style={[
+              cardStyles.sleepBar,
+              {
+                height: h,
+                backgroundColor:
+                  i === 6 ? (isDarkMode ? '#3B82F6' : '#2563EB') : isDarkMode ? '#272730' : '#E5E7EB',
+              },
+            ]}
+          />
+        ))}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 // ─── Hydration Card ──────────────────────────────────────────────────
 const HydrationCard = ({ hydration, navigation, isDarkMode }) => {
@@ -215,6 +230,7 @@ const HomeScreen = () => {
   const { authState } = useAuth();
   const [medications, setMedications] = useState([]);
   const [hydrationData, setHydrationData] = useState(null);
+  const [sleepData, setSleepData] = useState(null);
   const [hasPendingInvites, setHasPendingInvites] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
@@ -235,6 +251,12 @@ const HomeScreen = () => {
       const hydration = response?.data?.data?.hydration;
       if (hydration) {
         setHydrationData(hydration);
+      }
+
+      // Sync live sleep data
+      const sleep = response?.data?.data?.sleep;
+      if (sleep) {
+        setSleepData(sleep);
       }
 
       // Check for pending care circle invites
@@ -354,7 +376,7 @@ const HomeScreen = () => {
         {/* Vital Health Metrics Cards */}
         <HeartRateCard isDarkMode={isDarkMode} />
 
-        <SleepQualityCard navigation={navigation} isDarkMode={isDarkMode} />
+        <SleepQualityCard sleep={sleepData} navigation={navigation} isDarkMode={isDarkMode} />
 
         <HydrationCard hydration={hydrationData} navigation={navigation} isDarkMode={isDarkMode} />
 
