@@ -208,46 +208,50 @@ const SleepDetailsScreen = () => {
             <View style={[styles.stageGaugeSegment, { width: '7%', backgroundColor: '#F43F5E' }]} />
           </View>
 
-          {/* Stage Details Grid */}
+          {/* Stage Details Grid - 2x2 Grid */}
           <View style={styles.stageGrid}>
-            {/* Deep */}
-            <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-              <View style={styles.stageColorDotRow}>
-                <View style={[styles.stageDot, { backgroundColor: '#4F46E5' }]} />
-                <Text style={[styles.stageName, { color: colors.textSecondary }]}>Deep Sleep</Text>
+            <View style={styles.stageRow}>
+              {/* Deep */}
+              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                <View style={styles.stageColorDotRow}>
+                  <View style={[styles.stageDot, { backgroundColor: '#4F46E5' }]} />
+                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>Deep Sleep</Text>
+                </View>
+                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>1h 52m</Text>
+                <Text style={[styles.stagePct, { color: colors.textMuted }]}>24% • Physical recovery</Text>
               </View>
-              <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>1h 52m</Text>
-              <Text style={[styles.stagePct, { color: colors.textMuted }]}>24% • Physical recovery</Text>
+
+              {/* REM */}
+              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                <View style={styles.stageColorDotRow}>
+                  <View style={[styles.stageDot, { backgroundColor: '#8B5CF6' }]} />
+                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>REM Sleep</Text>
+                </View>
+                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>1h 45m</Text>
+                <Text style={[styles.stagePct, { color: colors.textMuted }]}>22% • Memory & dreams</Text>
+              </View>
             </View>
 
-            {/* REM */}
-            <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-              <View style={styles.stageColorDotRow}>
-                <View style={[styles.stageDot, { backgroundColor: '#8B5CF6' }]} />
-                <Text style={[styles.stageName, { color: colors.textSecondary }]}>REM Sleep</Text>
+            <View style={styles.stageRow}>
+              {/* Core */}
+              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                <View style={styles.stageColorDotRow}>
+                  <View style={[styles.stageDot, { backgroundColor: '#06B6D4' }]} />
+                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>Core Sleep</Text>
+                </View>
+                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>3h 41m</Text>
+                <Text style={[styles.stagePct, { color: colors.textMuted }]}>47% • Metabolic reset</Text>
               </View>
-              <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>1h 45m</Text>
-              <Text style={[styles.stagePct, { color: colors.textMuted }]}>22% • Memory & dreams</Text>
-            </View>
 
-            {/* Core */}
-            <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-              <View style={styles.stageColorDotRow}>
-                <View style={[styles.stageDot, { backgroundColor: '#06B6D4' }]} />
-                <Text style={[styles.stageName, { color: colors.textSecondary }]}>Core Sleep</Text>
+              {/* Awake */}
+              <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
+                <View style={styles.stageColorDotRow}>
+                  <View style={[styles.stageDot, { backgroundColor: '#F43F5E' }]} />
+                  <Text style={[styles.stageName, { color: colors.textSecondary }]}>Awake Time</Text>
+                </View>
+                <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>0h 30m</Text>
+                <Text style={[styles.stagePct, { color: colors.textMuted }]}>7% • Micro-arousals</Text>
               </View>
-              <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>3h 41m</Text>
-              <Text style={[styles.stagePct, { color: colors.textMuted }]}>47% • Metabolic reset</Text>
-            </View>
-
-            {/* Awake */}
-            <View style={[styles.stageItem, { backgroundColor: colors.surfaceAlt }]}>
-              <View style={styles.stageColorDotRow}>
-                <View style={[styles.stageDot, { backgroundColor: '#F43F5E' }]} />
-                <Text style={[styles.stageName, { color: colors.textSecondary }]}>Awake Time</Text>
-              </View>
-              <Text style={[styles.stageDuration, { color: colors.textPrimary }]}>0h 30m</Text>
-              <Text style={[styles.stagePct, { color: colors.textMuted }]}>7% • Micro-arousals</Text>
             </View>
           </View>
         </View>
@@ -593,12 +597,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   stageGrid: {
+    gap: 10,
+  },
+  stageRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 10,
   },
   stageItem: {
-    width: (width - 40 - 36 - 10) / 2,
+    flex: 1,
     borderRadius: 16,
     padding: 12,
   },
