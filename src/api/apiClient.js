@@ -8,7 +8,7 @@ console.log(apiUrl);
 
 
 const apiClient = axios.create({
-  baseURL: 'http://192.168.1.36:8003',
+  baseURL: 'https://api.swasthya.pro/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
